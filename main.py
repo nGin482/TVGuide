@@ -199,8 +199,6 @@ def search_bbc_channels():
                         shows_on.append({'title': title, 'channel': 'BBC First', 'time': start_time,
                                          'episode_info': False, 'episode_tag': True, 'episode_title': episode_tag,
                                          'repeat': False})
-                if 'Baptiste' in title:
-                    print('This is being printed to serve a reminder for Baptiste repeats for BBC First')
 
     for div in bbc_uktv('div', class_='event'):
         title = div.find('h3').text
@@ -318,11 +316,6 @@ def send_message(send_status):
     :param send_status:
     :return:
     """
-    # try:
-    #     print("hello")
-    # except smtplib.SMTPAuthenticationError:
-    #     print("try again")
-
     # print(os.environ.get('EMAIL'))
     if send_status:
         port = 465

@@ -340,17 +340,18 @@ def search_for_repeats(show):
     if status:
         file = read_file(show)
 
-        if 'series_num' in show.keys():
-            for season in file:
-                if season['season num'] == show['series_num']:
-                    episodes = season['episodes']
-                    for episode in episodes:
+        for season in file:
+            for episode in season['episodes']:
+                if 'episode_title' in show.keys():
+                    if episode['episode title'] == show['episode_title']:
+                                show['repeat'] = True
+                if 'series_num' in show.keys():
+                    if season['season num'] == show['series_num']:
                         if episode['episode num'] == show['episode_num']:
                             show['repeat'] = True
-        else:
-            for season in file:
-                if season['season num'] == 'Unknown':
-                    episodes = season['episodes']
-                    for episode in episodes:
-                        if episode['episode title'] == show['episode_title']:
-                            show['repeat'] = True
+        # else:
+        #     for season in file:
+        #         if season['season num'] == 'Unknown':
+        #             episodes = season['episodes']
+        #             for episode in episodes:
+        #                 
