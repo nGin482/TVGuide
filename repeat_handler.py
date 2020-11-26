@@ -20,42 +20,11 @@ def get_shows(channel, superlist):
                 sublist.append(show)
                 superlist.append(sublist)
 
-    # print('-------------------------------------------------------------------------------')
-    # prac = []
-    # misc = []
-    # for show in channel:
-    #     sublist = sorted(channel, key=lambda show_obj: show_obj['title'] if show_obj['title'] == show['title']
-    #                      else misc.append(show_obj))
-    #     print(sublist)
-    #     prac.append(sublist)
-    # print(prac)
-    # print('-------------------------------------------------------------------------------')
-    
-    # channel_sorted = sorted(channel, key=lambda show_obj: show_obj['title'])
-    # channel_list = []
-    # print(channel_sorted)
-    # print(len(channel_sorted))
-    # show_title = channel_sorted[0]['title']
-    # show_list = []
-    # for idx, s in enumerate(channel_sorted):
-    #     print(str(idx) + ': ' + str(s))
-    #     if s['title'] == show_title:
-    #         show_list.append(s)
-    #     else:
-    #         show_list = []
-    #         show_title = s['title']
-    #     channel_list.append(show_list)
-    # print('----------------------------------')
-    # for c in channel_list:
-    #     print(c)
-
 
 def convert_to_objects(superlist):
 
     json_list = []
-    # print('--------------------------------------------------------------------------------------------')
     for item in superlist:
-        # print(item)
         show_obj = Show(item[0])
         show_obj.seasons[0].create_episode(item[0])
         i = 1
@@ -75,123 +44,10 @@ def convert_to_objects(superlist):
 
             i += 1
         json_list.append(show_obj)
-    # print('--------------------------------------------------------------------------------------------')
-    # print('JSON list')
     for json_obj in json_list:
         json_obj.cleanup_unknowns()
-        # print(json_obj.to_string())
 
     return json_list
-
-# --------------------------------- FUNCTIONS BELOW THIS LINE AREN'T USED ----------------------------------------------
-
-
-def collate_file_data(info):
-
-    superlist = []
-    get_shows(info, superlist)
-
-    return superlist
-
-
-def create_files(shows):
-
-    paths = []
-    for show in shows:
-        title = show.title
-        path = os.path.join('shows', title + ".json")
-        if ':' in title:
-            idx = path.rfind(':')
-            path = path[:idx] + path[idx+1:]
-        print(path)
-        if os.path.exists(path):
-            print(title + " exists")
-        else:
-            print(title + " doesn't exist")
-            open(path, 'w+')
-        paths.append(path)
-
-    return paths
-
-
-def write_to_files(shows):
-
-    paths = create_files(shows)
-    i = 0
-    # print('--------------------------------------------------------------------------------------------')
-    for show in shows:
-        print(show.to_string())
-        print('--------------------')
-        if "GEM" not in show.title:
-            show_dict = show.to_dict()
-            seasons = show_dict['seasons']
-            with open(paths[i], 'w', encoding='utf-8') as fd:
-                json.dump(seasons, fd, ensure_ascii=False, indent=4)
-            i += 1
-
-
-def read_files():
-
-    paths = os.listdir('shows')
-    file_data = []
-    i = 0
-    while i < len(paths):
-        with open('shows/' + paths[i], 'r') as fd:
-            data = json.load(fd)
-
-        data_list = []
-        print(data)
-        title = paths[i][:-5]
-        for season in data:
-            for episode in season['episodes']:
-                obj = {
-                    'title': title,
-                    'series_num': season['season num'],
-                    'episode_num': episode['episode num'],
-                    'episode_title': episode['episode title'],
-                    'channel': episode['channels']
-                }
-                data_list.append(obj)
-
-        shows_list = collate_file_data(data_list)
-        print()
-        objects = convert_to_objects(shows_list)
-        file_data.append(objects[0])
-        i += 1
-
-    return file_data
-
-# def search_for_repeat(data):
-#     file_data = read_file()
-#     today_bbc = data['BBC']
-#     today_fta = data['FTA']
-#
-#     print(file_data)
-#     for obj in file_data:
-#         for episode in today_bbc:
-#             idx = obj.find_episode(episode)
-#             if idx[1] != -1:
-#                 obj.seasons[idx[0]].episodes[idx[1]].set_repeat()
-#                 episode['repeat'] = True
-#             elif idx[0] != -1 and idx[1] == -1:
-#                 obj.seasons[idx[0]].create_episode(episode)
-#         for episode in today_fta:
-#             idx = obj.find_episode(episode)
-#             if idx[1] != -1:
-#                 obj.seasons[idx[0]].episodes[idx[1]].set_repeat()
-#                 episode['repeat'] = True
-#             elif idx[0] != -1 and idx[1] == -1:
-#                 obj.seasons[idx[0]].create_episode(episode)
-#
-#     return file_data
-
-
-# def file_to_object(dict_obj):
-#
-#     for season in dict_obj:
-#         season_obj = Season(season)
-
-# --------------------------------- FUNCTIONS ABOVE THIS LINE AREN'T USED ----------------------------------------------
 
 
 def special_cases(show):
@@ -246,7 +102,6 @@ def read_file(show):
             json.dump(data, fd, ensure_ascii=False, indent=4)
             fd.close()
 
-    # print('********************************************')
     return data
 
 
@@ -303,8 +158,6 @@ def flag_repeats(show):
                 if episode['episode title'] == show['episode_title']:
                     found = 1
                     if episode['first air date'] != date.today().strftime('%d-%m-%y'):
-                        if 'Baptiste' in show['title']:
-                            print('This is being printed to serve a reminder for Baptiste repeats for BBC First')
                         if show['channel'] in episode['channels']:
                             episode['repeat'] = True
                         else:
@@ -317,7 +170,6 @@ def flag_repeats(show):
                                            'repeat': False})
 
     write_back_to_file({'title': show['title'], 'seasons': file})
-    # print(show['title'] + ' file written')
 
 
 def write_back_to_file(data):
@@ -349,9 +201,3 @@ def search_for_repeats(show):
                     if season['season num'] == show['series_num']:
                         if episode['episode num'] == show['episode_num']:
                             show['repeat'] = True
-        # else:
-        #     for season in file:
-        #         if season['season num'] == 'Unknown':
-        #             episodes = season['episodes']
-        #             for episode in episodes:
-        #                 
