@@ -88,7 +88,7 @@ def read_file(show):
                 'episodes': [{
                     'episode num': '',
                     'episode title': '',
-                    'channels': show['channel'],
+                    'channels': [show['channel']],
                     'first air date': date.today().strftime('%d-%m-%Y'),
                     'repeat': False
                 }]
