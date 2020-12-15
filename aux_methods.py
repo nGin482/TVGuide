@@ -119,6 +119,8 @@ def morse_episodes(guide_title):
         return 4, 1, 'The Infernal Serpent'
     if 'In Australia' in guide_title:
         return 5, 4, 'Promised Land'
+    if 'Death Is' in guide_title:
+        return 8, 3, 'Death Is Now My Neighbour'
     else:
         for season_idx, season in enumerate(morse_titles):
             for episode_idx, title in enumerate(season['Episodes']):
