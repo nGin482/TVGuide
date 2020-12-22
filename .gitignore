@@ -1,12 +1,13 @@
 # directories
 /.idea
-BackUps/
-/Project-BackUp
-shows/
-/tests
-/txt
 /venv
 /__pycache__
+/Project-BackUp
+/BackUps
+/shows
+/tests
+/txt
+/log
 
 # files
 /aux_methods.pyc
