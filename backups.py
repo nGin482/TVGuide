@@ -66,7 +66,6 @@ def move_month_files():
                 original_directory = 'BackUps/' + month + '-' + str(prev_year.year)
                 new_directory = 'BackUps/' + prev_year.strftime('%Y') + '/' + month + '-' + str(prev_year.year)
                 os.rename(original_directory, new_directory)
-                print(original_directory)
     print(calendar.month_name[0:])
 
 
