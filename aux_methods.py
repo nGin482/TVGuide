@@ -115,6 +115,8 @@ def morse_episodes(guide_title):
         {'Episodes': ['The Way Through The Woods', 'The Daughters Of Cain', 'Death Is Now My Neighbour',
                       'The Wench Is Dead', 'The Remorseful Day']}]
 
+    if 'Service Of All' in guide_title:
+        return 1, 3, 'Service Of All The Dead'
     if 'Infernal Spirit' in guide_title:
         return 4, 1, 'The Infernal Serpent'
     if 'In Australia' in guide_title:
