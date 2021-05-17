@@ -16,7 +16,6 @@ import click
 import ssl
 import os
 
-# load_dotenv()
 
 "https://epg.abctv.net.au/processed/events_Sydney_vera.json"
 "https://www.abc.net.au/tv/programs/vera/series-episode-index.json?_=1555488755177"
@@ -40,10 +39,10 @@ def find_info(url):
     text = get_page(url)
     soup = BeautifulSoup(text, 'html.parser')
 
-    for div in soup('div', class_='mask js-init-opacity-0'):
-        for article in div('article', {"id": "bbc-first"}):
+    for div in soup('body', {'id': 'schedule'}):
+        for article in div('li', class_='channel-bbc-first'):
             schedule.append(article)
-        for article in div('article', {"id": "bbc-uktv"}):
+        for article in div('li', class_='channel-bbc-first'):
             schedule.append(article)
 
     return schedule
@@ -167,7 +166,7 @@ def search_bbc_channels():
                 list will contain a dict of each show's title, start time, channel and any episode information
     """
 
-    url = 'https://www.bbcaustralia.com/tv-guide/'
+    url = 'https://www.bbcstudios.com.au/tv-guide/'
 
     schedule = find_info(url)
     bbc_first = schedule[0]
@@ -238,7 +237,7 @@ def check_site():
     :return: a dictionary of shows on, where key is based on url and value is the list of scheduled shows
     """
 
-    shows_on = {'BBC': search_bbc_channels(),
+    shows_on = {'BBC': [], # search_bbc_channels(),
                 'FTA': search_free_to_air(),
                 'Latest Vera Series': search_vera_series()
                 }
@@ -264,7 +263,7 @@ def compose_message(status):
     message_date = datetime.today().date()
     message = weekdays[message_date.weekday()] + " " + str(message_date.strftime('%d-%m-%Y')) + " TVGuide\n"
 
-    bbc_shows = search_bbc_channels()
+    bbc_shows = [] # search_bbc_channels()
     fta_shows = search_free_to_air()
 
     # Free to Air
@@ -290,7 +289,7 @@ def compose_message(status):
 
     # BBC
     message = message + "\nBBC:\n"
-    if len(bbc_shows) == 0:
+    if len(bbc_shows) == 0 or bbc_shows[0] is []:
         message = message + "Nothing on BBC today\n"
     else:
         for show in bbc_shows:
@@ -436,8 +435,8 @@ def add_to_files():
     for show in search_free_to_air():
         if 'HD' not in show['channel'] and 'GEM' not in show['channel'] and show['episode_info']:
             flag_repeats(show)
-    for show in search_bbc_channels():
-        flag_repeats(show)
+    # for show in search_bbc_channels():
+    #     flag_repeats(show)
 
 
 if __name__ == '__main__':
