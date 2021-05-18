@@ -2,20 +2,18 @@ from repeat_handler import get_shows, convert_to_objects, flag_repeats, search_f
 from log import write_to_log_file, compare_dates, delete_latest_entry
 from backups import write_to_backup_file
 from datetime import datetime, date
-# from urllib.request import urlopen
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 from aux_methods import *
 from requests import get
-# from urllib import error
 import smtplib
 import imaplib
 import email
 import click
-# import json
 import ssl
 import os
 
+load_dotenv('.env')
 
 "https://epg.abctv.net.au/processed/events_Sydney_vera.json"
 "https://www.abc.net.au/tv/programs/vera/series-episode-index.json?_=1555488755177"
@@ -313,15 +311,18 @@ def send_message(send_status):
     """
 
     :param send_status:
-    :return:
+    :return: n/a
     """
-    # print(os.environ.get('EMAIL'))
     if send_status:
         port = 465
-        pw = input("Type your password: ")
+        if os.getenv("PW") is None:
+            pw = input("Type your password: ")
+        else:
+            pw = os.getenv("PW")
+            
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
-            sender = "nGinTest259@gmail.com"
+            sender = os.getenv('EMAIL')
             receiver = sender
             try:
                 server.login(sender, pw)
