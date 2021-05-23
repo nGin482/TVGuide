@@ -8,12 +8,14 @@ from aux_methods import *
 from requests import get
 import smtplib
 import imaplib
+import discord
 import email
 import click
 import ssl
 import os
 
 load_dotenv('.env')
+client = discord.Client()
 
 "https://epg.abctv.net.au/processed/events_Sydney_vera.json"
 "https://www.abc.net.au/tv/programs/vera/series-episode-index.json?_=1555488755177"
@@ -307,37 +309,26 @@ def compose_message(status):
     return message
 
 
-def send_message(send_status):
+async def send_message(send_status):
     """
 
     :param send_status:
     :return: n/a
     """
+    message = compose_message(send_status)
+    tvguide_channel = client.get_channel(int(os.getenv('TVGUIDE_CHANNEL')))
+
+    await client.wait_until_ready()
+    await tvguide_channel.send(message)
+    await client.close()
+    
     if send_status:
-        port = 465
-        if os.getenv("PW") is None:
-            pw = input("Type your password: ")
-        else:
-            pw = os.getenv("PW")
-            
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
-            sender = os.getenv('EMAIL')
-            receiver = sender
-            try:
-                server.login(sender, pw)
-            except smtplib.SMTPAuthenticationError:
-                pw = input('The password was incorrect. Try again: ')
-                server.login(sender, pw)
-            message = "From: " + sender + " TVGuide-main.py\nTo: " + receiver + \
-                      "\nSubject: TV Guide \n\n" + compose_message(send_status)
-            server.sendmail(sender, receiver, message)
-            server.quit()
-        print(message + "\nAn email was sent")
         write_to_log_file()
         add_to_files()
-    else:
-        print(compose_message(send_status))
+
+@client.event
+async def on_ready():
+    print('Logged in as', client.user)
 
 
 def search_emails():
@@ -478,7 +469,11 @@ if __name__ == '__main__':
     #     'Inspector Morse',
     # ]
     # websites = ['https://epg.nbcu-paint.io/13au/']
-    cli()
+    # cli()
+    status = compare_dates()
+    print(status)
+    client.loop.create_task(send_message(status))
+    client.run(os.getenv('HERMES'))
 
     # add_show_to_list('Baptiste')
     # delete_latest_entry()
