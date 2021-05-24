@@ -140,13 +140,11 @@ def get_show_list():
     return shows
 
 
-def add_show_to_list():
-
-    show = input('Show: ')
+def add_show_to_list(new_show):
 
     with open('shows.txt') as fd:
         shows = fd.read().splitlines(True)
-    shows.append(show + '\n')
+    shows.append(new_show + '\n')
 
     with open('shows.txt', 'w') as fd:
         for show in shows:
