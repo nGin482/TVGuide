@@ -140,6 +140,14 @@ def get_show_list():
     return shows
 
 
+def show_list_for_message():
+    shows_from_file = get_show_list()
+    show_list = ''
+    for show in shows_from_file:
+        show_list = show_list + show + '\n'
+    return show_list
+
+
 def add_show_to_list(new_show):
 
     with open('shows.txt') as fd:
