@@ -337,6 +337,14 @@ async def send_message(send_status):
 async def on_ready():
     print('Logged in as', client.user)
 
+@client.event
+async def on_message(message):
+    if message.author == client.user:
+        return
+    if 'tv-guide' in str(message.channel):
+        if '$show-list' in message.content:
+            await message.channel.send(show_list_for_message())
+
 
 def search_emails():
     # not used, deprecated
