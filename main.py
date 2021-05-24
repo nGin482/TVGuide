@@ -344,6 +344,11 @@ async def on_message(message):
     if 'tv-guide' in str(message.channel):
         if '$show-list' in message.content:
             await message.channel.send(show_list_for_message())
+        if '$add-show' in message.content:
+            new_show = message.content.split(' ')[1]
+            add_show_to_list(new_show)
+            new_message = new_show + ' has been added to the list. The list now includes:\n' + show_list_for_message()
+            await message.channel.send(new_message)
 
 
 def search_emails():
