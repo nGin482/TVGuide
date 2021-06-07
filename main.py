@@ -318,20 +318,18 @@ async def send_message(send_status):
     message = compose_message(send_status)
     print(message)
     
-    await client.wait_until_ready()
-    tvguide_channel = client.get_channel(int(os.getenv('TVGUIDE_CHANNEL')))
-    
     if send_status:
+        await client.wait_until_ready()
+        tvguide_channel = client.get_channel(int(os.getenv('TVGUIDE_CHANNEL')))
         try:
             await tvguide_channel.send(message)
         except AttributeError:
             ngin = await client.fetch_user(int(os.getenv('NGIN')))
             await ngin.send('The channel resolved to NoneType so the message could not be sent')
-    # await client.close()
-    
-    if send_status:
         write_to_log_file()
         add_to_files()
+    
+    await client.close()
 
 @client.event
 async def on_ready():
