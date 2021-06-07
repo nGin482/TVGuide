@@ -24,7 +24,10 @@ client = discord.Client()
 def get_page(url):
     """Download the given webpage and decode it"""
 
-    fd = get(url)
+    headers = {
+        'User-Agent': 'Chrome/90.0.4430.212'
+    }
+    fd = get(url, headers=headers)
     content = fd.text
     fd.close()
 
@@ -40,9 +43,9 @@ def find_info(url):
     soup = BeautifulSoup(text, 'html.parser')
 
     for div in soup('body', {'id': 'schedule'}):
-        for article in div('li', class_='channel-bbc-first'):
+        for article in div('article', {'id': 'bbc-first'}):
             schedule.append(article)
-        for article in div('li', class_='channel-bbc-first'):
+        for article in div('article', {'id': 'bbc-uktv'}):
             schedule.append(article)
 
     return schedule
@@ -263,7 +266,7 @@ def compose_message(status):
     message_date = datetime.today().date()
     message = weekdays[message_date.weekday()] + " " + str(message_date.strftime('%d-%m-%Y')) + " TVGuide\n"
 
-    bbc_shows = [] # search_bbc_channels()
+    bbc_shows = search_bbc_channels()
     fta_shows = search_free_to_air()
 
     # Free to Air
