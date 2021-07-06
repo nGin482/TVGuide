@@ -17,8 +17,8 @@ import os
 load_dotenv('.env')
 client = discord.Client()
 
-"https://epg.abctv.net.au/processed/events_Sydney_vera.json"
-"https://www.abc.net.au/tv/programs/vera/series-episode-index.json?_=1555488755177"
+# https://epg.abctv.net.au/processed/events_Sydney_vera.json
+# https://www.abc.net.au/tv/programs/vera/series-episode-index.json?_=1555488755177
 
 
 def get_page(url):
@@ -54,16 +54,7 @@ def find_info(url):
 
 
 def find_json(url):
-    # print(response)
-    # try:
-    #     response = urlopen(url)
-    #     data = json.loads(response.read().decode())
-    # except UnicodeDecodeError:
-    #     data = get(url).json()
-    #     data = json.loads(response.read().decode(errors='ignore'))
-    #     data = json.loads(gzip.decompress(get(url).content))
     data = get(url).json()
-    # print(data)
 
     return data
 
@@ -108,7 +99,6 @@ def search_free_to_air():
                     if int(show_date[-2:]) == int(datetime.today().day):
                         show_dict['title'] = guide_show['title']
                         show_dict['channel'] = item['channel']
-                        # print(guide_show['start_time'][-8:-3])
                         show_dict['time'] = datetime.strptime(guide_show['start_time'][-8:-3], '%H:%M')
                         show_dict['episode_info'] = False
                         if 'series_num' in guide_show.keys() and 'episode_num' in guide_show.keys():
@@ -186,7 +176,6 @@ def search_bbc_channels():
                     if 'Series' in episode_tag:
                         series_num = episode_tag[7:8]
                         episode_num = episode_tag[-1:]
-                        # print("Series: " + series_num + " Episode " + episode_num)
 
                         start_time = div.find('time').text[:7]
                         start_time = datetime.strptime(format_time(start_time), '%H:%M')
@@ -278,17 +267,17 @@ def compose_message(status):
             if status is True and show['episode_info']:
                 search_for_repeats(show)
             time = show['time'].strftime('%H:%M')
-            message = message + time + ': ' + show['title'] + " is on " + show['channel'] + "\n"
+            message = message + time + ': ' + show['title'] + " is on " + show['channel'] + "\n\n"
             if show['episode_info']:
                 if 'series_num' in show.keys() and 'episode_num' in show.keys():
-                    message = message[:-1] + " (Season " + str(show['series_num']) + ", Episode " + \
-                              str(show['episode_num']) + ")\n"
+                    message = message[:-2] + " (Season " + str(show['series_num']) + ", Episode " + \
+                              str(show['episode_num']) + ")\n\n"
                     if 'episode_title' in show.keys():
-                        message = message[:-2] + ": " + show['episode_title'] + ")\n"
+                        message = message[:-2] + ": " + show['episode_title'] + ")\n\n"
                 if 'episode_title' in show.keys() and 'series_num' not in show.keys():
-                    message = message[:-1] + " (" + show['episode_title'] + ")\n"
+                    message = message[:-2] + " (" + show['episode_title'] + ")\n\n"
             if show['repeat']:
-                message = message[:-1] + "(Repeat)\n"
+                message = message[:-2] + "(Repeat)\n\n"
 
     # BBC
     message = message + "\nBBC:\n"
@@ -301,13 +290,12 @@ def compose_message(status):
             time = show['time'].strftime('%H:%M')
             if show['episode_info']:
                 message = message + time + ": " + show['title'] + " is on " + show['channel'] + \
-                          " (Series " + show['series_num'] + ", Episode " + show['episode_num'] + ")\n"
+                          " (Series " + show['series_num'] + ", Episode " + show['episode_num'] + ")\n\n"
             else:
                 message = message + time + ": " + show['title'] + " is on " + show['channel'] + \
-                          " (" + show['episode_title'] + ")\n"
+                          " (" + show['episode_title'] + ")\n\n"
             if show['repeat']:
-                message = message[:-1] + "(Repeat)\n"
-    # message = message + "\nThe latest Vera series on the ABC is " + str(shows_on['Latest Vera Series'])
+                message = message[:-2] + "(Repeat)\n"
 
     return message
 
@@ -350,44 +338,6 @@ async def on_message(message):
             add_show_to_list(new_show)
             new_message = new_show + ' has been added to the list. The list now includes:\n' + show_list_for_message()
             await message.channel.send(new_message)
-
-
-def search_emails():
-    # not used, deprecated
-
-    address = 'nGinTest259@gmail.com'
-    pw = input('Password: ')
-
-    mail = imaplib.IMAP4_SSL('imap.gmail.com')
-
-    mail.login(address, pw)
-    mail.select('Inbox')
-
-    search = '(SINCE "' + date.strftime(date.today(), '%d-%b-%Y') + '")'
-    print(search)
-    response, data = mail.search(None, search)
-    print(data)
-    mail_ids = data[0]
-
-    id_list = mail_ids.split()
-    print(id_list)
-    if len(id_list) == 0:
-        return True
-    else:
-        latest_id = id_list[-1]
-
-    data = mail.fetch(latest_id, '(RFC822)')
-    for response_part in data:
-        if isinstance(response_part[0], tuple):
-            msg = email.message_from_string(response_part[0][1].decode('utf-8'))
-            if date.strftime(date.today(), '%d-%m-%Y') + ' TVGuide' not in str(msg):
-                mail.logout()
-                return True
-            else:
-                mail.logout()
-                return False
-
-    # email headers --> https://pymotw.com/2/imaplib/#whole-messages
 
 
 @click.group()
@@ -448,49 +398,11 @@ def add_to_files():
     for show in search_free_to_air():
         if 'HD' not in show['channel'] and 'GEM' not in show['channel'] and show['episode_info']:
             flag_repeats(show)
-    # for show in search_bbc_channels():
-    #     flag_repeats(show)
+    for show in search_bbc_channels():
+        flag_repeats(show)
 
 
 if __name__ == '__main__':
-    # findInfo('https://www.abc.net.au/tv/epg/index.html#')
-    # findInfo('https://www.abc.net.au/tv/programs/vera/#/episode/ZW1684A001S00')
-    # findJSON('https://www.abc.net.au/tv/epg/index.html#')
-    # findJSON('https://www.abc.net.au/tv/programs/vera/series-episode-index.json?_=1555488755177')
-    # findJSON('https://epg.nbcu-paint.io/13au/18-04-2019.json')
-    # print(findJSON('https://epg.nbcu-paint.io/13au/18-04-2019.json')[0])
-    # searchVeraSeries('https://www.abc.net.au/tv/programs/vera/series-episode-index.json?_=1555488755177')
-    # print()
-    # print("===============================")
-    # search13thStreet('https://epg.nbcu-paint.io/13au/')
-    # print("===============================")
-    # findInfo('https://www.bbcaustralia.com/tv-guide/')
-    # print("===============================")
-    # searchFreeToAir('https://epg.abctv.net.au/processed/Sydney_')
-    # print("===============================")
-    # searchBBCChannels('https://www.bbcaustralia.com/tv-guide/')
-
-    # shows = [
-    #     'Vera',
-    #     'Endeavour',
-    #     'Lewis',
-    #     'Maigret',
-    #     'Unforgotten',
-    #     'Death in Paradise',
-    #     'Death In Paradise',
-    #     'Shetland',
-    #     'NCIS',
-    #     'NCIS: Los Angeles',
-    #     'Mock The Week',
-    #     'No Offence',
-    #     'Mad As Hell',
-    #     'Grantchester',
-    #     'Doctor Who',
-    #     'Transformers',
-    #     'Inspector Morse',
-    # ]
-    # websites = ['https://epg.nbcu-paint.io/13au/']
-    # cli()
     status = compare_dates()
     print(status)
     client.loop.create_task(send_message(status))
