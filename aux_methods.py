@@ -157,3 +157,19 @@ def add_show_to_list(new_show):
     with open('shows.txt', 'w') as fd:
         for show in shows:
             fd.write(show)
+
+
+def remove_show_from_list(show):
+
+    with open('shows.txt') as fd:
+        shows = fd.read().splitlines(False)
+    
+    try:
+        shows.remove(show)
+
+        with open('shows.txt', 'w') as fd:
+            for show in shows:
+                fd.write(show + '\n')
+        return {'status': 'Success'}
+    except ValueError:
+        return {'status': 'Failure', 'message': 'The show given was not found in the list.'}
