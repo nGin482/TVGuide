@@ -164,12 +164,12 @@ def remove_show_from_list(show):
     with open('shows.txt') as fd:
         shows = fd.read().splitlines(False)
     
-    try:
+    if show in shows:
         shows.remove(show)
 
         with open('shows.txt', 'w') as fd:
             for show in shows:
                 fd.write(show + '\n')
-        return {'status': 'Success'}
-    except ValueError:
-        return {'status': 'Failure', 'message': 'The show given was not found in the list.'}
+        return {'status': True}
+    else:
+        return {'status': False, 'message': show + ' was not found in the list.'}

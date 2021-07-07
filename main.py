@@ -339,12 +339,12 @@ async def on_message(message):
             new_message = new_show + ' has been added to the list. The list now includes:\n' + show_list_for_message()
             await message.channel.send(new_message)
         if '$remove-show' in message.content:
-            show_to_remove = message.content.split(' ')[1]
+            show_to_remove = message.content[message.content.index('-show')+6:]
             remove_show = remove_show_from_list(show_to_remove)
             if remove_show['status']:
                 reply = show_to_remove + ' has been removed from the list. The list now includes:\n' + show_list_for_message()
             else:
-                reply = show_to_remove + ' has not been removed from the list. The list remains as:\n' + show_list_for_message()
+                reply = remove_show['message'] + ' The list remains as:\n' + show_list_for_message()
             await message.channel.send(reply)
 
 
@@ -413,7 +413,7 @@ def add_to_files():
 if __name__ == '__main__':
     status = compare_dates()
     print(status)
-    client.loop.create_task(send_message(status))
+    # client.loop.create_task(send_message(status))
     client.run(os.getenv('HERMES'))
 
     # add_show_to_list('Baptiste')
