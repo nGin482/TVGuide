@@ -273,7 +273,7 @@ def compose_message(status):
                     message = message[:-2] + " (Season " + str(show['series_num']) + ", Episode " + \
                               str(show['episode_num']) + ")\n\n"
                     if 'episode_title' in show.keys():
-                        message = message[:-2] + ": " + show['episode_title'] + ")\n\n"
+                        message = message[:-3] + ": " + show['episode_title'] + ")\n\n"
                 if 'episode_title' in show.keys() and 'series_num' not in show.keys():
                     message = message[:-2] + " (" + show['episode_title'] + ")\n\n"
             if show['repeat']:
@@ -295,7 +295,7 @@ def compose_message(status):
                 message = message + time + ": " + show['title'] + " is on " + show['channel'] + \
                           " (" + show['episode_title'] + ")\n\n"
             if show['repeat']:
-                message = message[:-2] + "(Repeat)\n"
+                message = message[:-2] + "(Repeat)\n\n"
 
     return message
 
