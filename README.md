@@ -28,5 +28,9 @@ If one is found, the following information is collected:
   - Baptiste
 
 ## To Do List
-1. Set reminders
-2. Deploy
+1. Reorganise how the show listings are collected and stored
+  - See if the repeat handler can be improved
+  - When the requests are made and the information gathered, the data will be stored in a JSON file /similar/ to those in backups - for the current day
+  - This JSON file will be used by the reminders and once the requests are made again, the current JSON file will be moved to /backups
+2. Set reminders
+3. Deploy
