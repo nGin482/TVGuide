@@ -26,3 +26,7 @@ If one is found, the following information is collected:
   - Transformers
   - Inspector Morse
   - Baptiste
+
+## To Do List
+1. Set reminders
+2. Deploy
