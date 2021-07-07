@@ -6,10 +6,7 @@ from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 from aux_methods import *
 from requests import get
-import smtplib
-import imaplib
 import discord
-import email
 import click
 import ssl
 import os
@@ -413,7 +410,7 @@ def add_to_files():
 if __name__ == '__main__':
     status = compare_dates()
     print(status)
-    # client.loop.create_task(send_message(status))
+    client.loop.create_task(send_message(status))
     client.run(os.getenv('HERMES'))
 
     # add_show_to_list('Baptiste')
