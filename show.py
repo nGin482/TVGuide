@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 
 class Show:
@@ -173,6 +173,7 @@ class Season:
         episode.set_episode_num(obj)
         episode.set_episode_title(obj)
         episode.add_channel(obj['channel'])
+        episode.set_time_shown(obj['time'])
         self.episodes.append(episode)
 
 
@@ -181,6 +182,7 @@ class Episode:
         self.episode_num = ''
         self.episode_title = ''
         self.channels = []
+        self.time = ''
         self.first_air_date = date.strftime(date.today(), '%d-%m-%Y')
         self.repeat = False
 
@@ -206,6 +208,9 @@ class Episode:
         else:
             if channel not in self.channels:
                 self.channels.append(channel)
+    
+    def set_time_shown(self, time):
+        self.time = datetime.strftime(time, '%H:%M')
 
     def set_repeat(self):
         self.__setattr__('repeat', True)
@@ -215,6 +220,7 @@ class Episode:
             'episode num': self.episode_num,
             'episode title': self.episode_title,
             'channels': self.channels,
+            'time': self.time,
             'first air date': self.first_air_date,
             'repeat': self.repeat
         }
