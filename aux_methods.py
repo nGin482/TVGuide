@@ -1,3 +1,7 @@
+from datetime import date
+import json
+import os
+
 def format_time(time):
     """
     format a show's start time to 24 hour time
@@ -173,3 +177,17 @@ def remove_show_from_list(show):
         return {'status': True}
     else:
         return {'status': False, 'message': show + ' was not found in the list.'}
+
+
+def write_to_today_file(today_viewing):
+    viewing_list = []
+
+    for show in today_viewing:
+        viewing_list.append(show.to_dict())
+
+    if not os.path.isdir('today_viewings'):
+        os.mkdir('today_viewings')
+
+    filename = 'today_viewings/' + date.strftime(date.today(), '%d-%m-%Y') + '.json'
+    with open(filename, 'w+', encoding='utf-8') as fd:
+        json.dump(viewing_list, fd, ensure_ascii=False, indent=4)
