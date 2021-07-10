@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 from aux_methods import *
 from requests import get
+from reminders import *
 import discord
 import click
 import ssl
@@ -398,8 +399,10 @@ def collate_today_data():
 
 def add_to_files():
 
-    data = convert_to_objects(collate_today_data())
-    write_to_backup_file(data)
+    todays_viewings = convert_to_objects(collate_today_data())
+    write_to_backup_file(todays_viewings)
+    write_to_today_file(todays_viewings)
+    
     for show in search_free_to_air():
         if 'HD' not in show['channel'] and 'GEM' not in show['channel'] and show['episode_info']:
             flag_repeats(show)
