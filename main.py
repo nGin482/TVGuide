@@ -226,7 +226,7 @@ def check_site():
     :return: a dictionary of shows on, where key is based on url and value is the list of scheduled shows
     """
 
-    shows_on = {'BBC': [], # search_bbc_channels(),
+    shows_on = {'BBC': search_bbc_channels(),
                 'FTA': search_free_to_air(),
                 'Latest Vera Series': search_vera_series()
                 }
@@ -390,8 +390,8 @@ def collate_today_data():
     superlist = []
     data = check_site()
 
-    get_shows(data['BBC'], superlist)
     get_shows(data['FTA'], superlist)
+    get_shows(data['BBC'], superlist)
 
     return superlist
 
