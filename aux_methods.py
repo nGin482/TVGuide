@@ -188,6 +188,17 @@ def write_to_today_file(today_viewing):
     if not os.path.isdir('today_viewings'):
         os.mkdir('today_viewings')
 
+    files = {
+        'count': 0,
+        'filenames': []
+    }
+    for filename in os.listdir('today_viewings'):
+        files['count'] += 1
+        
+    if files['count'] >= 1:
+        if os.path.exists('today_viewings/' + files['filenames'][0]):
+            os.remove('today_viewings/' + files['filenames'][0])
+
     filename = 'today_viewings/' + date.strftime(date.today(), '%d-%m-%Y') + '.json'
     with open(filename, 'w+', encoding='utf-8') as fd:
         json.dump(viewing_list, fd, ensure_ascii=False, indent=4)
