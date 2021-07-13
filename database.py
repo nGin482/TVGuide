@@ -45,9 +45,9 @@ def insert_into_showlist_collection(show):
 def remove_show_from_list(show_to_remove):
     try:
         showlist_collection().delete_one({'show': show_to_remove})
-        return {'status': True, 'message': show_to_remove + ' has been removed from the show list.', 'error': e}
+        return {'status': True, 'message': show_to_remove + ' has been removed from the show list.'}
     except errors.PyMongoError as e:
-        return {'status': False, 'message': ' There was a problem removing ' + show_to_remove + ' from the show list.'}
+        return {'status': False, 'message': ' There was a problem removing ' + show_to_remove + ' from the show list.', 'error': e}
 
 
 # Handlers for all recorded data for each show
