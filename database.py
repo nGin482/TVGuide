@@ -1,5 +1,8 @@
-from pymongo import MongoClient
+from pymongo import MongoClient, errors
 import os
+
+
+# Connection to MongoDB database/Cluster
 
 def client():
     client = MongoClient(os.getenv('TVGUIDE_DB'))
@@ -8,6 +11,9 @@ def client():
 def database():
     db = client().tvguide
     return db
+
+
+# Handlers for the Show List collection - All shows being searched for
 
 def showlist_collection():
     showlist = database().ShowList
@@ -33,19 +39,25 @@ def insert_into_showlist_collection(show):
         }
         showlist_collection().insert_one(show_document)
         return {'status': True, 'message': show + ' has been added to the show list.'}
-    except Exception:
-        return {'status': False, 'message': ' There was a problem adding ' + show + ' to the show list.'}
+    except errors.PyMongoError as e:
+        return {'status': False, 'message': ' There was a problem adding ' + show + ' to the show list.', 'error': e}
 
 def remove_show_from_list(show_to_remove):
     try:
         showlist_collection().delete_one({'show': show_to_remove})
-        return {'status': True, 'message': show_to_remove + ' has been removed from the show list.'}
-    except Exception:
+        return {'status': True, 'message': show_to_remove + ' has been removed from the show list.', 'error': e}
+    except errors.PyMongoError as e:
         return {'status': False, 'message': ' There was a problem removing ' + show_to_remove + ' from the show list.'}
+
+
+# Handlers for all recorded data for each show
 
 def recorded_shows_collection():
     recorded_shows = database().RecordedShows
     return recorded_shows
+
+
+# Handlers for the reminders
 
 def reminder_collection():
     reminders = database().Reminders
