@@ -1,4 +1,5 @@
 from pymongo import MongoClient, errors
+from datetime import date
 import json
 import os
 
@@ -69,6 +70,36 @@ def get_one_recorded_show(show):
         if show == recorded_show['show']:
             return {'status': True, 'show': recorded_show}
     return {'status': False, 'message': 'It does not look like this show has been recorded. Are you sure the show given is correct and is being recorded?'}
+
+def insert_new_recorded_show(new_show):
+
+    # check if insert is successful
+    
+    recorded_show_document = {
+        'show': new_show['title'],
+        'seasons': []
+    }
+    season_object = {
+        'season number': 'Unknown',
+        'episodes': [
+            {
+                'episode number': '',
+                'episode title': '',
+                'channels': [new_show['channel']],
+                'first air date': date.today().strftime('%d-%m-%Y'),
+                'repeat': False
+            }
+        ]
+    }
+    if 'series_num' in new_show.keys():
+        season_object['season number'] = new_show['series_num']
+        season_object['episodes'][0]['episode number'] = new_show['episode_num']
+    if 'episode_title' in new_show.keys():
+        season_object['episodes'][0]['episode title'] = new_show['episode_title']
+    
+    recorded_show_document['seasons'].append(season_object)
+    print(recorded_show_document)
+    recorded_shows_collection().insert_one(recorded_show_document)
 
 
 # Handlers for the reminders
