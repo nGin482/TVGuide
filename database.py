@@ -1,4 +1,5 @@
 from pymongo import MongoClient, errors
+import json
 import os
 
 
@@ -55,6 +56,19 @@ def remove_show_from_list(show_to_remove):
 def recorded_shows_collection():
     recorded_shows = database().RecordedShows
     return recorded_shows
+
+def get_all_recorded_shows():
+    all_recored_shows = []
+    for recorded_show in recorded_shows_collection().find():
+        all_recored_shows.append(recorded_show)
+    return all_recored_shows
+
+def get_one_recorded_show(show):
+    recorded_shows = get_all_recorded_shows()
+    for recorded_show in recorded_shows:
+        if show == recorded_show['show']:
+            return {'status': True, 'show': recorded_show}
+    return {'status': False, 'message': 'It does not look like this show has been recorded. Are you sure the show given is correct and is being recorded?'}
 
 
 # Handlers for the reminders
