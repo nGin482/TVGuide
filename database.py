@@ -101,6 +101,27 @@ def insert_new_recorded_show(new_show):
     print(recorded_show_document)
     recorded_shows_collection().insert_one(recorded_show_document)
 
+def insert_new_season(show):
+    season_object = {
+        'season number': 'Unknown',
+        'episodes': [
+            {
+                'episode number': '',
+                'episode title': '',
+                'channels': [show['channel']],
+                'first air date': date.today().strftime('%d-%m-%Y'),
+                'repeat': False
+            }
+        ]
+    }
+    if 'series_num' in show.keys():
+        season_object['season number'] = show['series_num']
+        season_object['episodes'][0]['episode number'] = show['episode_num']
+    if 'episode_title' in show.keys():
+        season_object['episodes'][0]['episode title'] = show['episode_title']
+
+    recorded_shows_collection().update({'show': show['title']}, {'$push': {'seasons': season_object}})
+
 
 # Handlers for the reminders
 
