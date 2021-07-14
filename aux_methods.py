@@ -194,10 +194,11 @@ def write_to_today_file(today_viewing):
     }
     for filename in os.listdir('today_viewings'):
         files['count'] += 1
+        files['filenames'].append('today_viewings/' + filename)
         
     if files['count'] >= 1:
-        if os.path.exists('today_viewings/' + files['filenames'][0]):
-            os.remove('today_viewings/' + files['filenames'][0])
+        if os.path.exists(files['filenames'][0]):
+            os.remove(files['filenames'][0])
 
     filename = 'today_viewings/' + date.strftime(date.today(), '%d-%m-%Y') + '.json'
     with open(filename, 'w+', encoding='utf-8') as fd:
