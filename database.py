@@ -122,6 +122,29 @@ def insert_new_season(show):
 
     recorded_shows_collection().update({'show': show['title']}, {'$push': {'seasons': season_object}})
 
+def insert_new_episode(show):
+    episode_object = {
+        'episode number': '',
+        'episode title': '',
+        'channels': [show['channel']],
+        'first air date': date.today().strftime('%d-%m-%Y'),
+        'repeat': False
+    }
+
+    if 'episode_num' in show.keys():
+        episode_object['episode number'] = show['episode_num']
+    if 'episode_title' in show.keys():
+        episode_object['episode title'] = show['episode_title']
+
+    try:
+        if 'series_num' in show.keys():
+            recorded_shows_collection().update({'show': show['title'], 'seasons.season number': show['series_num']}, {'$push': {'seasons.$.episodes': episode_object}})
+        else:
+            recorded_shows_collection().update({'show': show['title'], 'seasons': 'Unknown'}, {'$push': {'episodes': episode_object}})
+    except errors.WriteError as err:
+        return {'status': False, 'message': 'An error occurred when trying to update this show.', 'error': err}
+
+
 
 # Handlers for the reminders
 
