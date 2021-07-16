@@ -141,8 +141,9 @@ def insert_new_episode(show):
             recorded_shows_collection().update({'show': show['title'], 'seasons.season number': show['series_num']}, {'$push': {'seasons.$.episodes': episode_object}})
         else:
             recorded_shows_collection().update({'show': show['title'], 'seasons': 'Unknown'}, {'$push': {'episodes': episode_object}})
+        return {'status': True, 'message': 'The episode has been added to ' + show['title'] + "'s list of episodes."}
     except errors.WriteError as err:
-        return {'status': False, 'message': 'An error occurred when trying to update this show.', 'error': err}
+        return {'status': False, 'message': 'An error occurred when trying to add this episode.', 'error': err}
 
 
 
