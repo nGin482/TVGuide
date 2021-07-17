@@ -241,16 +241,16 @@ def add_channel(show):
         return {'status': False, 'message': 'The channel given is already listed.'}
 
 def check_channel(show):
-    result = recorded_shows_collection().find_one(
-        {'show': show['title']}
-    )['seasons']
+    recorded_show = get_one_recorded_show(show['title'])
+    if recorded_show['status']:
+        result = recorded_show['show']['seasons']
     
     if 'series_num' in show.keys():
         season = list(filter(lambda season: season['season number'] == show['series_num'], result))[0]
         episode = list(filter(lambda episode: episode['episode number'] == show['episode_num'], season['episodes']))[0]
     else:
-        season = list(filter(lambda season: season['season number'] == 'Unknown', updated_show['seasons']))[0]
-        episode = list(filter(lambda episode: episode['episode title'] == show['episode_title'], updated_season['episodes']))[0]
+        season = list(filter(lambda season: season['season number'] == 'Unknown', result))[0]
+        episode = list(filter(lambda episode: episode['episode title'] == show['episode_title'], season['episodes']))[0]
     
     if show['channel'] in episode['channels']:
         return True
