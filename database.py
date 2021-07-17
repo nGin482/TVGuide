@@ -75,9 +75,9 @@ def insert_new_recorded_show(new_show):
 
     # check if insert is successful
     
-    check_show = get_one_recorded_show(new['title'])
+    check_show = get_one_recorded_show(new_show['title'])
     if check_show['status']:
-        return {'status': False, 'message': 'This show is already being recorded'}
+        return {'status': False, 'message': 'This show is already being recorded.'}
     else:    
         recorded_show_document = {
             'show': new_show['title'],
@@ -106,23 +106,28 @@ def insert_new_recorded_show(new_show):
         recorded_shows_collection().insert_one(recorded_show_document)
 
 def insert_new_season(show):
-    season_object = {
-        'season number': 'Unknown',
-        'episodes': [
-            {
-                'episode number': '',
-                'episode title': '',
-                'channels': [show['channel']],
-                'first air date': date.today().strftime('%d-%m-%Y'),
-                'repeat': False
-            }
-        ]
-    }
-    if 'series_num' in show.keys():
-        season_object['season number'] = show['series_num']
-        season_object['episodes'][0]['episode number'] = show['episode_num']
-    if 'episode_title' in show.keys():
-        season_object['episodes'][0]['episode title'] = show['episode_title']
+    season_check = check_season(show)
+    
+    if not season_check['status']:
+        return season_check
+    else:
+        season_object = {
+            'season number': 'Unknown',
+            'episodes': [
+                {
+                    'episode number': '',
+                    'episode title': '',
+                    'channels': [show['channel']],
+                    'first air date': date.today().strftime('%d-%m-%Y'),
+                    'repeat': False
+                }
+            ]
+        }
+        if 'series_num' in show.keys():
+            season_object['season number'] = show['series_num']
+            season_object['episodes'][0]['episode number'] = show['episode_num']
+        if 'episode_title' in show.keys():
+            season_object['episodes'][0]['episode title'] = show['episode_title']
 
     recorded_shows_collection().update({'show': show['title']}, {'$push': {'seasons': season_object}})
 
@@ -243,6 +248,24 @@ def add_channel(show):
             return {'status': False, 'message': 'An error occurred when trying to mark this episode as a repeat.', 'error': err}
     else:
         return {'status': False, 'message': 'The channel given is already listed.'}
+
+def check_season(show):
+    recorded_show = get_one_recorded_show(show['title'])
+    if recorded_show['status']:
+        seasons = recorded_show['show']['seasons']
+
+        if 'series_num' in show.keys():
+            season_to_check = show['series_num']
+            season_check = list(filter(lambda season: season['season number'] == show['series_num'], seasons))
+        else:
+            season_to_check = 'Unknown'
+            season_check = list(filter(lambda season: season['season number'] == 'Unknown', seasons))
+        
+        if len(season_check) > 0:
+            return {'status': False, 'message': 'This season has already been listed.', 'season': season_to_check}
+        else:
+            return {'status': True}
+            
 
 def check_channel(show):
     recorded_show = get_one_recorded_show(show['title'])
