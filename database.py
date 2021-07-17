@@ -168,7 +168,7 @@ def mark_as_repeat(show):
             else:
                 return {'status': False, 'message': 'The episode has not been marked as a repeat.'}
         else:
-            update = recorded_shows_collection().find_one_and_update(
+            updated_show = recorded_shows_collection().find_one_and_update(
                 {'show': show['title']},
                 {'$set': {'seasons.$[season].episodes.$[episode].repeat': True}},
                 upsert = False,
@@ -178,7 +178,7 @@ def mark_as_repeat(show):
                 ],
                 return_document = ReturnDocument.AFTER
             )
-            updated_season = list(filter(lambda season: season['season number'] == 'unknown', updated_show['seasons']))[0]
+            updated_season = list(filter(lambda season: season['season number'] == 'Unknown', updated_show['seasons']))[0]
             updated_episode = list(filter(lambda episode: episode['episode title'] == show['episode_title'], updated_season['episodes']))[0]
             
             if updated_episode['repeat']:
@@ -189,6 +189,73 @@ def mark_as_repeat(show):
         return {'status': False, 'message': 'An error occurred when trying to mark this episode as a repeat.', 'error': err}
     except TypeError as err:
         return {'status': False, 'message': 'An error occurred when trying to mark this episode as a repeat.', 'error': err}
+
+def add_channel(show):
+
+    if not check_channel(show):
+        try:
+            if 'series_num' in show.keys():
+                updated_show = recorded_shows_collection().find_one_and_update(
+                    {'show': show['title']},
+                    {'$push': {'seasons.$[season].episodes.$[episode].channels': show['channel']}},
+                    upsert = True,
+                    array_filters = [
+                        {'season.season number': show['series_num']},
+                        {'episode.episode number': show['episode_num']}
+                    ],
+                    return_document = ReturnDocument.AFTER
+                )
+                
+                updated_season = list(filter(lambda season: season['season number'] == show['series_num'], updated_show['seasons']))[0]
+                updated_episode = list(filter(lambda episode: episode['episode number'] == show['episode_num'], updated_season['episodes']))[0]
+                
+                if show['channel'] in updated_episode['channels']:
+                    return {'status': True, 'message': 'The channel has been added to the list for this episode.', 'episode': updated_episode}
+                else:
+                    return {'status': False, 'message': 'The channel has not been added.'}
+            else:
+                updated_show = recorded_shows_collection().find_one_and_update(
+                    {'show': show['title']},
+                    {'$push': {'seasons.$[season].episodes.$[episode].channels': show['channel']}},
+                    upsert = True,
+                    array_filters = [
+                        {'season.season number': 'Unknown'},
+                        {'episode.episode title': show['episode_title']}
+                    ],
+                    return_document = ReturnDocument.AFTER
+                )
+                updated_season = list(filter(lambda season: season['season number'] == 'Unknown', updated_show['seasons']))[0]
+                updated_episode = list(filter(lambda episode: episode['episode title'] == show['episode_title'], updated_season['episodes']))[0]
+                
+                if show['channel'] in updated_episode['channels']:
+                    return {'status': True, 'message': 'The channel has been added to the list for this episode.', 'episode': updated_episode}
+                else:
+                    return {'status': False, 'message': 'The channel has not been added.'}
+        except errors.WriteError as err:
+            return {'status': False, 'message': 'An error occurred when trying to mark this episode as a repeat.', 'error': err}
+        except errors.OperationFailure as err:
+            return {'status': False, 'message': 'An error occurred when trying to mark this episode as a repeat.', 'error': err}
+        except TypeError as err:
+            return {'status': False, 'message': 'An error occurred when trying to mark this episode as a repeat.', 'error': err}
+    else:
+        return {'status': False, 'message': 'The channel given is already listed.'}
+
+def check_channel(show):
+    result = recorded_shows_collection().find_one(
+        {'show': show['title']}
+    )['seasons']
+    
+    if 'series_num' in show.keys():
+        season = list(filter(lambda season: season['season number'] == show['series_num'], result))[0]
+        episode = list(filter(lambda episode: episode['episode number'] == show['episode_num'], season['episodes']))[0]
+    else:
+        season = list(filter(lambda season: season['season number'] == 'Unknown', updated_show['seasons']))[0]
+        episode = list(filter(lambda episode: episode['episode title'] == show['episode_title'], updated_season['episodes']))[0]
+    
+    if show['channel'] in episode['channels']:
+        return True
+    else:
+        return False
 
 
 # Handlers for the reminders
