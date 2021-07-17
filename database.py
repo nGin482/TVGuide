@@ -1,4 +1,4 @@
-from pymongo import MongoClient, errors
+from pymongo import MongoClient, errors, ReturnDocument
 from datetime import date
 import json
 import os
@@ -145,6 +145,50 @@ def insert_new_episode(show):
     except errors.WriteError as err:
         return {'status': False, 'message': 'An error occurred when trying to add this episode.', 'error': err}
 
+def mark_as_repeat(show):
+    
+    try:
+        if 'series_num' in show.keys():
+            updated_show = recorded_shows_collection().find_one_and_update(
+                {'show': show['title']},
+                {'$set': {'seasons.$[season].episodes.$[episode].repeat': True}},
+                upsert = False,
+                array_filters = [
+                    {'season.season number': show['series_num']},
+                    {'episode.episode number': show['episode_num']}
+                ],
+                return_document = ReturnDocument.AFTER
+            )
+            
+            updated_season = list(filter(lambda season: season['season number'] == show['series_num'], updated_show['seasons']))[0]
+            updated_episode = list(filter(lambda episode: episode['episode number'] == show['episode_num'], updated_season['episodes']))[0]
+            
+            if updated_episode['repeat']:
+                return {'status': True, 'message': 'The episode has been marked as a repeat.', 'episode': updated_episode}
+            else:
+                return {'status': False, 'message': 'The episode has not been marked as a repeat.'}
+        else:
+            update = recorded_shows_collection().find_one_and_update(
+                {'show': show['title']},
+                {'$set': {'seasons.$[season].episodes.$[episode].repeat': True}},
+                upsert = False,
+                array_filters = [
+                    {'season.season number': 'Unknown'},
+                    {'episode.episode title': show['episode title']}
+                ],
+                return_document = ReturnDocument.AFTER
+            )
+            updated_season = list(filter(lambda season: season['season number'] == 'unknown', updated_show['seasons']))[0]
+            updated_episode = list(filter(lambda episode: episode['episode title'] == show['episode_title'], updated_season['episodes']))[0]
+            
+            if updated_episode['repeat']:
+                return {'status': True, 'message': 'The episode has been marked as a repeat.', 'episode': updated_episode}
+            else:
+                return {'status': False, 'message': 'The episode has not been marked as a repeat.'}
+    except errors.WriteError as err:
+        return {'status': False, 'message': 'An error occurred when trying to mark this episode as a repeat.', 'error': err}
+    except TypeError as err:
+        return {'status': False, 'message': 'An error occurred when trying to mark this episode as a repeat.', 'error': err}
 
 
 # Handlers for the reminders
