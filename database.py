@@ -132,27 +132,32 @@ def insert_new_season(show):
     recorded_shows_collection().update({'show': show['title']}, {'$push': {'seasons': season_object}})
 
 def insert_new_episode(show):
-    episode_object = {
-        'episode number': '',
-        'episode title': '',
-        'channels': [show['channel']],
-        'first air date': date.today().strftime('%d-%m-%Y'),
-        'repeat': False
-    }
+    episode_check = check_episode(show)
+    
+    if not episode_check['status']:
+        return episode_check
+    else:
+        episode_object = {
+            'episode number': '',
+            'episode title': '',
+            'channels': [show['channel']],
+            'first air date': date.today().strftime('%d-%m-%Y'),
+            'repeat': False
+        }
 
-    if 'episode_num' in show.keys():
-        episode_object['episode number'] = show['episode_num']
-    if 'episode_title' in show.keys():
-        episode_object['episode title'] = show['episode_title']
+        if 'episode_num' in show.keys():
+            episode_object['episode number'] = show['episode_num']
+        if 'episode_title' in show.keys():
+            episode_object['episode title'] = show['episode_title']
 
-    try:
-        if 'series_num' in show.keys():
-            recorded_shows_collection().update({'show': show['title'], 'seasons.season number': show['series_num']}, {'$push': {'seasons.$.episodes': episode_object}})
-        else:
-            recorded_shows_collection().update({'show': show['title'], 'seasons': 'Unknown'}, {'$push': {'episodes': episode_object}})
-        return {'status': True, 'message': 'The episode has been added to ' + show['title'] + "'s list of episodes."}
-    except errors.WriteError as err:
-        return {'status': False, 'message': 'An error occurred when trying to add this episode.', 'error': err}
+        try:
+            if 'series_num' in show.keys():
+                recorded_shows_collection().update({'show': show['title'], 'seasons.season number': show['series_num']}, {'$push': {'seasons.$.episodes': episode_object}})
+            else:
+                recorded_shows_collection().update({'show': show['title'], 'seasons': 'Unknown'}, {'$push': {'episodes': episode_object}})
+            return {'status': True, 'message': 'The episode has been added to ' + show['title'] + "'s list of episodes."}
+        except errors.WriteError as err:
+            return {'status': False, 'message': 'An error occurred when trying to add this episode.', 'error': err}
 
 def mark_as_repeat(show):
     
@@ -265,6 +270,33 @@ def check_season(show):
             return {'status': False, 'message': 'This season has already been listed.', 'season': season_to_check}
         else:
             return {'status': True}
+
+def check_episode(show):
+    recorded_show_check = get_one_recorded_show(show['title'])
+    if recorded_show_check['status']:
+        seasons = recorded_show_check['show']['seasons']
+
+        if 'episode_num' in show.keys():
+            episode_to_check = show['episode_num']
+
+            season_check = list(filter(lambda season: season['season number'] == show['series_num'], seasons))[0]
+            episode_check = list(filter(lambda episode: episode['episode number'] == episode_to_check, season_check['episodes']))
+        else:
+            episode_to_check = show['episode_title']
+
+            season_check = list(filter(lambda season: season['season number'] == 'Unknown', seasons))[0]
+            episode_check = list(filter(lambda episode: episode['episode title'] == episode_to_check, season_check['episodes']))
+        
+        if len(episode_check) > 0:
+            if 'episode_num' in show.keys():
+                episode_for_message = 'Season ' + show['series_num'] + ', Episode ' + show['episode_num']
+            else:
+                episode_for_message = show['episode_title']
+            return {'status': False, 'message': 'This episode has already been listed.', 'episode': episode_for_message}
+        else:
+            return {'status': True}
+    else:
+        return recorded_show_check
             
 
 def check_channel(show):
