@@ -142,7 +142,7 @@ def insert_new_season(show):
     if len(new_season) > 0:
         return {'status': True, 'message': 'The season was added to ' + show['title'] + '.', 'season': inserted_season['seasons'][-1]}
     else:
-        return {'status': False, 'message': 'The show was not added to ' + show['title'] + '.', 'season': inserted_season}
+        return {'status': False, 'message': 'The season was not added to ' + show['title'] + '.', 'season': inserted_season}
 
 def insert_new_episode(show):
     episode_check = check_episode(show)
@@ -165,10 +165,33 @@ def insert_new_episode(show):
 
         try:
             if 'series_num' in show.keys():
-                recorded_shows_collection().update({'show': show['title'], 'seasons.season number': show['series_num']}, {'$push': {'seasons.$.episodes': episode_object}})
+                inserted_episode = recorded_shows_collection().find_one_and_update(
+                    {'show': show['title'], 'seasons.season number': show['series_num']},
+                    {'$push': {'seasons.$.episodes': episode_object}},
+                    return_document=ReturnDocument.AFTER
+                )
+
+                season = list(filter(lambda season: season['season number'] == show['series_num'], inserted_episode['seasons']))
+                new_episode = list(filter(lambda episode: episode['episode number'] == show['episode_num'], season[0]['episodes']))
+
+                if len(new_episode) > 0:
+                    return {'status': True, 'message': 'The episode was added to ' + show['title'] + '.', 'episode_list': season[0]['episodes']}
+                else:
+                    return {'status': False, 'message': 'The episode was not added to ' + show['title'] + '.', 'episode': episode_object}
             else:
-                recorded_shows_collection().update({'show': show['title'], 'seasons': 'Unknown'}, {'$push': {'episodes': episode_object}})
-            return {'status': True, 'message': 'The episode has been added to ' + show['title'] + "'s list of episodes."}
+                inserted_episode = recorded_shows_collection().find_one_and_update(
+                    {'show': show['title'], 'seasons.season number': 'Unknown'},
+                    {'$push': {'seasons.$.episodes': episode_object}},
+                    return_document=ReturnDocument.AFTER    
+                )
+
+                seasons = list(filter(lambda season: season['season number'] == 'Unknown', inserted_episode['seasons']))
+                episode = list(filter(lambda episode: episode['episode title'] == show['episode_title'], seasons[0]['episodes']))
+
+                if len(episode) > 0:
+                    return {'status': True, 'message': 'The episode was added to ' + show['title'] + '.', 'episode': seasons[0]['episodes'][-1]}
+                else:
+                    return {'status': False, 'message': 'The episode was not added to ' + show['title'] + '.', 'episode': episode_object}
         except errors.WriteError as err:
             return {'status': False, 'message': 'An error occurred when trying to add this episode.', 'error': err}
 
