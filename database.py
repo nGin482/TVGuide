@@ -1,4 +1,5 @@
 from pymongo import MongoClient, errors, ReturnDocument
+from aux_methods import check_season, check_episode, check_channel
 from datetime import date
 import json
 import os
@@ -395,68 +396,6 @@ def remove_recorded_episode(show):
             return {'status': False, 'message': 'The episode has not been removed from the database.', 'episode': removed_episode}
     else:
         return check_for_episode
-
-def check_season(show):
-    recorded_show = get_one_recorded_show(show['title'])
-    if recorded_show['status']:
-        seasons = recorded_show['show']['seasons']
-
-        if 'series_num' in show.keys():
-            season_to_check = show['series_num']
-            season_check = list(filter(lambda season: season['season number'] == show['series_num'], seasons))
-        else:
-            season_to_check = 'Unknown'
-            season_check = list(filter(lambda season: season['season number'] == 'Unknown', seasons))
-        
-        if len(season_check) > 0:
-            return {'status': True, 'message': 'This season has already been listed.', 'season': season_to_check}
-        else:
-            return {'status': False}
-
-def check_episode(show):
-    recorded_show_check = get_one_recorded_show(show['title'])
-    if recorded_show_check['status']:
-        seasons = recorded_show_check['show']['seasons']
-
-        if 'episode_num' in show.keys():
-            episode_to_check = show['episode_num']
-
-            season_check = list(filter(lambda season: season['season number'] == show['series_num'], seasons))[0]
-            episode_check = list(filter(lambda episode: episode['episode number'] == episode_to_check, season_check['episodes']))
-        else:
-            episode_to_check = show['episode_title']
-
-            season_check = list(filter(lambda season: season['season number'] == 'Unknown', seasons))[0]
-            episode_check = list(filter(lambda episode: episode['episode title'] == episode_to_check, season_check['episodes']))
-        
-        if len(episode_check) > 0:
-            if 'episode_num' in show.keys():
-                episode_for_message = 'Season ' + show['series_num'] + ', Episode ' + show['episode_num']
-            else:
-                episode_for_message = show['episode_title']
-            return {'status': True, 'message': 'This episode has already been listed.', 'episode': episode_for_message}
-        else:
-            return {'status': False}
-    else:
-        return recorded_show_check
-            
-
-def check_channel(show):
-    recorded_show = get_one_recorded_show(show['title'])
-    if recorded_show['status']:
-        result = recorded_show['show']['seasons']
-    
-    if 'series_num' in show.keys():
-        season = list(filter(lambda season: season['season number'] == show['series_num'], result))[0]
-        episode = list(filter(lambda episode: episode['episode number'] == show['episode_num'], season['episodes']))[0]
-    else:
-        season = list(filter(lambda season: season['season number'] == 'Unknown', result))[0]
-        episode = list(filter(lambda episode: episode['episode title'] == show['episode_title'], season['episodes']))[0]
-    
-    if show['channel'] in episode['channels']:
-        return True
-    else:
-        return False
 
 
 # Handlers for the reminders
