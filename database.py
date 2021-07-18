@@ -103,7 +103,11 @@ def insert_new_recorded_show(new_show):
 
         recorded_show_document['seasons'].append(season_object)
         print(recorded_show_document)
-        recorded_shows_collection().insert_one(recorded_show_document)
+        inserted_show = recorded_shows_collection().insert_one(recorded_show_document)
+        if inserted_show.inserted_id:
+            return {'status': True, 'message': 'The show is now being recorded.', 'show': recorded_show_document}
+        else:
+            return {'status': False, 'message': 'The show was not able to be recorded.', 'show': recorded_show_document}
 
 def insert_new_season(show):
     season_check = check_season(show)
