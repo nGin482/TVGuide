@@ -112,7 +112,7 @@ def insert_new_recorded_show(new_show):
 def insert_new_season(show):
     season_check = check_season(show)
     
-    if not season_check['status']:
+    if season_check['status']:
         return season_check
     else:
         season_object = {
@@ -138,7 +138,11 @@ def insert_new_season(show):
         {'$push': {'seasons': season_object}},
         return_document=ReturnDocument.AFTER
     )
-    new_season = list(filter(lambda season: season['season number'] == show['series_num'], inserted_season['seasons']))
+    if 'series_num' in show.keys():
+        new_season = list(filter(lambda season: season['season number'] == show['series_num'], inserted_season['seasons']))
+    else:
+        new_season = list(filter(lambda season: season['season number'] == 'Unknown', inserted_season['seasons']))
+        
     if len(new_season) > 0:
         return {'status': True, 'message': 'The season was added to ' + show['title'] + '.', 'season': inserted_season['seasons'][-1]}
     else:
@@ -303,9 +307,40 @@ def delete_recorded_show(show):
         if check_again['status'] is False:
             return {'status': True, 'message': show['title'] + ' is no longer in the database.', 'show': deleted_show}
         else:
-            print()
             return {'status': False, 'message': show['title'] + ' has not been removed from the database.', 'show': deleted_show}
-            
+
+def remove_recorded_season(show):
+    check_for_season = check_season(show)
+    if check_for_season['status']:
+        if 'series_num' in show.keys():
+            try:
+                removed_season = recorded_shows_collection().find_one_and_update(
+                    {'show': show['title']},
+                    {'$pull': {'seasons': {'season number': show['series_num']}}},
+                    return_document = ReturnDocument.AFTER
+                )
+            except errors.OperationFailure as err:
+                return {'status': False, 'message': 'An error occurred when trying to remove this season.', 'error': err}
+        elif 'season number' in show.keys():
+            removed_season = recorded_shows_collection().find_one_and_update(
+                {'show': show['title']},
+                {'$pull': {'seasons': {'season number': show['season number']}}},
+                return_document = ReturnDocument.AFTER
+            )
+        else:
+            removed_season = recorded_shows_collection().find_one_and_update(
+                {'show': show['title']},
+                {'$pull': {'seasons': {'season number': 'Unknown'}}},
+                return_document = ReturnDocument.AFTER
+            )
+        
+        check_again = check_season(show)
+        if check_again['status'] is False:
+            return {'status': True, 'message': 'The season has been removed from the database.', 'season': removed_season}
+        else:
+            return {'status': False, 'message': 'The season has not been removed from the database.', 'season': removed_season}
+    else:
+        return check_for_season
 
 def check_season(show):
     recorded_show = get_one_recorded_show(show['title'])
@@ -320,9 +355,9 @@ def check_season(show):
             season_check = list(filter(lambda season: season['season number'] == 'Unknown', seasons))
         
         if len(season_check) > 0:
-            return {'status': False, 'message': 'This season has already been listed.', 'season': season_to_check}
+            return {'status': True, 'message': 'This season has already been listed.', 'season': season_to_check}
         else:
-            return {'status': True}
+            return {'status': False}
 
 def check_episode(show):
     recorded_show_check = get_one_recorded_show(show['title'])
