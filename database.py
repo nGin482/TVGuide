@@ -151,7 +151,7 @@ def insert_new_season(show):
 def insert_new_episode(show):
     episode_check = check_episode(show)
     
-    if not episode_check['status']:
+    if episode_check['status']:
         return episode_check
     else:
         episode_object = {
@@ -322,17 +322,23 @@ def remove_recorded_season(show):
             except errors.OperationFailure as err:
                 return {'status': False, 'message': 'An error occurred when trying to remove this season.', 'error': err}
         elif 'season number' in show.keys():
-            removed_season = recorded_shows_collection().find_one_and_update(
-                {'show': show['title']},
-                {'$pull': {'seasons': {'season number': show['season number']}}},
-                return_document = ReturnDocument.AFTER
-            )
+            try:
+                removed_season = recorded_shows_collection().find_one_and_update(
+                    {'show': show['title']},
+                    {'$pull': {'seasons': {'season number': show['season number']}}},
+                    return_document = ReturnDocument.AFTER
+                )
+            except errors.OperationFailure as err:
+                return {'status': False, 'message': 'An error occurred when trying to remove this season.', 'error': err}            
         else:
-            removed_season = recorded_shows_collection().find_one_and_update(
-                {'show': show['title']},
-                {'$pull': {'seasons': {'season number': 'Unknown'}}},
-                return_document = ReturnDocument.AFTER
-            )
+            try:
+                removed_season = recorded_shows_collection().find_one_and_update(
+                    {'show': show['title']},
+                    {'$pull': {'seasons': {'season number': 'Unknown'}}},
+                    return_document = ReturnDocument.AFTER
+                )
+            except errors.OperationFailure as err:
+                return {'status': False, 'message': 'An error occurred when trying to remove this season.', 'error': err}
         
         check_again = check_season(show)
         if check_again['status'] is False:
@@ -341,6 +347,54 @@ def remove_recorded_season(show):
             return {'status': False, 'message': 'The season has not been removed from the database.', 'season': removed_season}
     else:
         return check_for_season
+
+def remove_recorded_episode(show):
+    check_for_episode = check_episode(show)
+    if check_for_episode['status']:
+        if 'episode_num' in show.keys():
+            try:
+                removed_episode = recorded_shows_collection().find_one_and_update(
+                    {'show': show['title']},
+                    {'$pull': {'seasons.$[season].episodes': {'episode number': show['episode_num']}}},
+                    array_filters = [
+                        {'season.season number': show['series_num']}
+                    ],
+                    return_document = ReturnDocument.AFTER
+                )
+            except errors.OperationFailure as err:
+                return {'status': False, 'message': 'An error occurred when trying to remove this episode.', 'error': err}
+        elif 'episode number' in show.keys():
+            try:
+                removed_episode = recorded_shows_collection().find_one_and_update(
+                    {'show': show['title']},
+                    {'$pull': {'seasons.$[season].episodes': {'episode number': show['episode number']}}},
+                    array_filters = [
+                        {'season.season number': show['series_num']}
+                    ],
+                    return_document = ReturnDocument.AFTER
+                )
+            except errors.OperationFailure as err:
+                return {'status': False, 'message': 'An error occurred when trying to remove this episode.', 'error': err}
+        else:
+            try:
+                removed_episode = recorded_shows_collection().find_one_and_update(
+                    {'show': show['title']},
+                    {'$pull': {'seasons.$[season].episodes': {'episode title': show['episode_title']}}},
+                    array_filters = [
+                        {'season.season number': 'Unknown'}
+                    ],
+                    return_document = ReturnDocument.AFTER
+                )
+            except errors.OperationFailure as err:
+                return {'status': False, 'message': 'An error occurred when trying to remove this episode.', 'error': err}
+        
+        check_again = check_episode(show)
+        if check_again['status'] is False:
+            return {'status': True, 'message': 'The episode has been removed from the database.', 'episode': removed_episode}
+        else:
+            return {'status': False, 'message': 'The episode has not been removed from the database.', 'episode': removed_episode}
+    else:
+        return check_for_episode
 
 def check_season(show):
     recorded_show = get_one_recorded_show(show['title'])
@@ -380,9 +434,9 @@ def check_episode(show):
                 episode_for_message = 'Season ' + show['series_num'] + ', Episode ' + show['episode_num']
             else:
                 episode_for_message = show['episode_title']
-            return {'status': False, 'message': 'This episode has already been listed.', 'episode': episode_for_message}
+            return {'status': True, 'message': 'This episode has already been listed.', 'episode': episode_for_message}
         else:
-            return {'status': True}
+            return {'status': False}
     else:
         return recorded_show_check
             
