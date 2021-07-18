@@ -133,7 +133,16 @@ def insert_new_season(show):
         if 'episode_title' in show.keys():
             season_object['episodes'][0]['episode title'] = show['episode_title']
 
-    recorded_shows_collection().update({'show': show['title']}, {'$push': {'seasons': season_object}})
+    inserted_season = recorded_shows_collection().find_one_and_update(
+        {'show': show['title']},
+        {'$push': {'seasons': season_object}},
+        return_document=ReturnDocument.AFTER
+    )
+    new_season = list(filter(lambda season: season['season number'] == show['series_num'], inserted_season['seasons']))
+    if len(new_season) > 0:
+        return {'status': True, 'message': 'The season was added to ' + show['title'] + '.', 'season': inserted_season['seasons'][-1]}
+    else:
+        return {'status': False, 'message': 'The show was not added to ' + show['title'] + '.', 'season': inserted_season}
 
 def insert_new_episode(show):
     episode_check = check_episode(show)
