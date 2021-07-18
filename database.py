@@ -78,7 +78,7 @@ def insert_new_recorded_show(new_show):
     check_show = get_one_recorded_show(new_show['title'])
     if check_show['status']:
         return {'status': False, 'message': 'This show is already being recorded.'}
-    else:    
+    else:
         recorded_show_document = {
             'show': new_show['title'],
             'seasons': []
@@ -289,6 +289,23 @@ def add_channel(show):
             return {'status': False, 'message': 'An error occurred when trying to mark this episode as a repeat.', 'error': err}
     else:
         return {'status': False, 'message': 'The channel given is already listed.'}
+
+def delete_recorded_show(show):
+    check_show = get_one_recorded_show(show['title'])
+
+    if not check_show['status']:
+        return {'status': False, 'message': show['title'] + ' can not be found in the database.'}
+    else:
+        deleted_show = recorded_shows_collection().find_one_and_delete(
+            {'show': show['title']},
+        )
+        check_again = get_one_recorded_show(show['title'])
+        if check_again['status'] is False:
+            return {'status': True, 'message': show['title'] + ' is no longer in the database.', 'show': deleted_show}
+        else:
+            print()
+            return {'status': False, 'message': show['title'] + ' has not been removed from the database.', 'show': deleted_show}
+            
 
 def check_season(show):
     recorded_show = get_one_recorded_show(show['title'])
