@@ -1,5 +1,4 @@
 from pymongo import MongoClient, errors, ReturnDocument
-from aux_methods import check_season, check_episode, check_channel
 from datetime import date
 import json
 import os
@@ -396,6 +395,63 @@ def remove_recorded_episode(show):
             return {'status': False, 'message': 'The episode has not been removed from the database.', 'episode': removed_episode}
     else:
         return check_for_episode
+
+def remove_recorded_channel(show):
+    check_for_channel = check_channel(show)
+    if check_for_channel:
+        if 'series_num' in show.keys():
+            try:
+                removed_channel = recorded_shows_collection().find_one_and_update(
+                    {'show': show['title']},
+                    {'$pull': {'seasons.$[season].episodes.$[episode].channels': show['channel']}},
+                    array_filters = [
+                        {'season.season number': show['series_num']},
+                        {'episode.episode number': show['episode_num']},
+                    ],
+                    return_document = ReturnDocument.AFTER
+                )
+                updated_season = list(filter(lambda season: season['season number'] == show['series_num'], removed_channel['seasons']))[0]
+                updated_episode = list(filter(lambda episode: episode['episode number'] == show['episode_num'], updated_season['episodes']))[0]
+            except errors.OperationFailure as err:
+                return {'status': False, 'message': 'An error occurred when trying to remove this channel.', 'error': err}
+        elif 'season number' in show.keys():
+            try:
+                removed_channel = recorded_shows_collection().find_one_and_update(
+                    {'show': show['title']},
+                    {'$pull': {'seasons.$[season].episodes.$[episode].channels': show['channel']}},
+                    array_filters = [
+                        {'season.season number': show['series number']},
+                        {'episode.episode number': show['episode number']},
+                    ],
+                    return_document = ReturnDocument.AFTER
+                )
+                updated_season = list(filter(lambda season: season['season number'] == show['season number'], removed_channel['seasons']))[0]
+                updated_episode = list(filter(lambda episode: episode['episode number'] == show['episode number'], updated_season['episodes']))[0]
+            except errors.OperationFailure as err:
+                return {'status': False, 'message': 'An error occurred when trying to remove this channel.', 'error': err}
+        else:
+            try:
+                removed_channel = recorded_shows_collection().find_one_and_update(
+                    {'show': show['title']},
+                    {'$pull': {'seasons.$[season].episodes.$[episode].channels': show['channel']}},
+                    array_filters = [
+                        {'season.season number': 'Unknown'},
+                        {'episode.episode title': show['episode_title']},
+                    ],
+                    return_document = ReturnDocument.AFTER
+                )
+                updated_season = list(filter(lambda season: season['season number'] == 'Unknown', removed_channel['seasons']))[0]
+                updated_episode = list(filter(lambda episode: episode['episode title'] == show['episode_title'], updated_season['episodes']))[0]
+            except errors.OperationFailure as err:
+                return {'status': False, 'message': 'An error occurred when trying to remove this channel.', 'error': err}
+        
+        check_again = check_channel(show)
+        if check_again is False:
+            return {'status': True, 'message': 'The channel has been removed from the database.', 'channel': updated_episode}
+        else:
+            return {'status': False, 'message': 'The channel has not been removed from the database.', 'channel': updated_episode}
+    else:
+        return check_for_channel
 
 
 # Handlers for the reminders
