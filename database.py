@@ -522,6 +522,22 @@ def reminders_collection():
     reminders = database().Reminders
     return reminders
 
+def get_all_reminders():
+    reminders = []
+    for reminder in reminders_collection().find():
+        reminders.append(reminder)
+    return reminders
+
+def get_one_reminder(show):
+    reminders = get_all_reminders()
+    
+    matched_reminders = list(filter(lambda reminder_object: reminder_object['show'] == show, reminders))
+    
+    if len(matched_reminders) > 0:
+        return {'status': True, 'reminder': matched_reminders[0]}
+    else:
+        return {'status': False, 'message': 'There is no reminder for this show.'}
+
 def create_reminder(reminder_settings):
     
     if 'reminder time' not in reminder_settings.keys():
