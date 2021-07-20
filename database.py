@@ -518,6 +518,23 @@ def check_channel(show):
 
 # Handlers for the reminders
 
-def reminder_collection():
+def reminders_collection():
     reminders = database().Reminders
     return reminders
+
+def create_reminder(reminder_settings):
+    
+    if 'reminder time' not in reminder_settings.keys():
+        reminder_settings['reminder time'] = '3 mins before'
+        
+    if 'show' in reminder_settings.keys() and 'reminder time' in reminder_settings.keys() and 'setting' in reminder_settings.keys():
+        try:
+            reminder = reminders_collection().insert_one(reminder_settings)
+        except errors.WriteError as err:
+            return {'status': False, 'message': 'An error occurred while setting the reminder for ' + reminder_settings['show'] + '.', 'error': err}
+        if reminder.inserted_id:
+            return {'status': True, 'message': 'The reminder has been set for ' + reminder_settings['show'] + '.', 'reminder': reminder_settings}
+        else:
+            return {'status': False, 'message': 'The reminder was not able to be set for ' + reminder_settings['show'] + '.', 'reminder': reminder_settings}
+    else:
+        return {'status': False, 'message': 'The settings given to create this reminder are invalid because required information is missing.'}
