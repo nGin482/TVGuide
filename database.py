@@ -554,3 +554,23 @@ def create_reminder(reminder_settings):
             return {'status': False, 'message': 'The reminder was not able to be set for ' + reminder_settings['show'] + '.', 'reminder': reminder_settings}
     else:
         return {'status': False, 'message': 'The settings given to create this reminder are invalid because required information is missing.'}
+
+def edit_reminder(reminder):
+    from aux_methods import valid_reminder_fields
+
+    check_reminder = get_one_reminder(reminder['show'])
+    if check_reminder['status']:
+        if reminder['field'] not in valid_reminder_fields():
+            return {'status': False, 'message': 'The field given is not a valid reminder field. Therefore, the reminder cannot be updated.'}
+        else:
+            updated_reminder = reminders_collection().find_one_and_update(
+                {'show': reminder['show']},
+                {'$set': {reminder['field']: reminder['value']}},
+                return_document = ReturnDocument.AFTER
+            )
+            if updated_reminder[reminder['field']] == reminder['value']:
+                return {'status': True, 'message': 'The reminder has been updated.', 'reminder': updated_reminder}
+            else:
+                return {'status': False, 'message': 'The reminder has not been updated.'}
+    else:
+        return {'status': False, 'message': 'A reminder has not been set for ' + reminder['show'] + '.'}
