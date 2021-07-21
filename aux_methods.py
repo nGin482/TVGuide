@@ -204,3 +204,6 @@ def write_to_today_file(today_viewing):
     filename = 'today_viewings/' + date.strftime(date.today(), '%d-%m-%Y') + '.json'
     with open(filename, 'w+', encoding='utf-8') as fd:
         json.dump(viewing_list, fd, ensure_ascii=False, indent=4)
+
+def valid_reminder_fields():
+    return ['show', 'reminder time', 'interval']
