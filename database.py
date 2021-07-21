@@ -543,7 +543,7 @@ def create_reminder(reminder_settings):
     if 'reminder time' not in reminder_settings.keys():
         reminder_settings['reminder time'] = '3 mins before'
         
-    if 'show' in reminder_settings.keys() and 'reminder time' in reminder_settings.keys() and 'setting' in reminder_settings.keys():
+    if 'show' in reminder_settings.keys() and 'reminder time' in reminder_settings.keys() and 'interval' in reminder_settings.keys():
         try:
             reminder = reminders_collection().insert_one(reminder_settings)
         except errors.WriteError as err:
@@ -574,3 +574,17 @@ def edit_reminder(reminder):
                 return {'status': False, 'message': 'The reminder has not been updated.'}
     else:
         return {'status': False, 'message': 'A reminder has not been set for ' + reminder['show'] + '.'}
+
+def remove_reminder(show):
+    check_remidner = get_one_reminder(show)
+    if check_remidner['status']:
+        deleted_reminder = reminders_collection().find_one_and_delete(
+            {'show': show}
+        )
+        check_again = get_one_reminder(show)
+        if not check_again['status']:
+            return {'status': True, 'message': 'The reminder for ' + show + ' has been removed.', 'reminder': deleted_reminder}
+        else:
+            return {'status': False, 'message': 'The reminder for ' + show + ' was not removed.'}
+    else:
+        return {'status': False, 'message': 'There is no remidner available for ' + show + '.'}
