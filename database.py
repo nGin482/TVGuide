@@ -284,7 +284,7 @@ def add_channel(show):
                 if show['channel'] in updated_episode['channels']:
                     return {'status': True, 'message': 'The channel has been added to the list for this episode.', 'episode': updated_episode}
                 else:
-                    return {'status': False, 'message': 'The channel has not been added.'}
+                    return {'status': False, 'message': 'The channel has not been added.', 'episode': show}
         except errors.WriteError as err:
             return {'status': False, 'message': 'An error occurred when trying to mark this episode as a repeat.', 'error': err, 'episode': show}
         except errors.OperationFailure as err:
