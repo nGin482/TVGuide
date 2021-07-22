@@ -224,14 +224,6 @@ def search_for_repeats(show):
         status = True
 
     if status:
-        file = read_file(show)
-
-        for season in file:
-            for episode in season['episodes']:
-                if 'episode_title' in show.keys():
-                    if episode['episode title'] == show['episode_title']:
-                                show['repeat'] = True
-                if 'series_num' in show.keys():
-                    if season['season num'] == show['series_num']:
-                        if episode['episode num'] == show['episode_num']:
-                            show['repeat'] = True
+        check_episode = find_recorded_episode(show)
+        if check_episode['status']:
+            show['repeat'] = True
