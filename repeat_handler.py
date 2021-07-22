@@ -194,11 +194,9 @@ def find_recorded_episode(show):
                 if len(episode_recorded) > 0:
                     return {'status': True, 'episode': episode_recorded[0]}
                 else:
-                    insert_episode = insert_new_episode(show)
-                    return {'status': False, 'episode': insert_episode}
+                    return {'status': False, 'level': 'Episode'}
             else:
-                insert_season = insert_new_season(show)
-                return {'status': False, 'episode': insert_season}
+                return {'status': False, 'level': 'Season'}
         else:
             show_season = list(filter(lambda season: season['season number'] == 'Unknown', show_information['seasons']))
             if len(show_season) > 0:
@@ -206,14 +204,11 @@ def find_recorded_episode(show):
                 if len(episode_recorded) > 0:
                     return {'status': True, 'episode': episode_recorded[0]}
                 else:
-                    insert_episode = insert_new_episode(show)
-                    return {'status': False, 'episode': insert_episode}
+                    return {'status': False, 'level': 'Episode'}
             else:
-                insert_season = insert_new_season(show)
-                return {'status': False, 'episode': insert_season}
+                return {'status': False, 'level': 'Season'}
     else:
-        insert_show = insert_new_recorded_show(show)
-        return {'status': False, 'show': insert_show}
+        return {'status': False, 'level': 'Show'}
 
 
 def search_for_repeats(show):
