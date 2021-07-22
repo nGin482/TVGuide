@@ -220,7 +220,7 @@ def mark_as_repeat(show):
             if updated_episode['repeat']:
                 return {'status': True, 'message': 'The episode has been marked as a repeat.', 'episode': updated_episode}
             else:
-                return {'status': False, 'message': 'The episode has not been marked as a repeat.'}
+                return {'status': False, 'message': 'The episode has not been marked as a repeat.', 'episode': show}
         else:
             updated_show = recorded_shows_collection().find_one_and_update(
                 {'show': show['title']},
@@ -238,11 +238,11 @@ def mark_as_repeat(show):
             if updated_episode['repeat']:
                 return {'status': True, 'message': 'The episode has been marked as a repeat.', 'episode': updated_episode}
             else:
-                return {'status': False, 'message': 'The episode has not been marked as a repeat.'}
+                return {'status': False, 'message': 'The episode has not been marked as a repeat.', 'episode': show}
     except errors.WriteError as err:
-        return {'status': False, 'message': 'An error occurred when trying to mark this episode as a repeat.', 'error': err}
+        return {'status': False, 'message': 'An error occurred when trying to mark this episode as a repeat.', 'error': err, 'episode': show}
     except TypeError as err:
-        return {'status': False, 'message': 'An error occurred when trying to mark this episode as a repeat.', 'error': err}
+        return {'status': False, 'message': 'An error occurred when trying to mark this episode as a repeat.', 'error': err, 'episode': show}
 
 def add_channel(show):
 
