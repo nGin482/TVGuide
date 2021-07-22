@@ -1,5 +1,6 @@
 from show import Show, Season, Episode
 from datetime import date
+from database import get_one_recorded_show, insert_new_recorded_show, insert_new_season, insert_new_episode
 import json
 import os
 
@@ -180,6 +181,39 @@ def write_back_to_file(data):
         title = title[:idx] + title[idx+1:]
     with open('shows/' + title + '.json', 'w', encoding='utf-8') as fd:
         json.dump(data['seasons'], fd, ensure_ascii=False, indent=4)
+
+
+def find_recorded_episode(show):
+    check_show = get_one_recorded_show(show['title'])
+    if check_show['status']:
+        show_information = check_show['show']
+        if 'series_num' in show.keys():
+            show_season = list(filter(lambda season: season['season number'] == show['series_num'], show_information['seasons']))
+            if len(show_season) > 0:
+                episode_recorded = list(filter(lambda season: season['episode number'] == show['episode_num'], show_season[0]['episodes']))
+                if len(episode_recorded) > 0:
+                    return {'status': True, 'episode': episode_recorded[0]}
+                else:
+                    insert_episode = insert_new_episode(show)
+                    return {'status': False, 'episode': insert_episode}
+            else:
+                insert_season = insert_new_season(show)
+                return {'status': False, 'episode': insert_season}
+        else:
+            show_season = list(filter(lambda season: season['season number'] == 'Unknown', show_information['seasons']))
+            if len(show_season) > 0:
+                episode_recorded = list(filter(lambda season: season['episode title'] == show['episode_title'], show_season[0]['episodes']))
+                if len(episode_recorded) > 0:
+                    return {'status': True, 'episode': episode_recorded[0]}
+                else:
+                    insert_episode = insert_new_episode(show)
+                    return {'status': False, 'episode': insert_episode}
+            else:
+                insert_season = insert_new_season(show)
+                return {'status': False, 'episode': insert_season}
+    else:
+        insert_show = insert_new_recorded_show(show)
+        return {'status': False, 'show': insert_show}
 
 
 def search_for_repeats(show):
