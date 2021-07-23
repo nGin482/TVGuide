@@ -207,3 +207,18 @@ def write_to_today_file(today_viewing):
 
 def valid_reminder_fields():
     return ['show', 'reminder time', 'interval']
+
+def check_show_titles(show):
+    if 'Maigret' in show['title']:
+        return 'Maigret'
+    if 'Revenge Of The Fallen' in show['title'] or 'Dark Of The Moon' in show['title'] \
+            or 'Age of Extinction' in show['title'] or 'The Last Knight' in show['title']:
+        return 'Transformers'
+    elif show['title'] == 'Transformers':
+        return 'Transformers'
+    else:
+        title = show['title']
+        if ':' in title:
+            idx = title.rfind(':')
+            title = title[:idx] + title[idx+1:]
+        return title
