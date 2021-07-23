@@ -228,7 +228,7 @@ def mark_as_repeat(show):
                 upsert = False,
                 array_filters = [
                     {'season.season number': 'Unknown'},
-                    {'episode.episode title': show['episode title']}
+                    {'episode.episode title': show['episode_title']}
                 ],
                 return_document = ReturnDocument.AFTER
             )
