@@ -179,7 +179,7 @@ def insert_new_episode(show):
                 new_episode = list(filter(lambda episode: episode['episode number'] == show['episode_num'], season[0]['episodes']))
 
                 if len(new_episode) > 0:
-                    return {'status': True, 'message': 'The episode was added to ' + show['title'] + '.', 'episode_list': season[0]['episodes']}
+                    return {'status': True, 'message': 'The episode was added to ' + show['title'] + '.', 'episode_list': season[0]['episodes'][-1]}
                 else:
                     return {'status': False, 'message': 'The episode was not added to ' + show['title'] + '.', 'episode': episode_object}
             else:
