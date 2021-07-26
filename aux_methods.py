@@ -222,3 +222,42 @@ def check_show_titles(show):
             idx = title.rfind(':')
             title = title[:idx] + title[idx+1:]
         return title
+
+def doctor_who_episodes(show_title):
+    if show_title == 'Doctor Who':
+        return show_title
+    
+    tennant_specials = ['The Next Doctor', 'Planet of the Dead', 'The Waters of Mars', 'The End of Time - Part 1', 'The End of Time - Part 2']
+    smith_specials = ['The Snowmen', 'The Day of the Doctor', 'The Time of the Doctor']
+
+    if 'Doctor Who: ' in show_title:
+        index = show_title.index(': ')
+        show_title = show_title[index+2:]
+    for idx, tennant_special in enumerate(tennant_specials):
+        if show_title in tennant_special:
+            return 'Tennant Specials', idx+1, tennant_special
+    for idx, smith_special in enumerate(smith_specials):
+        if show_title in smith_special:
+            return 'Smith Specials', idx+1, smith_special
+    
+    if 'Christmas Invasion' in show_title:
+        return 2, 0, 'The Christmas Invasion'
+    elif 'Runaway Bride' in show_title:
+        return 3, 0, 'The Runaway Bride'
+    elif 'Voyage of the Damned' in show_title:
+        return 4, 0, 'Voyage of the Damned'
+    elif 'Christmas Carol' in show_title:
+        return 6, 0, 'A Christmas Carol'
+    elif 'Wardobe' in show_title:
+        return 7, 0, 'The Doctor, the Widow and the Wardobe'
+    elif 'Last Christmas' in show_title:
+        return 9, 0, 'Last Christmas'
+    elif 'Husbands of River Song' in show_title:
+        return 9, 13, 'The Husbands of River Song'
+    elif 'Return of Doctor Mysterio' in show_title:
+        return 10, 0, 'The Return of Doctor Mysterio'
+    elif 'Twice Upon a Time' in show_title:
+        return 10, 13, 'Twice Upon a Time'
+    else:
+        return show_title
+    

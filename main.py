@@ -117,8 +117,12 @@ def search_free_to_air():
         if 'New Orleans' in show['title']:
             remove_idx.append(idx)
         if 'Doctor Who' in show['title']:
-            if show['title'] != 'Doctor Who':
-                remove_idx.append(idx)
+            check_dw_title = doctor_who_episodes(show['title'])
+            if show['title'] != check_dw_title:
+                show['title'] = 'Doctor Who'
+                show['series_num'] = str(check_dw_title[0])
+                show['episode_num'] = str(check_dw_title[1])
+                show['episode_title'] = check_dw_title[2]
         if 'Vera' in show['title']:
             if show['title'] != 'Vera':
                 remove_idx.append(idx)
