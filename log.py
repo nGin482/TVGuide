@@ -1,4 +1,5 @@
 from datetime import datetime as dt
+import json
 
 
 def get_date_from_latest_email():
@@ -71,3 +72,19 @@ def delete_latest_entry():
 
     with open('log/emails.txt', 'w') as fd:
         fd.write(backup)
+
+def read_events():
+    try:
+        with open('log/events.json') as fd:
+            events = json.load(fd)
+        return events
+    except FileNotFoundError:
+        return []
+
+def status_setting_repeats(result):
+    events = read_events()
+    
+    events.append(result)
+
+    with open('log/events.json', 'w+') as fd:
+        json.dump(events, fd, indent='\t')
