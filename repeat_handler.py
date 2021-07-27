@@ -1,6 +1,7 @@
 from show import Show, Season, Episode
 from datetime import date
-from database import get_one_recorded_show, insert_new_recorded_show, insert_new_season, insert_new_episode
+from database import get_one_recorded_show, insert_new_recorded_show, insert_new_season, insert_new_episode, mark_as_repeat, add_channel
+from aux_methods import check_show_titles
 import json
 import os
 
@@ -172,6 +173,24 @@ def flag_repeats(show):
 
     write_back_to_file({'title': show['title'], 'seasons': file})
 
+    show['title'] = check_show_titles(show)
+    check_episode = find_recorded_episode(show)
+    if check_episode['status']:
+        set_repeat = mark_as_repeat(show)
+        channel_add = add_channel(show)
+        return {'repeat': set_repeat, 'channel': channel_add}
+    else:
+        if check_episode['level'] == 'Episode':
+            insert_episode = insert_new_episode(show)
+            return insert_episode
+        elif check_episode['level'] == 'Season':
+            insert_season = insert_new_season(show)
+            return insert_season
+        elif check_episode['level'] == 'Show':
+            insert_show = insert_new_recorded_show(show)
+            return insert_show
+        else:
+            return {'status': False, 'message': 'Unable to process this episode.'}
 
 def write_back_to_file(data):
 

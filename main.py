@@ -1,5 +1,5 @@
 from repeat_handler import get_shows, convert_to_objects, flag_repeats, search_for_repeats
-from log import write_to_log_file, compare_dates, delete_latest_entry
+from log import write_to_log_file, compare_dates, delete_latest_entry, status_setting_repeats
 from backups import write_to_backup_file
 from datetime import datetime, date
 from dotenv import load_dotenv
@@ -409,9 +409,11 @@ def add_to_files():
     
     for show in search_free_to_air():
         if 'HD' not in show['channel'] and 'GEM' not in show['channel'] and show['episode_info']:
-            flag_repeats(show)
+            log_repeats = flag_repeats(show)
+            status_setting_repeats(log_repeats)
     for show in search_bbc_channels():
-        flag_repeats(show)
+        log_repeats = flag_repeats(show)
+        status_setting_repeats(log_repeats)
 
 
 if __name__ == '__main__':
