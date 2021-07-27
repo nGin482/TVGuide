@@ -4,9 +4,10 @@ from backups import write_to_backup_file
 from datetime import datetime, date
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
-from aux_methods import *
+from aux_methods import format_time, format_title, show_list_for_message, doctor_who_episodes, morse_episodes, remove_doubles, write_to_today_file
 from requests import get
 from reminders import *
+from database import get_showlist, insert_into_showlist_collection, remove_show_from_list
 import discord
 import click
 import ssl
@@ -90,7 +91,7 @@ def search_free_to_air():
         # print("Listing: " + str(listing))
         for guide_show in listing:
             title = guide_show['title']
-            for show in get_show_list():
+            for show in get_showlist():
                 if show in title:
                     show_dict = {}
                     show_date = guide_show['start_time'][:-9]
@@ -172,7 +173,7 @@ def search_bbc_channels():
     for div in bbc_first('div', class_='event'):
         title = div.find('h3').text
         episode_tag = div.find('h4').text
-        for show in get_show_list():
+        for show in get_showlist():
             if show in title:
                 if show[0] == title[0]:
                     if 'Series' in episode_tag:
@@ -196,7 +197,7 @@ def search_bbc_channels():
     for div in bbc_uktv('div', class_='event'):
         title = div.find('h3').text
         episode_tag = div.find('h4').text
-        for show in get_show_list():
+        for show in get_showlist():
             if show in title:
                 if show[0] == title[0]:
                     if 'Series' in episode_tag:
@@ -337,14 +338,14 @@ async def on_message(message):
             await message.channel.send(show_list_for_message())
         if '$add-show' in message.content:
             new_show = message.content.split(' ')[1]
-            add_show_to_list(new_show)
+            insert_into_showlist_collection(new_show)
             new_message = new_show + ' has been added to the list. The list now includes:\n' + show_list_for_message()
             await message.channel.send(new_message)
         if '$remove-show' in message.content:
             show_to_remove = message.content[message.content.index('-show')+6:]
             remove_show = remove_show_from_list(show_to_remove)
             if remove_show['status']:
-                reply = show_to_remove + ' has been removed from the list. The list now includes:\n' + show_list_for_message()
+                reply = remove_show['message'] + ' The list now includes:\n' + show_list_for_message()
             else:
                 reply = remove_show['message'] + ' The list remains as:\n' + show_list_for_message()
             await message.channel.send(reply)
@@ -378,7 +379,7 @@ def add_show():
     """
     Adds the given show into the list of shows
     """
-    add_show_to_list()
+    insert_into_showlist_collection()
 
 
 @cli.command()
@@ -386,7 +387,7 @@ def show_list():
     """
     Displays the current list of shows that the TVGuide is searching for
     """
-    for show in get_show_list():
+    for show in get_showlist:
         print(show)
 
 
