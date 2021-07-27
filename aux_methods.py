@@ -1,4 +1,5 @@
 from datetime import date
+from database import get_one_recorded_show
 import json
 import os
 
@@ -203,3 +204,60 @@ def write_to_today_file(today_viewing):
     filename = 'today_viewings/' + date.strftime(date.today(), '%d-%m-%Y') + '.json'
     with open(filename, 'w+', encoding='utf-8') as fd:
         json.dump(viewing_list, fd, ensure_ascii=False, indent=4)
+
+def valid_reminder_fields():
+    return ['show', 'reminder time', 'interval']
+
+def check_show_titles(show):
+    if 'Maigret' in show['title']:
+        return 'Maigret'
+    if 'Revenge Of The Fallen' in show['title'] or 'Dark Of The Moon' in show['title'] \
+            or 'Age of Extinction' in show['title'] or 'The Last Knight' in show['title']:
+        return 'Transformers'
+    elif show['title'] == 'Transformers':
+        return 'Transformers'
+    else:
+        title = show['title']
+        if ':' in title:
+            idx = title.rfind(':')
+            title = title[:idx] + title[idx+1:]
+        return title
+
+def doctor_who_episodes(show_title):
+    if show_title == 'Doctor Who':
+        return show_title
+    
+    tennant_specials = ['The Next Doctor', 'Planet of the Dead', 'The Waters of Mars', 'The End of Time - Part 1', 'The End of Time - Part 2']
+    smith_specials = ['The Snowmen', 'The Day of the Doctor', 'The Time of the Doctor']
+
+    if 'Doctor Who: ' in show_title:
+        index = show_title.index(': ')
+        show_title = show_title[index+2:]
+    for idx, tennant_special in enumerate(tennant_specials):
+        if show_title in tennant_special:
+            return 'Tennant Specials', idx+1, tennant_special
+    for idx, smith_special in enumerate(smith_specials):
+        if show_title in smith_special:
+            return 'Smith Specials', idx+1, smith_special
+    
+    if 'Christmas Invasion' in show_title:
+        return 2, 0, 'The Christmas Invasion'
+    elif 'Runaway Bride' in show_title:
+        return 3, 0, 'The Runaway Bride'
+    elif 'Voyage of the Damned' in show_title:
+        return 4, 0, 'Voyage of the Damned'
+    elif 'Christmas Carol' in show_title:
+        return 6, 0, 'A Christmas Carol'
+    elif 'Wardobe' in show_title:
+        return 7, 0, 'The Doctor, the Widow and the Wardobe'
+    elif 'Last Christmas' in show_title:
+        return 9, 0, 'Last Christmas'
+    elif 'Husbands of River Song' in show_title:
+        return 9, 13, 'The Husbands of River Song'
+    elif 'Return of Doctor Mysterio' in show_title:
+        return 10, 0, 'The Return of Doctor Mysterio'
+    elif 'Twice Upon a Time' in show_title:
+        return 10, 13, 'Twice Upon a Time'
+    else:
+        return show_title
+    
