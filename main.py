@@ -91,7 +91,7 @@ def search_free_to_air():
         # print("Listing: " + str(listing))
         for guide_show in listing:
             title = guide_show['title']
-            for show in get_showlist():
+            for show in show_list:
                 if show in title:
                     show_dict = {}
                     show_date = guide_show['start_time'][:-9]
@@ -173,7 +173,7 @@ def search_bbc_channels():
     for div in bbc_first('div', class_='event'):
         title = div.find('h3').text
         episode_tag = div.find('h4').text
-        for show in get_showlist():
+        for show in show_list:
             if show in title:
                 if show[0] == title[0]:
                     if 'Series' in episode_tag:
@@ -197,7 +197,7 @@ def search_bbc_channels():
     for div in bbc_uktv('div', class_='event'):
         title = div.find('h3').text
         episode_tag = div.find('h4').text
-        for show in get_showlist():
+        for show in show_list:
             if show in title:
                 if show[0] == title[0]:
                     if 'Series' in episode_tag:
@@ -420,6 +420,7 @@ def add_to_files():
 if __name__ == '__main__':
     status = compare_dates()
     print(status)
+    show_list = get_showlist()
     client.loop.create_task(send_message(status))
     client.run(os.getenv('HERMES'))
 
