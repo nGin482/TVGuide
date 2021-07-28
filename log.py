@@ -88,3 +88,11 @@ def status_setting_repeats(result):
 
     with open('log/events.json', 'w+') as fd:
         json.dump(events, fd, indent='\t')
+
+
+def clear_events_log():
+    try:
+        with open('log/events.json', 'w') as fd:
+            json.dump([], fd)
+    except FileNotFoundError:
+        return

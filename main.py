@@ -1,5 +1,5 @@
 from repeat_handler import get_shows, convert_to_objects, flag_repeats, search_for_repeats
-from log import write_to_log_file, compare_dates, delete_latest_entry, status_setting_repeats
+from log import write_to_log_file, compare_dates, delete_latest_entry, status_setting_repeats, clear_events_log
 from backups import write_to_backup_file
 from datetime import datetime, date
 from dotenv import load_dotenv
@@ -408,6 +408,7 @@ def add_to_files():
     write_to_backup_file(todays_viewings)
     write_to_today_file(todays_viewings)
     
+    clear_events_log()
     for show in search_free_to_air():
         if 'HD' not in show['channel'] and 'GEM' not in show['channel'] and show['episode_info']:
             log_repeats = flag_repeats(show)
