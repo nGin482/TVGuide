@@ -7,19 +7,30 @@ import os
 # Connection to MongoDB database/Cluster
 
 def client():
-    client = MongoClient(os.getenv('TVGUIDE_DB'))
-    return client
+    try:
+        client = MongoClient(os.getenv('TVGUIDE_DB'))
+        return client
+    except errors.ConfigurationError as e:
+        print('Having trouble connecting to the database.')
+        print(e)
+        
 
 def database():
-    db = client().tvguide
-    return db
+    if client() is not None:
+        db = client().tvguide
+        return db
+    else:
+        return None
 
 
 # Handlers for the Show List collection - All shows being searched for
 
 def showlist_collection():
-    showlist = database().ShowList
-    return showlist
+    if database is not None:
+        showlist = database().ShowList
+        return showlist
+    else:
+        return []
 
 def get_showlist():
     list_of_shows = []
@@ -55,8 +66,11 @@ def remove_show_from_list(show_to_remove):
 # Handlers for all recorded data for each show
 
 def recorded_shows_collection():
-    recorded_shows = database().RecordedShows
-    return recorded_shows
+    if database() is not None:
+        recorded_shows = database().RecordedShows
+        return recorded_shows
+    else:
+        return []
 
 def get_all_recorded_shows():
     all_recored_shows = []
@@ -519,8 +533,11 @@ def check_channel(show):
 # Handlers for the reminders
 
 def reminders_collection():
-    reminders = database().Reminders
-    return reminders
+    if database() is not None:
+        reminders = database().Reminders
+        return reminders
+    else:
+        return []
 
 def get_all_reminders():
     reminders = []
