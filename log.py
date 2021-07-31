@@ -1,5 +1,8 @@
-from datetime import datetime as dt
+from backups import write_to_backup_file
+from guide import organise_guide
+from datetime import datetime
 import json
+import os
 
 
 def get_date_from_latest_email():
@@ -18,7 +21,7 @@ def get_date_from_latest_email():
     idx_back = latest_email.find(' at ')
     date = latest_email[idx_front+3:idx_back]
     time = latest_email[idx_back+4:].split(':')
-    date_parsed = dt.strptime(date, '%d-%m-%y')
+    date_parsed = datetime.strptime(date, '%d-%m-%y')
     new_date_parsed = date_parsed.replace(hour=int(time[0]), minute=int(time[1]))
 
     print(new_date_parsed)
@@ -28,7 +31,7 @@ def get_date_from_latest_email():
 def compare_dates():
 
     date = get_date_from_latest_email()
-    if date.day != dt.today().day:
+    if date.day != datetime.today().day:
         return True
     else:
         if date.hour <= 6:
@@ -59,7 +62,7 @@ def write_to_log_file():
     contents = read_file().splitlines(True)
     if len(contents) > 1:
         new_log = [contents[1]]
-    new_log.append('\nTVGuide was sent on ' + dt.strftime(dt.today(), '%d-%m-%y') + ' at ' + dt.strftime(dt.today(), '%H:%M'))
+    new_log.append('\nTVGuide was sent on ' + datetime.strftime(datetime.today(), '%d-%m-%y') + ' at ' + datetime.strftime(datetime.today(), '%H:%M'))
     
     with open('log/emails.txt', 'w') as fd:
         for line in new_log:
@@ -96,3 +99,23 @@ def clear_events_log():
             json.dump([], fd)
     except FileNotFoundError:
         return
+
+def log_guide_information(fta_shows, bbc_shows):
+    """
+    Organise the guide into a JSON format and write this to the current day's guide and to the BackUp directory
+    """
+    guide = organise_guide(fta_shows, bbc_shows)
+
+    # Remove previous day's guide
+    if not os.path.isdir('today_guide'):
+        os.mkdir('today_guide')
+    else:
+        for filename in os.listdir('today_guide'):
+            if os.path.exists('today_guide/' + filename):
+                os.remove('today_guide/' + filename)
+
+    filename = 'today_guide/' + datetime.strftime(datetime.today(), '%d-%m-%Y') + '.json'
+    with open(filename, 'w+', encoding='utf-8') as fd:
+        json.dump(guide, fd, ensure_ascii=False, indent=4)
+    
+    write_to_backup_file(guide)

@@ -179,32 +179,6 @@ def remove_show_from_list(show):
     else:
         return {'status': False, 'message': show + ' was not found in the list.'}
 
-
-def write_to_today_file(today_viewing):
-    viewing_list = []
-
-    for show in today_viewing:
-        viewing_list.append(show.to_dict())
-
-    if not os.path.isdir('today_viewings'):
-        os.mkdir('today_viewings')
-
-    files = {
-        'count': 0,
-        'filenames': []
-    }
-    for filename in os.listdir('today_viewings'):
-        files['count'] += 1
-        files['filenames'].append('today_viewings/' + filename)
-        
-    if files['count'] >= 1:
-        if os.path.exists(files['filenames'][0]):
-            os.remove(files['filenames'][0])
-
-    filename = 'today_viewings/' + date.strftime(date.today(), '%d-%m-%Y') + '.json'
-    with open(filename, 'w+', encoding='utf-8') as fd:
-        json.dump(viewing_list, fd, ensure_ascii=False, indent=4)
-
 def valid_reminder_fields():
     return ['show', 'reminder time', 'interval']
 

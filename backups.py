@@ -69,10 +69,9 @@ def move_month_files():
     print(calendar.month_name[0:])
 
 
-def write_to_backup_file(obj_list):
+def write_to_backup_file(backup_guide):
 
     move_month_files()
-    data = get_data(obj_list)
     filename = 'BackUps/' + date.strftime(date.today(), '%d-%m-%Y') + '.json'
     with open(filename, 'w', encoding='utf-8') as fd:
-        json.dump(data, fd, ensure_ascii=False, indent=4)
+        json.dump(backup_guide, fd, ensure_ascii=False, indent=4)

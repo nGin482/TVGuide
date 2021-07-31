@@ -1,10 +1,10 @@
 from repeat_handler import get_shows, convert_to_objects, flag_repeats, search_for_repeats
-from log import write_to_log_file, compare_dates, delete_latest_entry, status_setting_repeats, clear_events_log
+from log import write_to_log_file, compare_dates, delete_latest_entry, status_setting_repeats, clear_events_log, log_guide_information
 from backups import write_to_backup_file
 from datetime import datetime, date
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
-from aux_methods import format_time, format_title, show_list_for_message, doctor_who_episodes, morse_episodes, remove_doubles, write_to_today_file
+from aux_methods import format_time, format_title, show_list_for_message, doctor_who_episodes, morse_episodes, remove_doubles
 from requests import get
 from reminders import *
 from database import get_showlist, insert_into_showlist_collection, remove_show_from_list
@@ -404,9 +404,7 @@ def collate_today_data():
 
 def add_to_files():
 
-    todays_viewings = convert_to_objects(collate_today_data())
-    write_to_backup_file(todays_viewings)
-    write_to_today_file(todays_viewings)
+    log_guide_information(search_free_to_air(), search_bbc_channels())
     
     clear_events_log()
     for show in search_free_to_air():
