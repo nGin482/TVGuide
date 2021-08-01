@@ -104,7 +104,6 @@ def log_guide_information(fta_shows, bbc_shows):
     """
     Organise the guide into a JSON format and write this to the current day's guide and to the BackUp directory
     """
-    guide = organise_guide(fta_shows, bbc_shows)
 
     # Remove previous day's guide
     if not os.path.isdir('today_guide'):
@@ -114,8 +113,10 @@ def log_guide_information(fta_shows, bbc_shows):
             if os.path.exists('today_guide/' + filename):
                 os.remove('today_guide/' + filename)
 
+    today_guide = {'FTA': fta_shows, 'BBC': bbc_shows}
     filename = 'today_guide/' + datetime.strftime(datetime.today(), '%d-%m-%Y') + '.json'
     with open(filename, 'w+', encoding='utf-8') as fd:
-        json.dump(guide, fd, ensure_ascii=False, indent=4)
+        json.dump(today_guide, fd, ensure_ascii=False, indent=4)
     
+    guide = organise_guide(fta_shows, bbc_shows)
     write_to_backup_file(guide)
