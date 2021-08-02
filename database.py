@@ -46,14 +46,18 @@ def find_show(show_to_find):
     return {'status': False, 'message': 'The show given could not be found in the database.'}
 
 def insert_into_showlist_collection(show):
-    try:
-        show_document = {
-            "show": show
-        }
-        showlist_collection().insert_one(show_document)
-        return {'status': True, 'message': show + ' has been added to the show list.'}
-    except errors.PyMongoError as e:
-        return {'status': False, 'message': ' There was a problem adding ' + show + ' to the show list.', 'error': e}
+    check_show_exists = find_show(show)
+    if check_show_exists['status']:
+        return {'status': False, 'message': show + ' is already being searched for.'}
+    else:
+        try:
+            show_document = {
+                "show": show
+            }
+            showlist_collection().insert_one(show_document)
+            return {'status': True, 'message': show + ' has been added to the show list.'}
+        except errors.PyMongoError as e:
+            return {'status': False, 'message': ' There was a problem adding ' + show + ' to the show list.', 'error': e}
 
 def remove_show_from_list(show_to_remove):
     try:
