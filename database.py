@@ -313,19 +313,19 @@ def add_channel(show):
         return {'status': False, 'message': 'The channel given is already listed.'}
 
 def delete_recorded_show(show):
-    check_show = get_one_recorded_show(show['title'])
+    check_show = get_one_recorded_show(show)
 
     if not check_show['status']:
-        return {'status': False, 'message': show['title'] + ' can not be found in the database.'}
+        return {'status': False, 'message': show + ' can not be found in the database.'}
     else:
         deleted_show = recorded_shows_collection().find_one_and_delete(
-            {'show': show['title']},
+            {'show': show},
         )
-        check_again = get_one_recorded_show(show['title'])
+        check_again = get_one_recorded_show(show)
         if check_again['status'] is False:
-            return {'status': True, 'message': show['title'] + ' is no longer in the database.', 'show': deleted_show}
+            return {'status': True, 'message': show + ' is no longer in the database.', 'show': deleted_show}
         else:
-            return {'status': False, 'message': show['title'] + ' has not been removed from the database.', 'show': deleted_show}
+            return {'status': False, 'message': show + ' has not been removed from the database.', 'show': deleted_show}
 
 def remove_recorded_season(show):
     check_for_season = check_season(show)
