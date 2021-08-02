@@ -28,10 +28,6 @@ def temp_sort_shows(fta_shows, bbc_shows):
     """
     all_shows = []
 
-    for show in fta_shows:
-        show['time'] = datetime.strftime(show['time'], '%H:%M')
-    for show in bbc_shows:
-        show['time'] = datetime.strftime(show['time'], '%H:%M')
     all_shows.extend(fta_shows)
     all_shows.extend(bbc_shows)
 

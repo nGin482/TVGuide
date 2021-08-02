@@ -113,6 +113,11 @@ def log_guide_information(fta_shows, bbc_shows):
             if os.path.exists('today_guide/' + filename):
                 os.remove('today_guide/' + filename)
 
+    for show in fta_shows:
+        show['time'] = show['time'].strftime('%H:%M')
+    for show in bbc_shows:
+        show['time'] = show['time'].strftime('%H:%M')
+    
     today_guide = {'FTA': fta_shows, 'BBC': bbc_shows}
     filename = 'today_guide/' + datetime.strftime(datetime.today(), '%d-%m-%Y') + '.json'
     with open(filename, 'w+', encoding='utf-8') as fd:
