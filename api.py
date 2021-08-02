@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_restful import Api, Resource, reqparse
 from datetime import datetime
-from database import get_showlist, find_show, insert_into_showlist_collection, remove_show_from_list
+from database import get_showlist, find_show, insert_into_showlist_collection, remove_show_from_list, get_all_recorded_shows, get_one_recorded_show
 import json
 
 app = Flask(__name__)
@@ -57,6 +57,27 @@ class Guide(Resource):
         except FileNotFoundError:
             return {'status': False, 'message': 'There is no guide data to retrieve'}, 404
 api.add_resource(Guide, '/guide')
+
+class RecordedShows(Resource):
+    def get(self):
+        recorded_shows = get_all_recorded_shows()
+        if len(recorded_shows) == 0:
+            return {'status': False, 'message': 'There is not any data about shows tracked.'}, 404
+        else:
+            for show in recorded_shows:
+                del show['_id']
+            return recorded_shows
+api.add_resource(RecordedShows, '/recorded-shows')
+
+class RecordedShow(Resource):
+    def get(self, show):
+        recorded_show = get_one_recorded_show(show)
+        if not recorded_show['status']:
+            return {'status': False, 'message': recorded_show['message']}, 404
+        else:
+            del recorded_show['show']['_id']
+            return recorded_show
+api.add_resource(RecordedShow, '/recorded-show/<string:show>')
 
 if __name__ == '__main__':
     app.run(debug=True)
