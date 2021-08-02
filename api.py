@@ -1,7 +1,8 @@
 from flask import Flask
 from flask_restful import Api, Resource, reqparse
 from datetime import datetime
-from database import get_showlist, find_show, insert_into_showlist_collection, remove_show_from_list, get_all_recorded_shows, get_one_recorded_show
+from database import (get_showlist, find_show, insert_into_showlist_collection, remove_show_from_list,
+    get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, delete_recorded_show)
 import json
 
 app = Flask(__name__)
@@ -77,6 +78,18 @@ class RecordedShow(Resource):
         else:
             del recorded_show['show']['_id']
             return recorded_show
+
+    def delete(self, show):
+        recorded_show = get_one_recorded_show(show)
+        if not recorded_show['status']:
+            return {'status': False, 'message': recorded_show['message']}, 404
+        else:
+            deleted_show = delete_recorded_show(show)
+            del deleted_show['show']['_id']
+            if not deleted_show['status']:
+                return {'status': False, 'message': deleted_show['message']}, 404
+            else:
+                return deleted_show
 api.add_resource(RecordedShow, '/recorded-show/<string:show>')
 
 if __name__ == '__main__':
