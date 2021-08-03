@@ -215,6 +215,9 @@ def insert_new_episode(show):
 
 def mark_as_repeat(show):
     
+    repeat_check = check_repeat(show)
+    if repeat_check:
+        return {'status': False, 'message': 'This episode is already marked as a repeat.'}
     try:
         if 'series_num' in show.keys():
             updated_show = recorded_shows_collection().find_one_and_update(
@@ -525,6 +528,26 @@ def check_channel(show):
         episode = list(filter(lambda episode: episode['episode title'] == show['episode_title'], season['episodes']))[0]
     
     if show['channel'] in episode['channels']:
+        return True
+    else:
+        return False
+
+def check_repeat(show):
+    """
+    Checks if the given episode is a repeat
+    """
+    recorded_show = get_one_recorded_show(show['title'])
+    if recorded_show['status']:
+        result = recorded_show['show']['seasons']
+    
+    if 'series_num' in show.keys():
+        season = list(filter(lambda season: season['season number'] == show['series_num'], result))[0]
+        episode = list(filter(lambda episode: episode['episode number'] == show['episode_num'], season['episodes']))[0]
+    else:
+        season = list(filter(lambda season: season['season number'] == 'Unknown', result))[0]
+        episode = list(filter(lambda episode: episode['episode title'] == show['episode_title'], season['episodes']))[0]
+    
+    if episode['repeat']:
         return True
     else:
         return False
