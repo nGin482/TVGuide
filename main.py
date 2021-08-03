@@ -404,14 +404,17 @@ def collate_today_data():
 
 def add_to_files():
 
-    log_guide_information(search_free_to_air(), search_bbc_channels())
+    fta_shows = search_free_to_air()
+    bbc_shows = search_bbc_channels()
+
+    log_guide_information(fta_shows, bbc_shows)
     
     clear_events_log()
-    for show in search_free_to_air():
+    for show in fta_shows:
         if 'HD' not in show['channel'] and 'GEM' not in show['channel'] and show['episode_info']:
             log_repeats = flag_repeats(show)
             status_setting_repeats(log_repeats)
-    for show in search_bbc_channels():
+    for show in bbc_shows:
         log_repeats = flag_repeats(show)
         status_setting_repeats(log_repeats)
 

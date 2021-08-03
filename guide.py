@@ -1,28 +1,7 @@
 from datetime import datetime
 import json
 
-def read_guide_data():
-    """
-    Read existing guide data. Returns empty list if file does not exist
-    """
-    try:
-        with open('guide.json') as fd:
-            guide = json.load(fd)
-        return guide
-    except FileNotFoundError:
-        return []
-
-def clear_guide_data():
-    """
-    Remove existing guide data from the file
-    """
-    try:
-        with open('guide.json', 'w') as fd:
-            json.dump([], fd)
-    except FileNotFoundError:
-        return []
-
-def temp_sort_shows(fta_shows, bbc_shows):
+def sort_shows_by_title(fta_shows, bbc_shows):
     """
     Bundles the episodes together according to their show title
     """
@@ -42,10 +21,9 @@ def temp_sort_shows(fta_shows, bbc_shows):
     return new_list
 
 def organise_guide(fta_shows, bbc_shows):
-    sorted_shows = temp_sort_shows(fta_shows, bbc_shows)
+    sorted_shows = sort_shows_by_title(fta_shows, bbc_shows)
 
-    clear_guide_data()
-    guide = read_guide_data()
+    guide = []
     for show in sorted_shows:
         # organise_seasons(show)
         show_object = {
