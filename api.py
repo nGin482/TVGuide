@@ -1,8 +1,9 @@
-from flask import Flask
+from flask import Flask, request
 from flask_restful import Api, Resource, reqparse
 from datetime import datetime
 from database import (get_showlist, find_show, insert_into_showlist_collection, remove_show_from_list,
-    get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, delete_recorded_show)
+    get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, delete_recorded_show,
+    get_all_reminders, get_one_reminder)
 import json
 
 app = Flask(__name__)
@@ -91,6 +92,26 @@ class RecordedShow(Resource):
             else:
                 return deleted_show
 api.add_resource(RecordedShow, '/recorded-show/<string:show>')
+
+class Reminders(Resource):
+    def get(self):
+        reminders = get_all_reminders()
+        if len(reminders) == 0:
+            return {'status': False, 'message': 'There are no reminders currently available'}, 404
+        for reminder in reminders:
+            del reminder['_id']
+        return reminders
+api.add_resource(Reminders, '/reminders')
+
+class Reminder(Resource):
+    def get(self, show):
+        reminder = get_one_reminder(show)
+        if not reminder['status']:
+            return {'status': False, 'message': reminder['message']}, 404
+        del reminder['reminder']['_id']
+        return reminder['reminder']
+api.add_resource(Reminder, '/reminder/<string:show>')
+        
 
 if __name__ == '__main__':
     app.run(debug=True)
