@@ -3,7 +3,7 @@ from flask_restful import Api, Resource, reqparse
 from datetime import datetime
 from database import (get_showlist, find_show, insert_into_showlist_collection, remove_show_from_list,
     get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, delete_recorded_show,
-    get_all_reminders, get_one_reminder)
+    get_all_reminders, get_one_reminder, create_reminder)
 import json
 
 app = Flask(__name__)
@@ -101,6 +101,16 @@ class Reminders(Resource):
         for reminder in reminders:
             del reminder['_id']
         return reminders
+    def put(self):
+        body = request.get_json()
+        reminder_object = {
+            'show': body['show'],
+            'reminder time': body['reminder time'],
+            'interval': body['interval']
+        }
+        reminder_created = create_reminder(reminder_object)
+        del reminder_created['reminder']['_id']
+        return reminder_created
 api.add_resource(Reminders, '/reminders')
 
 class Reminder(Resource):
