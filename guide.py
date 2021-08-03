@@ -1,7 +1,7 @@
 from datetime import datetime
 import json
 
-def temp_sort_shows(fta_shows, bbc_shows):
+def sort_shows_by_title(fta_shows, bbc_shows):
     """
     Bundles the episodes together according to their show title
     """
@@ -21,7 +21,7 @@ def temp_sort_shows(fta_shows, bbc_shows):
     return new_list
 
 def organise_guide(fta_shows, bbc_shows):
-    sorted_shows = temp_sort_shows(fta_shows, bbc_shows)
+    sorted_shows = sort_shows_by_title(fta_shows, bbc_shows)
 
     guide = []
     for show in sorted_shows:
