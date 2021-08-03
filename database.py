@@ -258,7 +258,12 @@ def mark_as_repeat(show):
             updated_episode = list(filter(lambda episode: episode['episode title'] == show['episode_title'], updated_season['episodes']))[0]
             
             if updated_episode['repeat']:
-                return {'status': True, 'message': 'The episode has been marked as a repeat.', 'episode': updated_episode}
+                result = {
+                    'show': show['title'],
+                    'season': updated_season['season number'],
+                    'episode': updated_episode
+                }
+                return {'status': True, 'message': 'The episode has been marked as a repeat.', 'episode': result}
             else:
                 return {'status': False, 'message': 'The episode has not been marked as a repeat.', 'episode': show}
     except errors.WriteError as err:
