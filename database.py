@@ -219,6 +219,9 @@ def insert_new_episode(show):
 
 def mark_as_repeat(show):
     
+    repeat_check = check_repeat(show)
+    if repeat_check:
+        return {'status': False, 'message': 'This episode is already marked as a repeat.'}
     try:
         if 'series_num' in show.keys():
             updated_show = recorded_shows_collection().find_one_and_update(
@@ -236,7 +239,12 @@ def mark_as_repeat(show):
             updated_episode = list(filter(lambda episode: episode['episode number'] == show['episode_num'], updated_season['episodes']))[0]
             
             if updated_episode['repeat']:
-                return {'status': True, 'message': 'The episode has been marked as a repeat.', 'episode': updated_episode}
+                result = {
+                    'show': show['title'],
+                    'season': updated_season['season number'],
+                    'episode': updated_episode
+                }
+                return {'status': True, 'message': 'The episode has been marked as a repeat.', 'episode': result}
             else:
                 return {'status': False, 'message': 'The episode has not been marked as a repeat.', 'episode': show}
         else:
@@ -254,7 +262,12 @@ def mark_as_repeat(show):
             updated_episode = list(filter(lambda episode: episode['episode title'] == show['episode_title'], updated_season['episodes']))[0]
             
             if updated_episode['repeat']:
-                return {'status': True, 'message': 'The episode has been marked as a repeat.', 'episode': updated_episode}
+                result = {
+                    'show': show['title'],
+                    'season': updated_season['season number'],
+                    'episode': updated_episode
+                }
+                return {'status': True, 'message': 'The episode has been marked as a repeat.', 'episode': result}
             else:
                 return {'status': False, 'message': 'The episode has not been marked as a repeat.', 'episode': show}
     except errors.WriteError as err:
@@ -529,6 +542,26 @@ def check_channel(show):
         episode = list(filter(lambda episode: episode['episode title'] == show['episode_title'], season['episodes']))[0]
     
     if show['channel'] in episode['channels']:
+        return True
+    else:
+        return False
+
+def check_repeat(show):
+    """
+    Checks if the given episode is a repeat
+    """
+    recorded_show = get_one_recorded_show(show['title'])
+    if recorded_show['status']:
+        result = recorded_show['show']['seasons']
+    
+    if 'series_num' in show.keys():
+        season = list(filter(lambda season: season['season number'] == show['series_num'], result))[0]
+        episode = list(filter(lambda episode: episode['episode number'] == show['episode_num'], season['episodes']))[0]
+    else:
+        season = list(filter(lambda season: season['season number'] == 'Unknown', result))[0]
+        episode = list(filter(lambda episode: episode['episode title'] == show['episode_title'], season['episodes']))[0]
+    
+    if episode['repeat']:
         return True
     else:
         return False
