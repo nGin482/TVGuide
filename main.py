@@ -1,4 +1,4 @@
-from repeat_handler import get_shows, convert_to_objects, flag_repeats, search_for_repeats
+from repeat_handler import flag_repeats, search_for_repeats
 from log import write_to_log_file, compare_dates, delete_latest_entry, status_setting_repeats, clear_events_log, log_guide_information
 from backups import write_to_backup_file
 from datetime import datetime, date
@@ -321,7 +321,7 @@ async def send_message(send_status):
             ngin = await client.fetch_user(int(os.getenv('NGIN')))
             await ngin.send('The channel resolved to NoneType so the message could not be sent')
         write_to_log_file()
-        add_to_files()
+        log_guide()
     
     await client.close()
 
@@ -391,18 +391,7 @@ def show_list():
         print(show)
 
 
-def collate_today_data():
-
-    superlist = []
-    data = check_site()
-
-    get_shows(data['FTA'], superlist)
-    get_shows(data['BBC'], superlist)
-
-    return superlist
-
-
-def add_to_files():
+def log_guide():
 
     fta_shows = search_free_to_air()
     bbc_shows = search_bbc_channels()
