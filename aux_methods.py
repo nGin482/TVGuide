@@ -1,5 +1,5 @@
 from datetime import date
-from database import get_one_recorded_show
+from database import get_one_recorded_show, get_showlist
 import json
 import os
 
@@ -30,53 +30,6 @@ def format_time(time):
     return time
 
 
-def sort_shows_by_time(shows_list, pos1, pos2):
-
-    cur_idx = 0
-
-    if pos1 != -1 and pos2 != -1:
-        backup = shows_list[pos1]
-        shows_list[pos1] = shows_list[pos2]
-        shows_list[pos2] = backup
-    else:
-        if len(shows_list) > 1:
-            while cur_idx < len(shows_list)-1:
-                cur = shows_list[cur_idx]
-                temp_idx = cur_idx + 1
-                while temp_idx < len(shows_list):
-                    temp = shows_list[temp_idx]
-                    if int(temp['time'][:2]) < int(cur['time'][:2]):
-                        backup = temp
-                        shows_list[temp_idx] = shows_list[cur_idx]
-                        shows_list[cur_idx] = backup
-                        cur_idx += 1
-                    temp_idx += 1
-                cur_idx += 1
-
-    # shows_list = sorted(shows_list, key=lambda i: int(i['time']))
-
-    return shows_list
-
-
-def check_time_sort(shows_list):
-    cur_idx = 0
-
-    if len(shows_list) > 1:
-        while cur_idx < len(shows_list)-1:
-            cur = shows_list[cur_idx]
-            temp_idx = cur_idx + 1
-            while temp_idx < len(shows_list):
-                temp = shows_list[temp_idx]
-                if cur['time'].hour > temp['time'].hour:
-                    return [temp_idx, cur_idx]
-                elif cur['time'].hour == temp['time'].hour and cur['time'].minute > temp['time'].minute:
-                    return [temp_idx, cur_idx]
-                temp_idx += 1
-            cur_idx += 1
-
-    return [-1, -1]
-
-
 def remove_doubles(shows_list):
 
     idx_1 = 0
@@ -93,6 +46,9 @@ def remove_doubles(shows_list):
 
 
 def format_title(title):
+    """
+    Format a show's given title into a more reader-friendly appearance
+    """
 
     if ', The' in title:
         idx_the = title.find(', The')
@@ -105,6 +61,10 @@ def format_title(title):
 
 
 def morse_episodes(guide_title):
+    """
+    Given an episode's title, return the season number, episode number and correct episode title of an Inspector Morse episode
+    """
+
     morse_titles = [
         {'Episodes': ['The Dead Of Jericho', 'The Silent World Of Nicholas Quinn', 'Service Of All The Dead']},
         {'Episodes':
@@ -137,49 +97,17 @@ def morse_episodes(guide_title):
                     return season_idx+1, episode_idx+1, title
 
 
-def get_show_list():
-
-    with open('shows.txt') as fd:
-        shows = fd.read().splitlines()
-
-    return shows
-
-
 def show_list_for_message():
-    shows_from_file = get_show_list()
+    shows_list = get_showlist()
     show_list = ''
-    for show in shows_from_file:
+    for show in shows_list:
         show_list = show_list + show + '\n'
     return show_list
 
-
-def add_show_to_list(new_show):
-
-    with open('shows.txt') as fd:
-        shows = fd.read().splitlines(True)
-    shows.append(new_show + '\n')
-
-    with open('shows.txt', 'w') as fd:
-        for show in shows:
-            fd.write(show)
-
-
-def remove_show_from_list(show):
-
-    with open('shows.txt') as fd:
-        shows = fd.read().splitlines(False)
-    
-    if show in shows:
-        shows.remove(show)
-
-        with open('shows.txt', 'w') as fd:
-            for show in shows:
-                fd.write(show + '\n')
-        return {'status': True}
-    else:
-        return {'status': False, 'message': show + ' was not found in the list.'}
-
 def valid_reminder_fields():
+    """
+    Returns the fields only valid for a reminder document
+    """
     return ['show', 'reminder time', 'interval']
 
 def check_show_titles(show):
@@ -198,6 +126,10 @@ def check_show_titles(show):
         return title
 
 def doctor_who_episodes(show_title):
+    """
+    Given an episode's title, return the season number, episode number and correct episode title of a Doctor Who episode
+    """
+    
     if show_title == 'Doctor Who':
         return show_title
     
