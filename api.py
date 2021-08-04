@@ -3,7 +3,7 @@ from flask_restful import Api, Resource, reqparse
 from datetime import datetime
 from database import (get_showlist, find_show, insert_into_showlist_collection, remove_show_from_list,
     get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, delete_recorded_show,
-    get_all_reminders, get_one_reminder, create_reminder)
+    get_all_reminders, get_one_reminder, create_reminder, edit_reminder)
 import json
 
 app = Flask(__name__)
@@ -101,6 +101,7 @@ class Reminders(Resource):
         for reminder in reminders:
             del reminder['_id']
         return reminders
+    
     def put(self):
         body = request.get_json()
         reminder_object = {
@@ -120,7 +121,29 @@ class Reminder(Resource):
             return {'status': False, 'message': reminder['message']}, 404
         del reminder['reminder']['_id']
         return reminder['reminder']
+    
+    def patch(self, show):
+        reminder_check = get_one_reminder(show)
+        if not reminder_check['status']:
+            return {'status': False, 'message': reminder_check['message']}, 404
+        body = request.get_json()
+        if body['field'] in valid_reminder_fields():
+            update_reminder_object = {
+                'show': show,
+                'field': body['field'],
+                'value': body['value']
+            }
+            update_reminder_status = edit_reminder(update_reminder_object)
+            if update_reminder_status['status']:
+                del update_reminder_status['reminder']['_id']
+                return update_reminder_status
+            else:
+                return update_reminder_status, 500
+        return {'status': False, 'message': 'Unable to update this reminder because the field given to update is not valid.'}, 400
 api.add_resource(Reminder, '/reminder/<string:show>')
+
+def valid_reminder_fields():
+    return ['show', 'reminder time', 'interval']
         
 
 if __name__ == '__main__':
