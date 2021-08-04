@@ -598,6 +598,10 @@ def get_one_reminder(show):
 
 def create_reminder(reminder_settings):
     
+    check_reminder = get_one_reminder(reminder_settings['show'])
+    if check_reminder['status']:
+        return {'status': False, 'message': 'A reminder has already been set for this show.'}
+
     if 'reminder time' not in reminder_settings.keys():
         reminder_settings['reminder time'] = '3 mins before'
         
