@@ -197,7 +197,11 @@ def insert_new_episode(show):
                 new_episode = list(filter(lambda episode: episode['episode number'] == show['episode_num'], season[0]['episodes']))
 
                 if len(new_episode) > 0:
-                    return {'status': True, 'message': 'The episode was added to ' + show['title'] + '.', 'episode_list': season[0]['episodes'][-1]}
+                    result = {
+                        'season': season['season number'],
+                        'episode': new_episode
+                    }
+                    return {'status': True, 'message': 'The episode was added to ' + show['title'] + '.', 'episode_list': result}
                 else:
                     return {'status': False, 'message': 'The episode was not added to ' + show['title'] + '.', 'episode': episode_object}
             else:
@@ -211,7 +215,11 @@ def insert_new_episode(show):
                 episode = list(filter(lambda episode: episode['episode title'] == show['episode_title'], seasons[0]['episodes']))
 
                 if len(episode) > 0:
-                    return {'status': True, 'message': 'The episode was added to ' + show['title'] + '.', 'episode': seasons[0]['episodes'][-1]}
+                    result = {
+                        'season': season['season number'],
+                        'episode': episode
+                    }
+                    return {'status': True, 'message': 'The episode was added to ' + show['title'] + '.', 'episode': result}
                 else:
                     return {'status': False, 'message': 'The episode was not added to ' + show['title'] + '.', 'episode': episode_object}
         except errors.WriteError as err:
@@ -594,6 +602,10 @@ def get_one_reminder(show):
 
 def create_reminder(reminder_settings):
     
+    check_reminder = get_one_reminder(reminder_settings['show'])
+    if check_reminder['status']:
+        return {'status': False, 'message': 'A reminder has already been set for this show.'}
+
     if 'reminder time' not in reminder_settings.keys():
         reminder_settings['reminder time'] = '3 mins before'
         
