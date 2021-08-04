@@ -10,7 +10,6 @@ from reminders import *
 from database import get_showlist, insert_into_showlist_collection, remove_show_from_list
 import discord
 import click
-import ssl
 import os
 
 load_dotenv('.env')
