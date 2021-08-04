@@ -154,7 +154,17 @@ api.add_resource(Reminder, '/reminder/<string:show>')
 
 def valid_reminder_fields():
     return ['show', 'reminder time', 'interval']
-        
+   
+
+class Events(Resource):
+    def get(self):
+        try:
+            with open('log/events.json') as fd:
+                events = json.load(fd)
+            return events
+        except FileNotFoundError:
+            return {'message': 'The logging information can not be retrieved.'}, 404
+api.add_resource(Events, '/events')
 
 if __name__ == '__main__':
     app.run(debug=True)
