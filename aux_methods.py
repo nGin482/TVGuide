@@ -137,8 +137,8 @@ def doctor_who_episodes(show_title):
     smith_specials = ['The Snowmen', 'The Day of the Doctor', 'The Time of the Doctor']
 
     if 'Doctor Who: ' in show_title:
-        index = show_title.index(': ')
-        show_title = show_title[index+2:]
+        show_title = show_title.split(': ')[1]
+    
     for idx, tennant_special in enumerate(tennant_specials):
         if show_title in tennant_special:
             return 'Tennant Specials', idx+1, tennant_special
@@ -154,8 +154,8 @@ def doctor_who_episodes(show_title):
         return 4, 0, 'Voyage of the Damned'
     elif 'Christmas Carol' in show_title:
         return 6, 0, 'A Christmas Carol'
-    elif 'Wardobe' in show_title:
-        return 7, 0, 'The Doctor, the Widow and the Wardobe'
+    elif 'Wardrobe' in show_title:
+        return 7, 0, 'The Doctor, the Widow and the Wardrobe'
     elif 'Last Christmas' in show_title:
         return 9, 0, 'Last Christmas'
     elif 'Husbands of River Song' in show_title:
@@ -166,6 +166,8 @@ def doctor_who_episodes(show_title):
         return 10, 13, 'Twice Upon a Time'
     elif 'Resolution' in show_title:
         return 11, 11, 'Resolution'
+    elif 'Revolution of the Daleks' in show_title:
+        return 12, 11, 'Revolution of the Daleks'
     else:
         return show_title
     
