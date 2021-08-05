@@ -164,6 +164,8 @@ def doctor_who_episodes(show_title):
         return 10, 0, 'The Return of Doctor Mysterio'
     elif 'Twice Upon a Time' in show_title:
         return 10, 13, 'Twice Upon a Time'
+    elif 'Resolution' in show_title:
+        return 11, 11, 'Resolution'
     else:
         return show_title
     
