@@ -4,6 +4,7 @@ from datetime import datetime
 from database import (get_showlist, find_show, insert_into_showlist_collection, remove_show_from_list,
     get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, delete_recorded_show,
     get_all_reminders, get_one_reminder, create_reminder, edit_reminder, remove_reminder)
+from aux_methods import valid_reminder_fields
 import json
 
 app = Flask(__name__)
@@ -151,9 +152,6 @@ class Reminder(Resource):
         del remove_reminder_status['reminder']['_id']
         return remove_reminder_status
 api.add_resource(Reminder, '/reminder/<string:show>')
-
-def valid_reminder_fields():
-    return ['show', 'reminder time', 'interval']
    
 
 class Events(Resource):
