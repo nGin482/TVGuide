@@ -46,14 +46,18 @@ def find_show(show_to_find):
     return {'status': False, 'message': 'The show given could not be found in the database.'}
 
 def insert_into_showlist_collection(show):
-    try:
-        show_document = {
-            "show": show
-        }
-        showlist_collection().insert_one(show_document)
-        return {'status': True, 'message': show + ' has been added to the show list.'}
-    except errors.PyMongoError as e:
-        return {'status': False, 'message': ' There was a problem adding ' + show + ' to the show list.', 'error': e}
+    check_show_exists = find_show(show)
+    if check_show_exists['status']:
+        return {'status': False, 'message': show + ' is already being searched for.'}
+    else:
+        try:
+            show_document = {
+                "show": show
+            }
+            showlist_collection().insert_one(show_document)
+            return {'status': True, 'message': show + ' has been added to the show list.'}
+        except errors.PyMongoError as e:
+            return {'status': False, 'message': ' There was a problem adding ' + show + ' to the show list.', 'error': e}
 
 def remove_show_from_list(show_to_remove):
     try:
@@ -328,19 +332,19 @@ def add_channel(show):
         return {'status': False, 'message': 'The channel given is already listed.'}
 
 def delete_recorded_show(show):
-    check_show = get_one_recorded_show(show['title'])
+    check_show = get_one_recorded_show(show)
 
     if not check_show['status']:
-        return {'status': False, 'message': show['title'] + ' can not be found in the database.'}
+        return {'status': False, 'message': show + ' can not be found in the database.'}
     else:
         deleted_show = recorded_shows_collection().find_one_and_delete(
-            {'show': show['title']},
+            {'show': show},
         )
-        check_again = get_one_recorded_show(show['title'])
+        check_again = get_one_recorded_show(show)
         if check_again['status'] is False:
-            return {'status': True, 'message': show['title'] + ' is no longer in the database.', 'show': deleted_show}
+            return {'status': True, 'message': show + ' is no longer in the database.', 'show': deleted_show}
         else:
-            return {'status': False, 'message': show['title'] + ' has not been removed from the database.', 'show': deleted_show}
+            return {'status': False, 'message': show + ' has not been removed from the database.', 'show': deleted_show}
 
 def remove_recorded_season(show):
     check_for_season = check_season(show)
