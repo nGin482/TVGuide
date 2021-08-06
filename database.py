@@ -201,7 +201,7 @@ def insert_new_episode(show):
                         'season': season['season number'],
                         'episode': new_episode
                     }
-                    return {'status': True, 'message': 'The episode was added to ' + show['title'] + '.', 'episode_list': result}
+                    return {'status': True, 'message': 'The episode was added to ' + show['title'] + '.', 'result': result}
                 else:
                     return {'status': False, 'message': 'The episode was not added to ' + show['title'] + '.', 'episode': episode_object}
             else:
@@ -219,7 +219,7 @@ def insert_new_episode(show):
                         'season': season['season number'],
                         'episode': episode
                     }
-                    return {'status': True, 'message': 'The episode was added to ' + show['title'] + '.', 'episode': result}
+                    return {'status': True, 'message': 'The episode was added to ' + show['title'] + '.', 'result': result}
                 else:
                     return {'status': False, 'message': 'The episode was not added to ' + show['title'] + '.', 'episode': episode_object}
         except (errors.WriteError, KeyError) as err:
