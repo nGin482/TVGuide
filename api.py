@@ -2,7 +2,7 @@ from flask import Flask, request
 from flask_restful import Api, Resource, reqparse
 from datetime import datetime
 from database import (get_showlist, find_show, insert_into_showlist_collection, remove_show_from_list,
-    get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, delete_recorded_show,
+    get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, delete_recorded_show, insert_new_episode,
     get_all_reminders, get_one_reminder, create_reminder, edit_reminder, remove_reminder)
 from aux_methods import valid_reminder_fields
 import json
@@ -81,6 +81,20 @@ class RecordedShow(Resource):
             del recorded_show['show']['_id']
             return recorded_show
 
+    def put(self, show):
+        # add episode to Recorded Show
+        recorded_show = get_one_recorded_show(show)
+        if not recorded_show['status']:
+            return {'status': False, 'message': recorded_show['message']}, 404
+        else:
+            body = request.get_json()
+            episode_insert_status = insert_new_episode(body)
+            if episode_insert_status['status']:
+                del episode_insert_status['result']['_id']
+                return episode_insert_status
+            else:
+                return episode_insert_status
+    
     def delete(self, show):
         recorded_show = get_one_recorded_show(show)
         if not recorded_show['status']:
