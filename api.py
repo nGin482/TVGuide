@@ -1,5 +1,6 @@
 from flask import Flask, request
 from flask_restful import Api, Resource, reqparse
+from flask_cors import CORS
 from datetime import datetime
 from database import (get_showlist, find_show, insert_into_showlist_collection, remove_show_from_list,
     get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, delete_recorded_show, insert_new_episode,
@@ -8,6 +9,7 @@ from aux_methods import valid_reminder_fields
 import json
 
 app = Flask(__name__)
+CORS(app)
 api = Api(app)
 
 show_list_args = reqparse.RequestParser()
@@ -58,7 +60,7 @@ class Guide(Resource):
                 guide = json.load(fd)
             return guide
         except FileNotFoundError:
-            return {'status': False, 'message': 'There is no guide data to retrieve'}, 404
+            return {'status': False, 'message': 'There is no guide data to retrieve.'}, 404
 api.add_resource(Guide, '/guide')
 
 class RecordedShows(Resource):
