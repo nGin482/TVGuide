@@ -9,17 +9,17 @@ def flag_repeats(show):
     if check_episode['status']:
         set_repeat = mark_as_repeat(show)
         channel_add = add_channel(show)
-        return {'repeat': set_repeat, 'channel': channel_add}
+        return {'show': show, 'repeat': set_repeat, 'channel': channel_add}
     else:
         if check_episode['level'] == 'Episode':
             insert_episode = insert_new_episode(show)
-            return insert_episode
+            return {'show': show, 'result': insert_episode}
         elif check_episode['level'] == 'Season':
             insert_season = insert_new_season(show)
-            return insert_season
+            return {'show': show, 'result': insert_season}
         elif check_episode['level'] == 'Show':
             insert_show = insert_new_recorded_show(show)
-            return insert_show
+            return {'show': show, 'result': insert_show}
         else:
             return {'status': False, 'message': 'Unable to process this episode.'}
 
@@ -62,3 +62,5 @@ def search_for_repeats(show):
         check_episode = find_recorded_episode(show)
         if check_episode['status']:
             show['repeat'] = True
+
+    return show
