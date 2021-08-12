@@ -60,7 +60,7 @@ class Guide(Resource):
                 guide = json.load(fd)
             return guide
         except FileNotFoundError:
-            return {'status': False, 'message': 'There is no guide data to retrieve.'}, 404
+            return {'status': False, 'message': 'There is no guide data to retrieve for ' + datetime.strftime(datetime.today(), '%d-%m-%Y') + '.'}, 404
 api.add_resource(Guide, '/guide')
 
 class RecordedShows(Resource):
