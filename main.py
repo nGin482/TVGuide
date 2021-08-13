@@ -1,4 +1,4 @@
-from repeat_handler import flag_repeats, search_for_repeats
+from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
 from log import write_to_log_file, compare_dates, delete_latest_entry, status_setting_repeats, clear_events_log, log_guide_information
 from backups import write_to_backup_file
 from datetime import datetime, date
@@ -150,6 +150,9 @@ def search_free_to_air():
     #     sort_shows_by_time(shows_on, check[0], check[1])
     #     check = check_time_sort(shows_on)
     remove_doubles(shows_on)
+    show_titles = [show['title'] for show in shows_on]
+    get_today_shows_data(show_titles)
+    shows_on = [search_for_repeats(show) for show in shows_on]
 
     return shows_on
 
@@ -222,6 +225,9 @@ def search_bbc_channels():
     # while check[0] != -1 and check[1] != -1:
     #     sort_shows_by_time(shows_on, check[0], check[1])
     #     check = check_time_sort(shows_on)
+    show_titles = [show['title'] for show in shows_on]
+    get_today_shows_data(show_titles)
+    shows_on = [search_for_repeats(show) for show in shows_on]
     return shows_on
 
 
