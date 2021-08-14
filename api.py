@@ -1,11 +1,10 @@
 from flask import Flask, request
 from flask_restful import Api, Resource, reqparse
 from flask_cors import CORS
-from datetime import datetime
 from database import (get_showlist, find_show, insert_into_showlist_collection, remove_show_from_list,
     get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, delete_recorded_show, insert_new_episode,
     get_all_reminders, get_one_reminder, create_reminder, edit_reminder, remove_reminder)
-from aux_methods import valid_reminder_fields
+from aux_methods import valid_reminder_fields, get_today_date
 import json
 
 app = Flask(__name__)
@@ -55,12 +54,12 @@ api.add_resource(SingleShowFromList, '/show-list/<string:show>')
 class Guide(Resource):
     def get(self):
         try:
-            filename = 'today_guide/' + datetime.strftime(datetime.today(), '%d-%m-%Y') + '.json'
+            filename = 'today_guide/' + get_today_date() + '.json'
             with open(filename) as fd:
                 guide = json.load(fd)
             return guide
         except FileNotFoundError:
-            return {'status': False, 'message': 'There is no guide data to retrieve for ' + datetime.strftime(datetime.today(), '%d-%m-%Y') + '.'}, 404
+            return {'status': False, 'message': 'There is no guide data to retrieve for ' + get_today_date() + '.'}, 404
 api.add_resource(Guide, '/guide')
 
 class RecordedShows(Resource):
