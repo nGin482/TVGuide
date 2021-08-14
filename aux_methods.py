@@ -111,19 +111,34 @@ def valid_reminder_fields():
     return ['show', 'reminder time', 'interval']
 
 def check_show_titles(show):
-    if 'Maigret' in show['title']:
-        return 'Maigret'
-    if 'Revenge Of The Fallen' in show['title'] or 'Dark Of The Moon' in show['title'] \
-            or 'Age of Extinction' in show['title'] or 'The Last Knight' in show['title']:
-        return 'Transformers'
-    elif show['title'] == 'Transformers':
-        return 'Transformers'
+    if type(show) is str:
+        if 'Maigret' in show:
+            return 'Maigret'
+        if 'Revenge Of The Fallen' in show or 'Dark Of The Moon' in show \
+                or 'Age of Extinction' in show or 'The Last Knight' in show:
+            return 'Transformers'
+        elif show == 'Transformers':
+            return 'Transformers'
+        else:
+            title = show
+            if ':' in title:
+                idx = title.rfind(':')
+                title = title[:idx] + title[idx+1:]
+            return title
     else:
-        title = show['title']
-        if ':' in title:
-            idx = title.rfind(':')
-            title = title[:idx] + title[idx+1:]
-        return title
+        if 'Maigret' in show['title']:
+            return 'Maigret'
+        if 'Revenge Of The Fallen' in show['title'] or 'Dark Of The Moon' in show['title'] \
+                or 'Age of Extinction' in show['title'] or 'The Last Knight' in show['title']:
+            return 'Transformers'
+        elif show['title'] == 'Transformers':
+            return 'Transformers'
+        else:
+            title = show['title']
+            if ':' in title:
+                idx = title.rfind(':')
+                title = title[:idx] + title[idx+1:]
+            return title
 
 def doctor_who_episodes(show_title):
     """
@@ -170,4 +185,7 @@ def doctor_who_episodes(show_title):
         return 12, 11, 'Revolution of the Daleks'
     else:
         return show_title
+    
+def get_today_date():
+    return date.today().strftime('%d-%m-%Y')
     
