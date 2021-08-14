@@ -411,8 +411,12 @@ if __name__ == '__main__':
     status = compare_dates()
     print(status)
     show_list = get_showlist()
-    client.loop.create_task(send_message(status))
-    client.run(os.getenv('HERMES'))
+
+    log_guide_information(search_free_to_air(), search_bbc_channels())
+
+    from notifications import Hermes
+    hermes = Hermes()
+    hermes.run(os.getenv('Hermes'))
 
     # add_show_to_list('Baptiste')
     # delete_latest_entry()
