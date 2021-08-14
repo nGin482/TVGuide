@@ -186,3 +186,6 @@ def doctor_who_episodes(show_title):
     else:
         return show_title
     
+def get_today_date():
+    return date.today().strftime('%d-%m-%Y')
+    
