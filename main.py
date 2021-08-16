@@ -420,6 +420,10 @@ if __name__ == '__main__':
     client.loop.create_task(send_message(status))
     client.run(os.getenv('HERMES'))
 
+    # print(reminders_found())
+    # check_reminders_interval()
+    compare_reminder_interval()
+
     # add_show_to_list('Baptiste')
     # delete_latest_entry()
 
