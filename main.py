@@ -424,6 +424,10 @@ if __name__ == '__main__':
     hermes = Hermes()
     hermes.run(os.getenv('Hermes'))
 
+    # print(reminders_found())
+    # check_reminders_interval()
+    compare_reminder_interval()
+
     # add_show_to_list('Baptiste')
     # delete_latest_entry()
 
