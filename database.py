@@ -1,5 +1,4 @@
 from pymongo import MongoClient, errors, ReturnDocument
-# from datetime import date
 from aux_methods import get_today_date
 import json
 import os
