@@ -1,5 +1,6 @@
 from pymongo import MongoClient, errors, ReturnDocument
-from datetime import date
+# from datetime import date
+from aux_methods import get_today_date
 import json
 import os
 
@@ -108,7 +109,7 @@ def insert_new_recorded_show(new_show):
                     'episode number': '',
                     'episode title': '',
                     'channels': [new_show['channel']],
-                    'first air date': date.today().strftime('%d-%m-%Y'),
+                    'first air date': get_today_date('string'),
                     'repeat': False
                 }
             ]
@@ -140,7 +141,7 @@ def insert_new_season(show):
                     'episode number': '',
                     'episode title': '',
                     'channels': [show['channel']],
-                    'first air date': date.today().strftime('%d-%m-%Y'),
+                    'first air date': get_today_date('string'),
                     'repeat': False
                 }
             ]
@@ -176,7 +177,7 @@ def insert_new_episode(show):
             'episode number': '',
             'episode title': '',
             'channels': [show['channel']],
-            'first air date': date.today().strftime('%d-%m-%Y'),
+            'first air date': get_today_date('string'),
             'repeat': False
         }
 
