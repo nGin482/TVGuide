@@ -1,6 +1,7 @@
 from backups import write_to_backup_file
+from repeat_handler import flag_repeats
 from guide import organise_guide
-from datetime import datetime
+from aux_methods import get_today_date, get_current_time, convert_date_string_to_object
 import json
 import os
 
@@ -21,7 +22,7 @@ def get_date_from_latest_email():
     idx_back = latest_email.find(' at ')
     date = latest_email[idx_front+3:idx_back]
     time = latest_email[idx_back+4:].split(':')
-    date_parsed = datetime.strptime(date, '%d-%m-%y')
+    date_parsed = convert_date_string_to_object(date)
     new_date_parsed = date_parsed.replace(hour=int(time[0]), minute=int(time[1]))
 
     print(new_date_parsed)
@@ -31,7 +32,7 @@ def get_date_from_latest_email():
 def compare_dates():
 
     date = get_date_from_latest_email()
-    if date.day != datetime.today().day:
+    if date.day != get_today_date('object').day:
         return True
     else:
         if date.hour <= 6:
@@ -62,7 +63,7 @@ def write_to_log_file():
     contents = read_file().splitlines(True)
     if len(contents) > 1:
         new_log = [contents[1]]
-    new_log.append('\nTVGuide was sent on ' + datetime.strftime(datetime.today(), '%d-%m-%y') + ' at ' + datetime.strftime(datetime.today(), '%H:%M'))
+    new_log.append('\nTVGuide was sent on ' + get_today_date() + ' at ' + get_current_time())
     
     with open('log/emails.txt', 'w') as fd:
         for line in new_log:
@@ -119,9 +120,22 @@ def log_guide_information(fta_shows, bbc_shows):
         show['time'] = show['time'].strftime('%H:%M')
     
     today_guide = {'FTA': fta_shows, 'BBC': bbc_shows}
-    filename = 'today_guide/' + datetime.strftime(datetime.today(), '%d-%m-%Y') + '.json'
+    filename = 'today_guide/' + get_today_date() + '.json'
     with open(filename, 'w+', encoding='utf-8') as fd:
         json.dump(today_guide, fd, ensure_ascii=False, indent=4)
     
     guide = organise_guide(fta_shows, bbc_shows)
     write_to_backup_file(guide)
+
+def log_guide(fta_shows, bbc_shows):
+
+    log_guide_information(fta_shows, bbc_shows)
+    
+    clear_events_log()
+    for show in fta_shows:
+        if 'HD' not in show['channel'] and 'GEM' not in show['channel'] and show['episode_info']:
+            log_repeats = flag_repeats(show)
+            status_setting_repeats(log_repeats)
+    for show in bbc_shows:
+        log_repeats = flag_repeats(show)
+        status_setting_repeats(log_repeats)

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from database import get_one_recorded_show, get_showlist
 import json
 import os
@@ -186,6 +186,15 @@ def doctor_who_episodes(show_title):
     else:
         return show_title
     
-def get_today_date():
-    return date.today().strftime('%d-%m-%Y')
-    
+def get_today_date(return_type):
+    if return_type == 'string':
+        return date.today().strftime('%d-%m-%Y')
+    else:
+        return date.today()
+
+def convert_date_string_to_object(given_date):
+    return datetime.strptime(given_date, '%d-%m-%y')
+
+def get_current_time(return_type):
+    if return_type == 'string':
+        return date.today().strftime('%H:%M')
