@@ -1,4 +1,5 @@
 from backups import write_to_backup_file
+from repeat_handler import flag_repeats
 from guide import organise_guide
 from datetime import datetime
 import json
@@ -125,3 +126,16 @@ def log_guide_information(fta_shows, bbc_shows):
     
     guide = organise_guide(fta_shows, bbc_shows)
     write_to_backup_file(guide)
+
+def log_guide(fta_shows, bbc_shows):
+
+    log_guide_information(fta_shows, bbc_shows)
+    
+    clear_events_log()
+    for show in fta_shows:
+        if 'HD' not in show['channel'] and 'GEM' not in show['channel'] and show['episode_info']:
+            log_repeats = flag_repeats(show)
+            status_setting_repeats(log_repeats)
+    for show in bbc_shows:
+        log_repeats = flag_repeats(show)
+        status_setting_repeats(log_repeats)

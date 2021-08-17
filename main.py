@@ -1,5 +1,5 @@
 from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
-from log import write_to_log_file, compare_dates, delete_latest_entry, status_setting_repeats, clear_events_log, log_guide_information
+from log import write_to_log_file, compare_dates, delete_latest_entry, log_guide
 from backups import write_to_backup_file
 from datetime import datetime, date
 from dotenv import load_dotenv
@@ -394,23 +394,6 @@ def show_list():
     """
     for show in get_showlist:
         print(show)
-
-
-def log_guide():
-
-    fta_shows = search_free_to_air()
-    bbc_shows = search_bbc_channels()
-
-    log_guide_information(fta_shows, bbc_shows)
-    
-    clear_events_log()
-    for show in fta_shows:
-        if 'HD' not in show['channel'] and 'GEM' not in show['channel'] and show['episode_info']:
-            log_repeats = flag_repeats(show)
-            status_setting_repeats(log_repeats)
-    for show in bbc_shows:
-        log_repeats = flag_repeats(show)
-        status_setting_repeats(log_repeats)
 
 
 if __name__ == '__main__':
