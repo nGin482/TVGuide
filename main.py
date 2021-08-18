@@ -245,7 +245,7 @@ def check_site():
     return shows_on
 
 
-def compose_message(status):
+def compose_message():
     """
     toString function that writes the shows, times, channels and episode information (if available) via natural language
     :return: the to-string message
@@ -272,8 +272,6 @@ def compose_message(status):
         message = message + "Nothing on Free to Air today\n"
     else:
         for show in fta_shows:
-            if status is True and show['episode_info']:
-                search_for_repeats(show)
             time = show['time'].strftime('%H:%M')
             message = message + time + ': ' + show['title'] + " is on " + show['channel'] + "\n\n"
             if show['episode_info']:
@@ -293,12 +291,14 @@ def compose_message(status):
         message = message + "Nothing on BBC today\n"
     else:
         for show in bbc_shows:
-            if status is True:
-                search_for_repeats(show)
             time = show['time'].strftime('%H:%M')
             if show['episode_info']:
-                message = message + time + ": " + show['title'] + " is on " + show['channel'] + \
+                if 'series_num' in show.keys() and 'episode_num' in show.keys():
+                    message = message + time + ": " + show['title'] + " is on " + show['channel'] + \
                           " (Series " + show['series_num'] + ", Episode " + show['episode_num'] + ")\n\n"
+                if 'episode_title' in show.keys() and 'series_num' not in show.keys():
+                    message = message + time + ": " + show['title'] + " is on " + show['channel'] + \
+                    " (" + show['episode_title'] + ")\n\n"
             else:
                 message = message + time + ": " + show['title'] + " is on " + show['channel'] + \
                           " (" + show['episode_title'] + ")\n\n"
@@ -308,16 +308,16 @@ def compose_message(status):
     return message
 
 
-async def send_message(send_status):
+async def send_message():
     """
 
     :param send_status:
     :return: n/a
     """
-    message = compose_message(send_status)
+    message = compose_message()
     print(message)
     
-    if send_status:
+    if status:
         await client.wait_until_ready()
         tvguide_channel = client.get_channel(int(os.getenv('TVGUIDE_CHANNEL')))
         try:
@@ -400,7 +400,7 @@ if __name__ == '__main__':
     status = compare_dates()
     print(status)
     show_list = get_showlist()
-    client.loop.create_task(send_message(status))
+    client.loop.create_task(send_message())
     client.run(os.getenv('HERMES'))
 
     # print(reminders_found())
