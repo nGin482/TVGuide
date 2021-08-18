@@ -1,13 +1,13 @@
+from aux_methods import format_time, format_title, show_list_for_message, doctor_who_episodes, morse_episodes, remove_doubles, check_show_titles
+from database import get_showlist, insert_into_showlist_collection, remove_show_from_list
 from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
 from log import write_to_log_file, compare_dates, delete_latest_entry, log_guide
 from backups import write_to_backup_file
 from datetime import datetime, date
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
-from aux_methods import format_time, format_title, show_list_for_message, doctor_who_episodes, morse_episodes, remove_doubles
 from requests import get
 from reminders import *
-from database import get_showlist, insert_into_showlist_collection, remove_show_from_list
 import discord
 import click
 import os
@@ -150,7 +150,7 @@ def search_free_to_air():
     #     sort_shows_by_time(shows_on, check[0], check[1])
     #     check = check_time_sort(shows_on)
     remove_doubles(shows_on)
-    show_titles = [show['title'] for show in shows_on]
+    show_titles = [check_show_titles(show['title']) for show in shows_on]
     get_today_shows_data(show_titles)
     shows_on = [search_for_repeats(show) for show in shows_on]
 
@@ -225,7 +225,7 @@ def search_bbc_channels():
     # while check[0] != -1 and check[1] != -1:
     #     sort_shows_by_time(shows_on, check[0], check[1])
     #     check = check_time_sort(shows_on)
-    show_titles = [show['title'] for show in shows_on]
+    show_titles = [check_show_titles(show['title']) for show in shows_on]
     get_today_shows_data(show_titles)
     shows_on = [search_for_repeats(show) for show in shows_on]
     return shows_on
