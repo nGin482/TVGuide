@@ -1,5 +1,4 @@
 from datetime import date, datetime
-from database import get_one_recorded_show, get_showlist
 import json
 import os
 
@@ -97,8 +96,7 @@ def morse_episodes(guide_title):
                     return season_idx+1, episode_idx+1, title
 
 
-def show_list_for_message():
-    shows_list = get_showlist()
+def show_list_for_message(shows_list):
     show_list = ''
     for show in shows_list:
         show_list = show_list + show + '\n'
