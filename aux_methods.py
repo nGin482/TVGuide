@@ -192,9 +192,12 @@ def get_today_date(return_type):
     else:
         return date.today()
 
+def get_today_date_for_logging():
+    return date.today().strftime('%d-%m-%y')
+
 def convert_date_string_to_object(given_date):
     return datetime.strptime(given_date, '%d-%m-%y')
 
 def get_current_time(return_type):
     if return_type == 'string':
-        return date.today().strftime('%H:%M')
+        return datetime.now().strftime('%H:%M')
