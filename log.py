@@ -1,7 +1,7 @@
 from backups import write_to_backup_file
 from repeat_handler import flag_repeats, tear_down
 from guide import organise_guide
-from aux_methods import get_today_date, get_current_time, convert_date_string_to_object
+from aux_methods import get_today_date, get_current_time, convert_date_string_to_object, get_today_date_for_logging
 import json
 import os
 
@@ -63,7 +63,7 @@ def write_to_log_file():
     contents = read_file().splitlines(True)
     if len(contents) > 1:
         new_log = [contents[1]]
-    new_log.append('\nTVGuide was sent on ' + get_today_date('string') + ' at ' + get_current_time('string'))
+    new_log.append('\nTVGuide was sent on ' + get_today_date_for_logging() + ' at ' + get_current_time('string'))
     
     with open('log/emails.txt', 'w') as fd:
         for line in new_log:
