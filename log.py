@@ -1,5 +1,5 @@
 from backups import write_to_backup_file
-from repeat_handler import flag_repeats
+from repeat_handler import flag_repeats, tear_down
 from guide import organise_guide
 from aux_methods import get_today_date, get_current_time, convert_date_string_to_object
 import json
@@ -139,3 +139,4 @@ def log_guide(fta_shows, bbc_shows):
     for show in bbc_shows:
         log_repeats = flag_repeats(show)
         status_setting_repeats(log_repeats)
+    tear_down()

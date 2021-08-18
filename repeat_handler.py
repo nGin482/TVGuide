@@ -40,8 +40,6 @@ def flag_repeats(show):
             return {'show': show, 'result': insert_show}
         else:
             return {'status': False, 'message': 'Unable to process this episode.'}
-    
-    tear_down()
 
 def find_recorded_episode(show):
     check_show = read_show_data(show['title'])
