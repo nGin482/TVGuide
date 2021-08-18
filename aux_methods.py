@@ -1,6 +1,4 @@
 from datetime import date, datetime
-import json
-import os
 
 def format_time(time):
     """
