@@ -193,7 +193,7 @@ def search_bbc_channels():
                         start_time = datetime.strptime(format_time(start_time), '%H:%M')
 
                         shows_on.append({'title': title, 'channel': 'BBC First', 'time': start_time,
-                                         'episode_info': False, 'episode_tag': True, 'episode_title': episode_tag,
+                                         'episode_info': True, 'episode_title': episode_tag,
                                          'repeat': False})
 
     for div in bbc_uktv('div', class_='event'):
@@ -217,7 +217,7 @@ def search_bbc_channels():
                         start_time = datetime.strptime(format_time(start_time), '%H:%M')
 
                         shows_on.append({'title': title, 'channel': 'UKTV', 'time': start_time,
-                                         'episode_info': False, 'episode_tag': True, 'episode_title': episode_tag,
+                                         'episode_info': True, 'episode_title': episode_tag,
                                          'repeat': False})
 
     shows_on.sort(key=lambda show_obj: show_obj['time'])
