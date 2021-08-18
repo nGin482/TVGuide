@@ -63,7 +63,7 @@ def write_to_log_file():
     contents = read_file().splitlines(True)
     if len(contents) > 1:
         new_log = [contents[1]]
-    new_log.append('\nTVGuide was sent on ' + get_today_date() + ' at ' + get_current_time())
+    new_log.append('\nTVGuide was sent on ' + get_today_date('string') + ' at ' + get_current_time('string'))
     
     with open('log/emails.txt', 'w') as fd:
         for line in new_log:
@@ -120,7 +120,7 @@ def log_guide_information(fta_shows, bbc_shows):
         show['time'] = show['time'].strftime('%H:%M')
     
     today_guide = {'FTA': fta_shows, 'BBC': bbc_shows}
-    filename = 'today_guide/' + get_today_date() + '.json'
+    filename = 'today_guide/' + get_today_date('string') + '.json'
     with open(filename, 'w+', encoding='utf-8') as fd:
         json.dump(today_guide, fd, ensure_ascii=False, indent=4)
     

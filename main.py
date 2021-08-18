@@ -326,7 +326,7 @@ async def send_message(send_status):
             ngin = await client.fetch_user(int(os.getenv('NGIN')))
             await ngin.send('The channel resolved to NoneType so the message could not be sent')
         write_to_log_file()
-        log_guide()
+        log_guide(search_free_to_air(), search_bbc_channels())
     
     await client.close()
 

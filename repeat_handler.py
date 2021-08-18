@@ -79,7 +79,7 @@ def search_for_repeats(show):
     else:
         status = True
 
-    if status:
+    if status and show['episode_info']:
         check_episode = find_recorded_episode(show)
         if check_episode['status']:
             show['repeat'] = True
