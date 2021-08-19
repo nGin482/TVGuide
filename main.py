@@ -9,7 +9,6 @@ from bs4 import BeautifulSoup
 from requests import get
 from reminders import *
 import discord
-import click
 import os
 
 load_dotenv('.env')
@@ -333,46 +332,6 @@ async def on_message(message):
             else:
                 reply = remove_show['message'] + ' The list remains as:\n' + show_list_for_message(show_list)
             await message.channel.send(reply)
-
-
-@click.group()
-def cli():
-    pass
-
-
-@cli.command()
-def send_email():
-    """
-    Searches the TV guides for the list of shows and sends the results in an email
-    """
-    status = compare_dates()
-    print(status)
-    send_message(status)
-
-
-@cli.command()
-def delete_log_entry():
-    """
-    Deletes the latest log entry
-    """
-    delete_latest_entry()
-
-
-@cli.command()
-def add_show():
-    """
-    Adds the given show into the list of shows
-    """
-    insert_into_showlist_collection()
-
-
-@cli.command()
-def show_list():
-    """
-    Displays the current list of shows that the TVGuide is searching for
-    """
-    for show in get_showlist:
-        print(show)
 
 
 if __name__ == '__main__':
