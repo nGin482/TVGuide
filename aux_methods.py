@@ -197,3 +197,18 @@ def convert_date_string_to_object(given_date):
 def get_current_time(return_type):
     if return_type == 'string':
         return datetime.now().strftime('%H:%M')
+
+def show_string(show: dict):
+    message = '{time}: {title} is on {channel}'.format(**show)
+    if 'series_num' in show.keys() and 'episode_title' in show.keys():
+        message = message + ' (Season {series_num}, Episode {episode_num}: {episode_title})'.format(**show)
+    else:
+        if 'series_num' in show.keys():
+            message = message + '(Season {series_num}, Episode {episode_num})'.format(**show)
+        if 'episode_title' in show.keys():
+            message = message + '({episode_title})'.format(**show)
+    if show['repeat']:
+        message = message + '(Repeat)'
+    message = message + '\n\n'
+
+    return message

@@ -1,4 +1,4 @@
-from aux_methods import format_time, format_title, show_list_for_message, doctor_who_episodes, morse_episodes, remove_doubles, check_show_titles
+from aux_methods import format_time, format_title, show_list_for_message, doctor_who_episodes, morse_episodes, remove_doubles, check_show_titles, show_string
 from database import get_showlist, insert_into_showlist_collection, remove_show_from_list
 from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
 from log import write_to_log_file, compare_dates, delete_latest_entry, log_guide
@@ -272,18 +272,8 @@ def compose_message():
         message = message + "Nothing on Free to Air today\n"
     else:
         for show in fta_shows:
-            time = show['time'].strftime('%H:%M')
-            message = message + time + ': ' + show['title'] + " is on " + show['channel'] + "\n\n"
-            if show['episode_info']:
-                if 'series_num' in show.keys() and 'episode_num' in show.keys():
-                    message = message[:-2] + " (Season " + str(show['series_num']) + ", Episode " + \
-                              str(show['episode_num']) + ")\n\n"
-                    if 'episode_title' in show.keys():
-                        message = message[:-3] + ": " + show['episode_title'] + ")\n\n"
-                if 'episode_title' in show.keys() and 'series_num' not in show.keys():
-                    message = message[:-2] + " (" + show['episode_title'] + ")\n\n"
-            if show['repeat']:
-                message = message[:-2] + "(Repeat)\n\n"
+            show['time'] = show['time'].strftime('%H:%M')
+            message = message + show_string(show)
 
     # BBC
     message = message + "\nBBC:\n"
@@ -291,19 +281,8 @@ def compose_message():
         message = message + "Nothing on BBC today\n"
     else:
         for show in bbc_shows:
-            time = show['time'].strftime('%H:%M')
-            if show['episode_info']:
-                if 'series_num' in show.keys() and 'episode_num' in show.keys():
-                    message = message + time + ": " + show['title'] + " is on " + show['channel'] + \
-                          " (Series " + show['series_num'] + ", Episode " + show['episode_num'] + ")\n\n"
-                if 'episode_title' in show.keys() and 'series_num' not in show.keys():
-                    message = message + time + ": " + show['title'] + " is on " + show['channel'] + \
-                    " (" + show['episode_title'] + ")\n\n"
-            else:
-                message = message + time + ": " + show['title'] + " is on " + show['channel'] + \
-                          " (" + show['episode_title'] + ")\n\n"
-            if show['repeat']:
-                message = message[:-2] + "(Repeat)\n\n"
+            show['time'] = show['time'].strftime('%H:%M')
+            message = message + show_string(show)
 
     return message
 
