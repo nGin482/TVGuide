@@ -231,12 +231,25 @@ def add_channel(show):
                     ],
                     return_document = ReturnDocument.AFTER
                 )
+                message = 'The channel has been added to the list for this episode.'
+                if 'ABC1' in show['channel']:
+                    updated_show = recorded_shows_collection().find_one_and_update(
+                        {'show': show['title']},
+                        {'$push': {'seasons.$[season].episodes.$[episode].channels': 'ABCHD'}},
+                        upsert = True,
+                        array_filters = [
+                            {'season.season number': show['series_num']},
+                            {'episode.episode number': show['episode_num']}
+                        ],
+                        return_document = ReturnDocument.AFTER
+                    )
+                    message = message + ' ABCHD has also been added to the list.'
                 
                 updated_season = list(filter(lambda season: season['season number'] == show['series_num'], updated_show['seasons']))[0]
                 updated_episode = list(filter(lambda episode: episode['episode number'] == show['episode_num'], updated_season['episodes']))[0]
                 
                 if show['channel'] in updated_episode['channels']:
-                    return {'status': True, 'message': 'The channel has been added to the list for this episode.', 'episode': updated_episode}
+                    return {'status': True, 'message': message, 'episode': updated_episode}
                 else:
                     return {'status': False, 'message': 'The channel has not been added.', 'episode': show}
             else:
