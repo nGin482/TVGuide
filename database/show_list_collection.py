@@ -1,5 +1,5 @@
 from pymongo import MongoClient, errors
-from db.mongo import database
+from database.mongo import database
 
 # Handlers for the Show List collection - All shows being searched for
 

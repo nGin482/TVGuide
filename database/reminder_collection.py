@@ -1,5 +1,5 @@
 from pymongo import errors, ReturnDocument
-from db.mongo import database
+from database.mongo import database
 
 # Handlers for the reminders
 

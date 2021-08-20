@@ -1,5 +1,5 @@
 from pymongo import errors, ReturnDocument
-from db.mongo import database
+from database.mongo import database
 from aux_methods import get_today_date
 
 # Handlers for all recorded data for each show
