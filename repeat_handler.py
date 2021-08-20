@@ -1,4 +1,8 @@
-from database import get_one_recorded_show, insert_new_recorded_show, insert_new_season, insert_new_episode, mark_as_repeat, add_channel, get_all_recorded_shows
+from database.recorded_shows_collection import (
+    get_all_recorded_shows, get_one_recorded_show,
+    insert_new_recorded_show, insert_new_season, insert_new_episode,
+    mark_as_repeat, add_channel
+)
 from aux_methods import check_show_titles
 import json
 import os

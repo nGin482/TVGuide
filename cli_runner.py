@@ -1,5 +1,5 @@
 from log import compare_dates, delete_latest_entry
-from database import insert_into_showlist_collection, remove_show_from_list, get_showlist
+from database.show_list_collection import get_showlist, insert_into_showlist_collection, remove_show_from_list
 from main import send_message
 import click
 
