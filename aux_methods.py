@@ -177,7 +177,7 @@ def doctor_who_episodes(show_title):
         return 10, 13, 'Twice Upon a Time'
     elif 'Resolution' in show_title:
         return 11, 11, 'Resolution'
-    elif 'Revolution of the Daleks' in show_title:
+    elif 'Revolution Of The Daleks' in show_title:
         return 12, 11, 'Revolution of the Daleks'
     else:
         return show_title
