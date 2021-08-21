@@ -4,7 +4,7 @@ from database.mongo import database
 # Handlers for the Show List collection - All shows being searched for
 
 def showlist_collection():
-    if database is not None:
+    if database() is not None:
         showlist = database().ShowList
         return showlist
     else:
@@ -12,6 +12,8 @@ def showlist_collection():
 
 def get_showlist():
     list_of_shows = []
+    if showlist_collection() == []:
+        return []
     for show in showlist_collection().find():
         list_of_shows.append(show['show'])
     return list_of_shows
