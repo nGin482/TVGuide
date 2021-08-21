@@ -11,15 +11,21 @@ def showlist_collection():
         return []
 
 def get_showlist():
-    list_of_shows = []
     if showlist_collection() == []:
         return []
+    list_of_shows = []
     for show in showlist_collection().find():
-        list_of_shows.append(show['show'])
+        del show['_id']
+        list_of_shows.append(show)
     return list_of_shows
 
+def search_list():
+    if showlist_collection() == []:
+        return []
+    return [show['show'] for show in showlist_collection().find()]
+
 def find_show(show_to_find):
-    list_of_shows = get_showlist()
+    list_of_shows = search_list()
     for show in list_of_shows:
         if show_to_find in show:
             return {'status': True, 'show': show}
