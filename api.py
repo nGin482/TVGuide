@@ -54,12 +54,12 @@ api.add_resource(SingleShowFromList, '/show-list/<string:show>')
 class Guide(Resource):
     def get(self):
         try:
-            filename = 'today_guide/' + get_today_date() + '.json'
+            filename = 'today_guide/' + get_today_date('string') + '.json'
             with open(filename) as fd:
                 guide = json.load(fd)
             return guide
         except FileNotFoundError:
-            return {'status': False, 'message': 'There is no guide data to retrieve for ' + get_today_date() + '.'}, 404
+            return {'status': False, 'message': 'There is no guide data to retrieve for ' + get_today_date('string') + '.'}, 404
 api.add_resource(Guide, '/guide')
 
 class RecordedShows(Resource):
