@@ -1,5 +1,5 @@
 from aux_methods import format_time, format_title, show_list_for_message, doctor_who_episodes, morse_episodes, remove_doubles, check_show_titles, show_string
-from database.show_list_collection import get_showlist, insert_into_showlist_collection, remove_show_from_list
+from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
 from log import write_to_log_file, compare_dates, delete_latest_entry, log_guide
 from backups import write_to_backup_file
@@ -337,7 +337,7 @@ async def on_message(message):
 if __name__ == '__main__':
     status = compare_dates()
     print(status)
-    show_list = get_showlist()
+    show_list = search_list()
     client.loop.create_task(send_message())
     client.run(os.getenv('HERMES'))
 

@@ -1,5 +1,5 @@
 from log import compare_dates, delete_latest_entry
-from database.show_list_collection import get_showlist, insert_into_showlist_collection, remove_show_from_list
+from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from main import send_message
 import click
 
@@ -41,7 +41,7 @@ def show_list():
     """
     Displays the current list of shows that the TVGuide is searching for
     """
-    for show in get_showlist:
+    for show in search_list():
         print(show)
 
 
