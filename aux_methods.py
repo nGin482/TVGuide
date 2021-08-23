@@ -204,9 +204,9 @@ def show_string(show: dict):
         message = message + ' (Season {series_num}, Episode {episode_num}: {episode_title})'.format(**show)
     else:
         if 'series_num' in show.keys():
-            message = message + '(Season {series_num}, Episode {episode_num})'.format(**show)
+            message = message + ' (Season {series_num}, Episode {episode_num})'.format(**show)
         if 'episode_title' in show.keys():
-            message = message + '({episode_title})'.format(**show)
+            message = message + ' ({episode_title})'.format(**show)
     if show['repeat']:
         message = message + '(Repeat)'
     message = message + '\n\n'
