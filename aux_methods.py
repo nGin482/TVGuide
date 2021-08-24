@@ -1,7 +1,4 @@
 from datetime import date, datetime
-from database import get_one_recorded_show, get_showlist
-import json
-import os
 
 def format_time(time):
     """
@@ -97,8 +94,7 @@ def morse_episodes(guide_title):
                     return season_idx+1, episode_idx+1, title
 
 
-def show_list_for_message():
-    shows_list = get_showlist()
+def show_list_for_message(shows_list):
     show_list = ''
     for show in shows_list:
         show_list = show_list + show + '\n'
@@ -181,7 +177,7 @@ def doctor_who_episodes(show_title):
         return 10, 13, 'Twice Upon a Time'
     elif 'Resolution' in show_title:
         return 11, 11, 'Resolution'
-    elif 'Revolution of the Daleks' in show_title:
+    elif 'Revolution Of The Daleks' in show_title:
         return 12, 11, 'Revolution of the Daleks'
     else:
         return show_title
@@ -192,9 +188,27 @@ def get_today_date(return_type):
     else:
         return date.today()
 
+def get_today_date_for_logging():
+    return date.today().strftime('%d-%m-%y')
+
 def convert_date_string_to_object(given_date):
     return datetime.strptime(given_date, '%d-%m-%y')
 
 def get_current_time(return_type):
     if return_type == 'string':
-        return date.today().strftime('%H:%M')
+        return datetime.now().strftime('%H:%M')
+
+def show_string(show: dict):
+    message = '{time}: {title} is on {channel}'.format(**show)
+    if 'series_num' in show.keys() and 'episode_title' in show.keys():
+        message = message + ' (Season {series_num}, Episode {episode_num}: {episode_title})'.format(**show)
+    else:
+        if 'series_num' in show.keys():
+            message = message + ' (Season {series_num}, Episode {episode_num})'.format(**show)
+        if 'episode_title' in show.keys():
+            message = message + ' ({episode_title})'.format(**show)
+    if show['repeat']:
+        message = message + '(Repeat)'
+    message = message + '\n\n'
+
+    return message

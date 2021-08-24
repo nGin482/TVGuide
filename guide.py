@@ -1,4 +1,4 @@
-from datetime import datetime
+from aux_methods import get_today_date
 import json
 
 def sort_shows_by_title(fta_shows, bbc_shows):
@@ -47,7 +47,7 @@ def organise_guide(fta_shows, bbc_shows):
                         'episode title': episode['episode_title'],
                         'time': episode['time'],
                         'channels': [episode['channel']],
-                        'first air date': datetime.strftime(datetime.today(), '%d-%m-%Y'),
+                        'first air date': get_today_date('string'),
                         'repeat': episode['repeat']
                     }]
                 }
@@ -60,7 +60,7 @@ def organise_guide(fta_shows, bbc_shows):
                         'episode title': episode['episode_title'],
                         'time': episode['time'],
                         'channels': [episode['channel']],
-                        'first air date': datetime.strftime(datetime.today(), '%d-%m-%Y'),
+                        'first air date': get_today_date('string'),
                         'repeat': episode['repeat']
                     }
                     show_object['seasons'][season_idx]['episodes'].append(episode_object)
@@ -155,7 +155,7 @@ def organise_seasons(episodes):
                 'episode title': episode['episode_title'],
                 'time': episode['time'],
                 'channels': [episode['channel']],
-                'first air date': datetime.strftime(datetime.today(), '%d-%m-%Y'),
+                'first air date': get_today_date('string'),
                 'repeat': False
             }
             season_object['episodes'].append(episode_object)

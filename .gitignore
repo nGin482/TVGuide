@@ -9,6 +9,7 @@
 /txt
 /log
 /today_guide
+/database/__pycache__
 
 # files
 /aux_methods.pyc

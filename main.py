@@ -1,15 +1,14 @@
+from aux_methods import format_time, format_title, show_list_for_message, doctor_who_episodes, morse_episodes, remove_doubles, check_show_titles, show_string
+from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
-from log import write_to_log_file, compare_dates, delete_latest_entry, log_guide
+from log import write_to_log_file, compare_dates, delete_latest_entry, log_guide, log_guide_information
 from backups import write_to_backup_file
 from datetime import datetime, date
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
-from aux_methods import format_time, format_title, show_list_for_message, doctor_who_episodes, morse_episodes, remove_doubles
 from requests import get
 from reminders import *
-from database import get_showlist, insert_into_showlist_collection, remove_show_from_list
 import discord
-import click
 import os
 
 load_dotenv('.env')
@@ -150,7 +149,7 @@ def search_free_to_air():
     #     sort_shows_by_time(shows_on, check[0], check[1])
     #     check = check_time_sort(shows_on)
     remove_doubles(shows_on)
-    show_titles = [show['title'] for show in shows_on]
+    show_titles = [check_show_titles(show['title']) for show in shows_on]
     get_today_shows_data(show_titles)
     shows_on = [search_for_repeats(show) for show in shows_on]
 
@@ -193,7 +192,7 @@ def search_bbc_channels():
                         start_time = datetime.strptime(format_time(start_time), '%H:%M')
 
                         shows_on.append({'title': title, 'channel': 'BBC First', 'time': start_time,
-                                         'episode_info': False, 'episode_tag': True, 'episode_title': episode_tag,
+                                         'episode_info': True, 'episode_title': episode_tag,
                                          'repeat': False})
 
     for div in bbc_uktv('div', class_='event'):
@@ -217,7 +216,7 @@ def search_bbc_channels():
                         start_time = datetime.strptime(format_time(start_time), '%H:%M')
 
                         shows_on.append({'title': title, 'channel': 'UKTV', 'time': start_time,
-                                         'episode_info': False, 'episode_tag': True, 'episode_title': episode_tag,
+                                         'episode_info': True, 'episode_title': episode_tag,
                                          'repeat': False})
 
     shows_on.sort(key=lambda show_obj: show_obj['time'])
@@ -225,7 +224,7 @@ def search_bbc_channels():
     # while check[0] != -1 and check[1] != -1:
     #     sort_shows_by_time(shows_on, check[0], check[1])
     #     check = check_time_sort(shows_on)
-    show_titles = [show['title'] for show in shows_on]
+    show_titles = [check_show_titles(show['title']) for show in shows_on]
     get_today_shows_data(show_titles)
     shows_on = [search_for_repeats(show) for show in shows_on]
     return shows_on
@@ -245,7 +244,7 @@ def check_site():
     return shows_on
 
 
-def compose_message(status):
+def compose_message():
     """
     toString function that writes the shows, times, channels and episode information (if available) via natural language
     :return: the to-string message
@@ -272,20 +271,8 @@ def compose_message(status):
         message = message + "Nothing on Free to Air today\n"
     else:
         for show in fta_shows:
-            if status is True and show['episode_info']:
-                search_for_repeats(show)
-            time = show['time'].strftime('%H:%M')
-            message = message + time + ': ' + show['title'] + " is on " + show['channel'] + "\n\n"
-            if show['episode_info']:
-                if 'series_num' in show.keys() and 'episode_num' in show.keys():
-                    message = message[:-2] + " (Season " + str(show['series_num']) + ", Episode " + \
-                              str(show['episode_num']) + ")\n\n"
-                    if 'episode_title' in show.keys():
-                        message = message[:-3] + ": " + show['episode_title'] + ")\n\n"
-                if 'episode_title' in show.keys() and 'series_num' not in show.keys():
-                    message = message[:-2] + " (" + show['episode_title'] + ")\n\n"
-            if show['repeat']:
-                message = message[:-2] + "(Repeat)\n\n"
+            show['time'] = show['time'].strftime('%H:%M')
+            message = message + show_string(show)
 
     # BBC
     message = message + "\nBBC:\n"
@@ -293,31 +280,22 @@ def compose_message(status):
         message = message + "Nothing on BBC today\n"
     else:
         for show in bbc_shows:
-            if status is True:
-                search_for_repeats(show)
-            time = show['time'].strftime('%H:%M')
-            if show['episode_info']:
-                message = message + time + ": " + show['title'] + " is on " + show['channel'] + \
-                          " (Series " + show['series_num'] + ", Episode " + show['episode_num'] + ")\n\n"
-            else:
-                message = message + time + ": " + show['title'] + " is on " + show['channel'] + \
-                          " (" + show['episode_title'] + ")\n\n"
-            if show['repeat']:
-                message = message[:-2] + "(Repeat)\n\n"
+            show['time'] = show['time'].strftime('%H:%M')
+            message = message + show_string(show)
 
     return message
 
 
-async def send_message(send_status):
+async def send_message():
     """
 
     :param send_status:
     :return: n/a
     """
-    message = compose_message(send_status)
+    message = compose_message()
     print(message)
     
-    if send_status:
+    if status:
         await client.wait_until_ready()
         tvguide_channel = client.get_channel(int(os.getenv('TVGUIDE_CHANNEL')))
         try:
@@ -326,7 +304,7 @@ async def send_message(send_status):
             ngin = await client.fetch_user(int(os.getenv('NGIN')))
             await ngin.send('The channel resolved to NoneType so the message could not be sent')
         write_to_log_file()
-        log_guide()
+        log_guide(search_free_to_air(), search_bbc_channels())
     
     await client.close()
 
@@ -340,72 +318,34 @@ async def on_message(message):
         return
     if 'tv-guide' in str(message.channel):
         if '$show-list' in message.content:
-            await message.channel.send(show_list_for_message())
+            await message.channel.send(show_list_for_message(show_list))
         if '$add-show' in message.content:
             new_show = message.content.split(' ')[1]
             insert_into_showlist_collection(new_show)
-            new_message = new_show + ' has been added to the list. The list now includes:\n' + show_list_for_message()
+            new_message = new_show + ' has been added to the list. The list now includes:\n' + show_list_for_message(show_list)
             await message.channel.send(new_message)
         if '$remove-show' in message.content:
             show_to_remove = message.content[message.content.index('-show')+6:]
             remove_show = remove_show_from_list(show_to_remove)
             if remove_show['status']:
-                reply = remove_show['message'] + ' The list now includes:\n' + show_list_for_message()
+                reply = remove_show['message'] + ' The list now includes:\n' + show_list_for_message(show_list)
             else:
-                reply = remove_show['message'] + ' The list remains as:\n' + show_list_for_message()
+                reply = remove_show['message'] + ' The list remains as:\n' + show_list_for_message(show_list)
             await message.channel.send(reply)
-
-
-@click.group()
-def cli():
-    pass
-
-
-@cli.command()
-def send_email():
-    """
-    Searches the TV guides for the list of shows and sends the results in an email
-    """
-    status = compare_dates()
-    print(status)
-    send_message(status)
-
-
-@cli.command()
-def delete_log_entry():
-    """
-    Deletes the latest log entry
-    """
-    delete_latest_entry()
-
-
-@cli.command()
-def add_show():
-    """
-    Adds the given show into the list of shows
-    """
-    insert_into_showlist_collection()
-
-
-@cli.command()
-def show_list():
-    """
-    Displays the current list of shows that the TVGuide is searching for
-    """
-    for show in get_showlist:
-        print(show)
 
 
 if __name__ == '__main__':
     status = compare_dates()
     print(status)
-    show_list = get_showlist()
+    show_list = search_list()
 
     log_guide_information(search_free_to_air(), search_bbc_channels())
 
     from notifications import Hermes
     hermes = Hermes()
     hermes.run(os.getenv('Hermes'))
+    # client.loop.create_task(send_message())
+    # client.run(os.getenv('HERMES'))
 
     # print(reminders_found())
     # check_reminders_interval()

@@ -1,4 +1,8 @@
-from database import get_one_recorded_show, insert_new_recorded_show, insert_new_season, insert_new_episode, mark_as_repeat, add_channel, get_all_recorded_shows
+from database.recorded_shows_collection import (
+    get_all_recorded_shows, get_one_recorded_show,
+    insert_new_recorded_show, insert_new_season, insert_new_episode,
+    mark_as_repeat, add_channel
+)
 from aux_methods import check_show_titles
 import json
 import os
@@ -40,8 +44,6 @@ def flag_repeats(show):
             return {'show': show, 'result': insert_show}
         else:
             return {'status': False, 'message': 'Unable to process this episode.'}
-    
-    tear_down()
 
 def find_recorded_episode(show):
     check_show = read_show_data(show['title'])
@@ -79,7 +81,7 @@ def search_for_repeats(show):
     else:
         status = True
 
-    if status:
+    if status and show['episode_info']:
         check_episode = find_recorded_episode(show)
         if check_episode['status']:
             show['repeat'] = True

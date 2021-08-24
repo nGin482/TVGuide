@@ -1,71 +1,6 @@
-from pymongo import MongoClient, errors, ReturnDocument
+from pymongo import errors, ReturnDocument
+from database.mongo import database
 from aux_methods import get_today_date
-import json
-import os
-
-
-# Connection to MongoDB database/Cluster
-
-def client():
-    try:
-        client = MongoClient(os.getenv('TVGUIDE_DB'))
-        return client
-    except errors.ConfigurationError as e:
-        print('Having trouble connecting to the database.')
-        print(e)
-        
-
-def database():
-    if client() is not None:
-        db = client().tvguide
-        return db
-    else:
-        return None
-
-
-# Handlers for the Show List collection - All shows being searched for
-
-def showlist_collection():
-    if database is not None:
-        showlist = database().ShowList
-        return showlist
-    else:
-        return []
-
-def get_showlist():
-    list_of_shows = []
-    for show in showlist_collection().find():
-        list_of_shows.append(show['show'])
-    return list_of_shows
-
-def find_show(show_to_find):
-    list_of_shows = get_showlist()
-    for show in list_of_shows:
-        if show_to_find in show:
-            return {'status': True, 'show': show}
-    return {'status': False, 'message': 'The show given could not be found in the database.'}
-
-def insert_into_showlist_collection(show):
-    check_show_exists = find_show(show)
-    if check_show_exists['status']:
-        return {'status': False, 'message': show + ' is already being searched for.'}
-    else:
-        try:
-            show_document = {
-                "show": show
-            }
-            showlist_collection().insert_one(show_document)
-            return {'status': True, 'message': show + ' has been added to the show list.'}
-        except errors.PyMongoError as e:
-            return {'status': False, 'message': ' There was a problem adding ' + show + ' to the show list.', 'error': e}
-
-def remove_show_from_list(show_to_remove):
-    try:
-        showlist_collection().delete_one({'show': show_to_remove})
-        return {'status': True, 'message': show_to_remove + ' has been removed from the show list.'}
-    except errors.PyMongoError as e:
-        return {'status': False, 'message': ' There was a problem removing ' + show_to_remove + ' from the show list.', 'error': e}
-
 
 # Handlers for all recorded data for each show
 
@@ -296,12 +231,25 @@ def add_channel(show):
                     ],
                     return_document = ReturnDocument.AFTER
                 )
+                message = 'The channel has been added to the list for this episode.'
+                if 'ABC1' in show['channel']:
+                    updated_show = recorded_shows_collection().find_one_and_update(
+                        {'show': show['title']},
+                        {'$push': {'seasons.$[season].episodes.$[episode].channels': 'ABCHD'}},
+                        upsert = True,
+                        array_filters = [
+                            {'season.season number': show['series_num']},
+                            {'episode.episode number': show['episode_num']}
+                        ],
+                        return_document = ReturnDocument.AFTER
+                    )
+                    message = message + ' ABCHD has also been added to the list.'
                 
                 updated_season = list(filter(lambda season: season['season number'] == show['series_num'], updated_show['seasons']))[0]
                 updated_episode = list(filter(lambda episode: episode['episode number'] == show['episode_num'], updated_season['episodes']))[0]
                 
                 if show['channel'] in updated_episode['channels']:
-                    return {'status': True, 'message': 'The channel has been added to the list for this episode.', 'episode': updated_episode}
+                    return {'status': True, 'message': message, 'episode': updated_episode}
                 else:
                     return {'status': False, 'message': 'The channel has not been added.', 'episode': show}
             else:
@@ -571,84 +519,3 @@ def check_repeat(show):
         return True
     else:
         return False
-
-
-# Handlers for the reminders
-
-def reminders_collection():
-    if database() is not None:
-        reminders = database().Reminders
-        return reminders
-    else:
-        return []
-
-def get_all_reminders():
-    reminders = []
-    for reminder in reminders_collection().find():
-        reminders.append(reminder)
-    return reminders
-
-def get_one_reminder(show):
-    reminders = get_all_reminders()
-    
-    matched_reminders = list(filter(lambda reminder_object: reminder_object['show'] == show, reminders))
-    
-    if len(matched_reminders) > 0:
-        return {'status': True, 'reminder': matched_reminders[0]}
-    else:
-        return {'status': False, 'message': 'There is no reminder for this show.'}
-
-def create_reminder(reminder_settings):
-    
-    check_reminder = get_one_reminder(reminder_settings['show'])
-    if check_reminder['status']:
-        return {'status': False, 'message': 'A reminder has already been set for this show.'}
-
-    if 'reminder time' not in reminder_settings.keys():
-        reminder_settings['reminder time'] = '3 mins before'
-        
-    if 'show' in reminder_settings.keys() and 'reminder time' in reminder_settings.keys() and 'interval' in reminder_settings.keys():
-        try:
-            reminder = reminders_collection().insert_one(reminder_settings)
-        except errors.WriteError as err:
-            return {'status': False, 'message': 'An error occurred while setting the reminder for ' + reminder_settings['show'] + '.', 'error': err}
-        if reminder.inserted_id:
-            return {'status': True, 'message': 'The reminder has been set for ' + reminder_settings['show'] + '.', 'reminder': reminder_settings}
-        else:
-            return {'status': False, 'message': 'The reminder was not able to be set for ' + reminder_settings['show'] + '.', 'reminder': reminder_settings}
-    else:
-        return {'status': False, 'message': 'The settings given to create this reminder are invalid because required information is missing.'}
-
-def edit_reminder(reminder):
-    from aux_methods import valid_reminder_fields
-
-    check_reminder = get_one_reminder(reminder['show'])
-    if check_reminder['status']:
-        if reminder['field'] not in valid_reminder_fields():
-            return {'status': False, 'message': 'The field given is not a valid reminder field. Therefore, the reminder cannot be updated.'}
-        else:
-            updated_reminder = reminders_collection().find_one_and_update(
-                {'show': reminder['show']},
-                {'$set': {reminder['field']: reminder['value']}},
-                return_document = ReturnDocument.AFTER
-            )
-            if updated_reminder[reminder['field']] == reminder['value']:
-                return {'status': True, 'message': 'The reminder has been updated.', 'reminder': updated_reminder}
-            else:
-                return {'status': False, 'message': 'The reminder has not been updated.'}
-    else:
-        return {'status': False, 'message': 'A reminder has not been set for ' + reminder['show'] + '.'}
-
-def remove_reminder(show):
-    check_reminder = get_one_reminder(show)
-    if check_reminder['status']:
-        deleted_reminder = reminders_collection().find_one_and_delete(
-            {'show': show}
-        )
-        check_again = get_one_reminder(show)
-        if not check_again['status']:
-            return {'status': True, 'message': 'The reminder for ' + show + ' has been removed.', 'reminder': deleted_reminder}
-        else:
-            return {'status': False, 'message': 'The reminder for ' + show + ' was not removed.'}
-    else:
-        return {'status': False, 'message': 'There is no reminder available for ' + show + '.'}
