@@ -56,7 +56,7 @@ def write_to_backup():
         fd.write(contents)
 
 
-def write_to_log_file():
+def log_message_sent():
 
     write_to_backup()
     
