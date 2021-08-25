@@ -129,7 +129,7 @@ def log_guide_information(fta_shows, bbc_shows):
 
 def log_guide(fta_shows, bbc_shows):
 
-    log_guide_information(fta_shows, bbc_shows)
+    # log_guide_information(fta_shows, bbc_shows)
     
     clear_events_log()
     for show in fta_shows:

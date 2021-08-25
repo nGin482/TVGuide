@@ -1,6 +1,6 @@
-from database import insert_into_showlist_collection, remove_show_from_list
-from aux_methods import show_list_for_message, get_today_date
-from log import compare_dates
+from database.show_list_collection import insert_into_showlist_collection, remove_show_from_list
+from aux_methods import show_list_for_message, get_today_date, show_string
+from log import compare_dates, log_guide, write_to_log_file
 from discord.ext import tasks
 import discord
 import json
@@ -12,13 +12,14 @@ class Hermes(discord.Client):
         status = compare_dates()
         print(status)
         
-        with open('today_guide/' + get_today_date() + '.json') as guide_file:
+        with open('today_guide/' + get_today_date('string') + '.json') as guide_file:
             guide_data = json.load(guide_file)
         
         guide_message = compose_guide_message(guide_data['FTA'], guide_data['BBC'])
+        print(guide_message)
 
         if status:
-            self.send_guide(guide_message)
+            await self.send_guide(guide_message)
 
     async def send_message_to_ngin(self, message):
         """
@@ -36,6 +37,7 @@ class Hermes(discord.Client):
         tvguide_channel = self.get_channel(int(os.getenv('TVGUIDE_CHANNEL')))
         try:
             await tvguide_channel.send(guide)
+            write_to_log_file()
         except AttributeError:
             await self.send_message_to_ngin('The channel resolved to NoneType so the message could not be sent')
         await self.close()
@@ -77,7 +79,7 @@ def compose_guide_message(fta_shows, bbc_shows):
     ]
 
     message_date = datetime.today().date()
-    message = weekdays[message_date.weekday()] + " " + get_today_date() + " TVGuide\n"
+    message = weekdays[message_date.weekday()] + " " + get_today_date('string') + " TVGuide\n"
 
     # Free to Air
     message = message + "\nFree to Air:\n"
@@ -85,18 +87,7 @@ def compose_guide_message(fta_shows, bbc_shows):
         message = message + "Nothing on Free to Air today\n"
     else:
         for show in fta_shows:
-            time = show['time']
-            message = message + time + ': ' + show['title'] + " is on " + show['channel'] + "\n\n"
-            if show['episode_info']:
-                if 'series_num' in show.keys() and 'episode_num' in show.keys():
-                    message = message[:-2] + " (Season " + str(show['series_num']) + ", Episode " + \
-                              str(show['episode_num']) + ")\n\n"
-                    if 'episode_title' in show.keys():
-                        message = message[:-3] + ": " + show['episode_title'] + ")\n\n"
-                if 'episode_title' in show.keys() and 'series_num' not in show.keys():
-                    message = message[:-2] + " (" + show['episode_title'] + ")\n\n"
-            if show['repeat']:
-                message = message[:-2] + "(Repeat)\n\n"
+            message = message + show_string(show)
 
     # BBC
     message = message + "\nBBC:\n"
@@ -104,14 +95,7 @@ def compose_guide_message(fta_shows, bbc_shows):
         message = message + "Nothing on BBC today\n"
     else:
         for show in bbc_shows:
-            time = show['time']
-            if show['episode_info']:
-                message = message + time + ": " + show['title'] + " is on " + show['channel'] + \
-                          " (Series " + show['series_num'] + ", Episode " + show['episode_num'] + ")\n\n"
-            else:
-                message = message + time + ": " + show['title'] + " is on " + show['channel'] + \
-                          " (" + show['episode_title'] + ")\n\n"
-            if show['repeat']:
-                message = message[:-2] + "(Repeat)\n\n"
+            message = message + show_string(show)
 
+    log_guide(fta_shows, bbc_shows)
     return message

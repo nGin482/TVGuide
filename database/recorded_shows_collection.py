@@ -151,7 +151,7 @@ def insert_new_episode(show):
 
                 if len(episode) > 0:
                     result = {
-                        'season': season['season number'],
+                        'season': seasons[0]['season number'],
                         'episode': episode
                     }
                     return {'status': True, 'message': 'The episode was added to ' + show['title'] + '.', 'insert_episode_result': result}
