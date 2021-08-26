@@ -1,6 +1,6 @@
 from database.show_list_collection import insert_into_showlist_collection, remove_show_from_list
 from aux_methods import show_list_for_message, get_today_date, show_string
-from log import compare_dates, log_guide, write_to_log_file
+from log import compare_dates, log_guide, log_message_sent
 from discord.ext import tasks
 import discord
 import json
@@ -20,6 +20,10 @@ class Hermes(discord.Client):
 
         if status:
             await self.send_guide(guide_message)
+            log_message_sent()
+            log_guide(guide_data['FTA'], guide_data['BBC'])
+        
+        await self.close()
 
     async def send_message_to_ngin(self, message):
         """
@@ -37,10 +41,8 @@ class Hermes(discord.Client):
         tvguide_channel = self.get_channel(int(os.getenv('TVGUIDE_CHANNEL')))
         try:
             await tvguide_channel.send(guide)
-            write_to_log_file()
         except AttributeError:
             await self.send_message_to_ngin('The channel resolved to NoneType so the message could not be sent')
-        await self.close()
     
     async def on_message(self, message):
         if message.author == self.user:
@@ -97,5 +99,4 @@ def compose_guide_message(fta_shows, bbc_shows):
         for show in bbc_shows:
             message = message + show_string(show)
 
-    log_guide(fta_shows, bbc_shows)
     return message
