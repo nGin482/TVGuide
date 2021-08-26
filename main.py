@@ -1,7 +1,7 @@
 from aux_methods import format_time, format_title, show_list_for_message, doctor_who_episodes, morse_episodes, remove_doubles, check_show_titles, show_string
 from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
-from log import log_message_sent, compare_dates, delete_latest_entry, log_guide
+from log import log_message_sent, compare_dates, delete_latest_entry, log_guide, log_guide_information
 from backups import write_to_backup_file
 from datetime import datetime, date
 from dotenv import load_dotenv
