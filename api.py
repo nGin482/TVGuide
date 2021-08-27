@@ -119,15 +119,13 @@ class Reminders(Resource):
         return reminders
     
     def put(self):
-        body = request.get_json()
-        reminder_object = {
-            'show': body['show'],
-            'reminder time': body['reminder time'],
-            'interval': body['interval']
-        }
-        reminder_created = create_reminder(reminder_object)
-        del reminder_created['reminder']['_id']
-        return reminder_created
+        reminder_body = request.get_json()
+        reminder_created = create_reminder(reminder_body)
+        if reminder_created['status']:
+            del reminder_created['reminder']['_id']
+            return reminder_created
+        else:
+            return reminder_created, 409
 api.add_resource(Reminders, '/reminders')
 
 class Reminder(Resource):
