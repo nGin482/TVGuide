@@ -10,6 +10,8 @@
 /log
 /today_guide
 /database/__pycache__
+/episode_search_results
+/aux_methods/__pycache__
 
 # files
 /aux_methods.pyc
