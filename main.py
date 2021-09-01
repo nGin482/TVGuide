@@ -1,4 +1,5 @@
-from aux_methods import format_time, format_title, show_list_for_message, doctor_who_episodes, morse_episodes, remove_doubles, check_show_titles, show_string
+from aux_methods.helper_methods import format_time, format_title, show_list_for_message, remove_doubles, check_show_titles, show_string
+from aux_methods.episode_info import morse_episodes, doctor_who_episodes
 from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
 from log import log_message_sent, compare_dates, delete_latest_entry, log_guide
@@ -343,7 +344,8 @@ if __name__ == '__main__':
 
     # print(reminders_found())
     # check_reminders_interval()
-    compare_reminder_interval()
+    # compare_reminder_interval()
+    calculate_reminder_time()
 
     # add_show_to_list('Baptiste')
     # delete_latest_entry()

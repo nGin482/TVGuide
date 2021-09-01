@@ -3,7 +3,7 @@ from database.recorded_shows_collection import (
     insert_new_recorded_show, insert_new_season, insert_new_episode,
     mark_as_repeat, add_channel
 )
-from aux_methods import check_show_titles
+from aux_methods.helper_methods import check_show_titles
 import json
 import os
 

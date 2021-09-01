@@ -4,7 +4,7 @@ from flask_cors import CORS
 from database.show_list_collection import get_showlist, find_show, insert_into_showlist_collection, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, insert_new_episode, delete_recorded_show
 from database.reminder_collection import get_all_reminders, get_one_reminder, create_reminder, edit_reminder, remove_reminder
-from aux_methods import valid_reminder_fields, get_today_date
+from aux_methods.helper_methods import get_today_date, valid_reminder_fields
 import json
 
 app = Flask(__name__)

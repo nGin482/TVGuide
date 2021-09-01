@@ -1,7 +1,7 @@
 from backups import write_to_backup_file
 from repeat_handler import flag_repeats, tear_down
 from guide import organise_guide
-from aux_methods import get_today_date, get_current_time, convert_date_string_to_object, get_today_date_for_logging
+from aux_methods.helper_methods import get_today_date, get_current_time, convert_date_string_to_object, get_today_date_for_logging
 import json
 import os
 
