@@ -115,9 +115,11 @@ def log_guide_information(fta_shows, bbc_shows):
                 os.remove('today_guide/' + filename)
 
     for show in fta_shows:
-        show['time'] = show['time'].strftime('%H:%M')
+        if type(show['time']) is not str:
+            show['time'] = show['time'].strftime('%H:%M')
     for show in bbc_shows:
-        show['time'] = show['time'].strftime('%H:%M')
+        if type(show['time']) is not str:
+            show['time'] = show['time'].strftime('%H:%M')
     
     today_guide = {'FTA': fta_shows, 'BBC': bbc_shows}
     filename = 'today_guide/' + get_today_date('string') + '.json'
