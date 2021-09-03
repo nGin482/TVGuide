@@ -39,7 +39,8 @@ def create_user(user_details: dict) -> dict:
         'username': user_details['username'],
         'password': bcrypt.hashpw(user_details['password'].encode(), bcrypt.gensalt(rounds=13)).decode(),
         'searchList': [],
-        'reminders': []
+        'reminders': [],
+        'accessLevel': 'user'
     }
 
     try:
