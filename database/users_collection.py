@@ -38,7 +38,7 @@ def create_user(user_details: dict) -> dict:
         'userID': str(uuid.uuid4()),
         'username': user_details['username'],
         'password': bcrypt.hashpw(user_details['password'].encode(), bcrypt.gensalt(rounds=13)).decode(),
-        'shows': [],
+        'searchList': [],
         'reminders': []
     }
 
@@ -53,3 +53,25 @@ def create_user(user_details: dict) -> dict:
     except errors.ServerSelectionTimeoutError as e:
         print(e)
         return {'status': False, 'message': 'Server Selection Timeout Error'}
+
+def add_show_for_user(user: str, show: str) -> dict:
+    """
+    Add a show to search for for a given user
+    """
+    
+    user_show = users_collection().find_one_and_update(
+        {'username': user},
+        {'$push': {'searchList': show}},
+        return_document=ReturnDocument.AFTER
+    )
+    print(user_show)
+    try: 
+        if show in user_show['searchList']:
+            return {'status': True, 'message': '%s has been added to your list.' % show}
+        else:
+            return {'status': False, 'message': '%s was unable to be added to your search list.' %show}
+    except errors.WriteError:
+        return {'status': False, 'message': '%s was unable to be added to your search list.' %show, 'error': 'The server is currently having trouble updating the database'}
+    except TypeError:
+        if user_show is None:
+            return {'status': False, 'message': 'No user could be found with the given username.'}
