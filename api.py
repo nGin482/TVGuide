@@ -4,6 +4,7 @@ from flask_cors import CORS
 from database.show_list_collection import get_showlist, find_show, insert_into_showlist_collection, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, insert_new_episode, delete_recorded_show
 from database.reminder_collection import get_all_reminders, get_one_reminder, create_reminder, edit_reminder, remove_reminder
+from database.users_collection import create_user
 from aux_methods.helper_methods import get_today_date, valid_reminder_fields
 import json
 
@@ -166,6 +167,16 @@ class Reminder(Resource):
         return remove_reminder_status
 api.add_resource(Reminder, '/reminder/<string:show>')
    
+class RegisterUser(Resource):
+    def put(self):
+        new_user = request.get_json()
+        print(new_user)
+        insert_new_user = create_user(new_user)
+        if insert_new_user['status']:
+            return insert_new_user
+        else:
+            return insert_new_user, 500
+api.add_resource(RegisterUser, '/register')
 
 class Events(Resource):
     def get(self):
