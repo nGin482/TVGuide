@@ -12,6 +12,7 @@
 /database/__pycache__
 /episode_search_results
 /aux_methods/__pycache__
+.vscode
 
 # files
 /aux_methods.pyc
