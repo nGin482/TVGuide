@@ -26,8 +26,11 @@ def get_all_users() -> list:
         users_list.append(record)
     return users_list
 
-def get_user(user_id: str):
-    pass
+def get_user(username: str) -> dict:
+    for user in get_all_users():
+        if username == user['username']:
+            return {'status': True, 'user': user}
+    return {'status': False, 'message': "User doesn't exist"}
 
 def create_user(user_details: dict) -> dict:
     """
@@ -55,6 +58,15 @@ def create_user(user_details: dict) -> dict:
         print(e)
         return {'status': False, 'message': 'Server Selection Timeout Error'}
 
+def check_user_credentials(creds: dict) -> dict:
+    
+    user = get_user(creds['username'])
+    if user['status']:
+        user = user['user']
+        if bcrypt.checkpw(creds['password'].encode(), user['password'].encode()):
+            return {'status': True, 'user': user}
+    return {'status': False}
+
 def add_show_for_user(user: str, show: str) -> dict:
     """
     Add a show to search for for a given user
@@ -72,7 +84,7 @@ def add_show_for_user(user: str, show: str) -> dict:
         else:
             return {'status': False, 'message': '%s was unable to be added to your search list.' %show}
     except errors.WriteError:
-        return {'status': False, 'message': '%s was unable to be added to your search list.' %show, 'error': 'The server is currently having trouble updating the database'}
+        return {'status': False, 'message': '%s was unable to be added to your search list.' %show, 'error': 'The server is currently having trouble updating the database.'}
     except TypeError:
         if user_show is None:
             return {'status': False, 'message': 'No user could be found with the given username.'}
