@@ -187,7 +187,13 @@ class Login(Resource):
         given_credentials = request.get_json()
         cred_check = check_user_credentials(given_credentials)
         if cred_check['status']:
-            return {'user': given_credentials['username'], 'token': create_access_token(identity=given_credentials['username']), 'accessLevel': cred_check['user']['accessLevel']}
+            return {
+                'user': given_credentials['username'],
+                'searchList': cred_check['user']['searchList'],
+                'reminders': cred_check['user']['reminders'],
+                'token': create_access_token(identity=given_credentials['username']),
+                'accessLevel': cred_check['user']['accessLevel']
+            }
         else:
             return {'status': False, 'message': 'Incorrect username or password'}, 401
 api.add_resource(Login, '/login')
