@@ -16,7 +16,9 @@ def search_episode_information(show: dict) -> dict:
         episode_req = requests.get('https://imdb-api.com/en/API/SearchEpisode/' + os.getenv('IMDB_API') + '/' + title)
         
         if episode_req.status_code == 200:
-            for result in episode_req.json()['results']:
+            results = episode_req.json()['results']
+            view_imdb_api_results(show, results)
+            for result in results:
                 if title in result['description'] and show['episode_title'] == result['title']:
                     print(result['description'])
                     description = extract_information(result['description'])
@@ -29,7 +31,9 @@ def search_episode_information(show: dict) -> dict:
         if show_id:
             season_req = requests.get('https://imdb-api.com/en/API/SeasonEpisodes/' + os.getenv('IMDB_API') + '/' + show_id + '/' + show['series_num'])
             if season_req.status_code == 200:
-                for episode in season_req.json()['episodes']:
+                episodes = season_req.json()['episodes']
+                view_imdb_api_results(show, episodes)
+                for episode in episodes:
                     if episode['episodeNumber'] == show['episode_num']:
                         show['episode_title'] = episode['title']
            
@@ -60,6 +64,19 @@ def get_show_id(show_title: str) -> str:
     
     if 'imdb_id' in show_data.keys():
         return show_data['imdb_id']
+
+def view_imdb_api_results(show: dict, results: dict) -> None:
+    """
+    Write the results from the IMDB API request to a JSON file
+    """
+
+    with open('imdb_api_results.json') as fd:
+        results:list = json.load(fd)
+
+    results.append({'show': show, 'results': results})
+
+    with open('imdb_api_results.json', 'w+') as fd:
+        json.dump(results, fd, indent='\t')
 
 def morse_episodes(guide_title: str) -> tuple:
     """
