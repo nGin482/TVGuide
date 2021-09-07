@@ -30,7 +30,7 @@ def get_user(username: str) -> dict:
     for user in get_all_users():
         if username == user['username']:
             return {'status': True, 'user': user}
-    return {'status': False, 'message': "User doesn't exist"}
+    return {'status': False, 'message': 'This user does not exist.'}
 
 def create_user(user_details: dict) -> dict:
     """
@@ -67,9 +67,19 @@ def check_user_credentials(creds: dict) -> dict:
             return {'status': True, 'user': user}
     return {'status': False}
 
+def get_user_shows(user:str) -> list | dict:
+    """
+    Return a list of show IDs that the user is interested in.
+    """
+
+    user_exists = get_user(user) # Check if the user exists
+    if user_exists['status']:
+        return user_exists['user']['searchList']
+    return user_exists
+
 def add_show_for_user(user: str, show: str) -> dict:
     """
-    Add a show to search for for a given user
+    Add a show to search for a given user
     """
     
     user_show = users_collection().find_one_and_update(
