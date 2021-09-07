@@ -35,13 +35,16 @@ def flag_repeats(show):
     else:
         if check_episode['level'] == 'Episode':
             insert_episode = insert_new_episode(show)
+            update_JSON_file_episode(show, insert_episode)
             return {'show': show, 'result': insert_episode}
         elif check_episode['level'] == 'Season':
             insert_season = insert_new_season(show)
+            update_JSON_file_season(show['title'], insert_season['season'])
             return {'show': show, 'result': insert_season}
         elif check_episode['level'] == 'Show':
             insert_show = insert_new_recorded_show(show)
             return {'show': show, 'result': insert_show}
+        # update the JSON file as these happen
         else:
             return {'status': False, 'message': 'Unable to process this episode.'}
 
@@ -95,3 +98,26 @@ def tear_down():
 
     for show_file in os.listdir('shows'):
         os.remove('shows/' + show_file)
+
+def update_JSON_file_season(show: str, season: dict):
+
+    data = read_show_data(show)['show']
+    
+    data['seasons'].append(season)
+
+    with open('shows/' + show + '.json', 'w') as fd:
+        json.dump(data, fd, indent='\t')
+
+def update_JSON_file_episode(show: dict, episode: dict):
+    
+    data = read_show_data(show['title'])['show']
+
+    if 'series_num' in show.keys():
+        check_season = list(filter(lambda season: season['season number'] == show['series_num'], data['seasons']))
+        if len(check_season) > 0:
+            check_episode = list(filter(lambda season: season['episode number'] == show['episode_num'], check_season[0]['episodes']))
+            if len(check_episode) == 0:
+                check_season[0]['episodes'].append(episode)
+
+    with open('shows/' + show['title'] + '.json', 'w') as fd:
+        json.dump(data, fd, indent='\t')

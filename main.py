@@ -1,5 +1,5 @@
 from aux_methods.helper_methods import format_time, format_title, show_list_for_message, remove_doubles, check_show_titles, show_string
-from aux_methods.episode_info import morse_episodes, doctor_who_episodes
+from aux_methods.episode_info import morse_episodes, doctor_who_episodes, search_episode_information
 from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
 from log import log_message_sent, compare_dates, delete_latest_entry, log_guide
@@ -152,6 +152,7 @@ def search_free_to_air():
     remove_doubles(shows_on)
     show_titles = [check_show_titles(show['title']) for show in shows_on]
     get_today_shows_data(show_titles)
+    shows_on = [search_episode_information(show) for show in shows_on]
     shows_on = [search_for_repeats(show) for show in shows_on]
 
     return shows_on
@@ -227,6 +228,7 @@ def search_bbc_channels():
     #     check = check_time_sort(shows_on)
     show_titles = [check_show_titles(show['title']) for show in shows_on]
     get_today_shows_data(show_titles)
+    shows_on = [search_episode_information(show) for show in shows_on]
     shows_on = [search_for_repeats(show) for show in shows_on]
     return shows_on
 
@@ -262,9 +264,6 @@ def compose_message():
 
     message_date = datetime.today().date()
     message = weekdays[message_date.weekday()] + " " + str(message_date.strftime('%d-%m-%Y')) + " TVGuide\n"
-
-    bbc_shows = search_bbc_channels()
-    fta_shows = search_free_to_air()
 
     # Free to Air
     message = message + "\nFree to Air:\n"
@@ -305,7 +304,7 @@ async def send_message():
             ngin = await client.fetch_user(int(os.getenv('NGIN')))
             await ngin.send('The channel resolved to NoneType so the message could not be sent')
         log_message_sent()
-        log_guide(search_free_to_air(), search_bbc_channels())
+        log_guide(fta_shows, bbc_shows)
     
     await client.close()
 
@@ -339,6 +338,9 @@ if __name__ == '__main__':
     status = compare_dates()
     print(status)
     show_list = search_list()
+    fta_shows = search_free_to_air()
+    bbc_shows = search_bbc_channels()
+    
     client.loop.create_task(send_message())
     client.run(os.getenv('HERMES'))
 
