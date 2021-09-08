@@ -1,6 +1,6 @@
 from pymongo import errors, ReturnDocument
 from database.mongo import database
-from aux_methods import get_today_date
+from aux_methods.helper_methods import get_today_date
 
 # Handlers for all recorded data for each show
 

@@ -32,8 +32,11 @@ def create_reminder(reminder_settings):
     if check_reminder['status']:
         return {'status': False, 'message': 'A reminder has already been set for this show.'}
 
-    if 'reminder time' not in reminder_settings.keys():
-        reminder_settings['reminder time'] = '3 mins before'
+    if reminder_settings['reminder alert'] == '':
+        reminder_settings['reminder alert'] = 'Before'
+        reminder_settings['reminder time'] = '3'
+    if reminder_settings['reminder alert'] == 'During':
+        reminder_settings['reminder time'] = '0'
         
     if 'show' in reminder_settings.keys() and 'reminder time' in reminder_settings.keys() and 'interval' in reminder_settings.keys():
         try:

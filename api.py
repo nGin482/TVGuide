@@ -1,14 +1,19 @@
 from flask import Flask, request
 from flask_restful import Api, Resource, reqparse
 from flask_cors import CORS
+from flask_jwt_extended import create_access_token, JWTManager
 from database.show_list_collection import get_showlist, find_show, insert_into_showlist_collection, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, insert_new_episode, delete_recorded_show
 from database.reminder_collection import get_all_reminders, get_one_reminder, create_reminder, edit_reminder, remove_reminder
-from aux_methods import valid_reminder_fields, get_today_date
+from database.users_collection import create_user, check_user_credentials
+from aux_methods.helper_methods import get_today_date, valid_reminder_fields
 import json
+import os
 
 app = Flask(__name__)
 CORS(app)
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
+JWTManager(app)
 api = Api(app)
 
 show_list_args = reqparse.RequestParser()
@@ -119,15 +124,13 @@ class Reminders(Resource):
         return reminders
     
     def put(self):
-        body = request.get_json()
-        reminder_object = {
-            'show': body['show'],
-            'reminder time': body['reminder time'],
-            'interval': body['interval']
-        }
-        reminder_created = create_reminder(reminder_object)
-        del reminder_created['reminder']['_id']
-        return reminder_created
+        reminder_body = request.get_json()
+        reminder_created = create_reminder(reminder_body)
+        if reminder_created['status']:
+            del reminder_created['reminder']['_id']
+            return reminder_created
+        else:
+            return reminder_created, 409
 api.add_resource(Reminders, '/reminders')
 
 class Reminder(Resource):
@@ -168,6 +171,32 @@ class Reminder(Resource):
         return remove_reminder_status
 api.add_resource(Reminder, '/reminder/<string:show>')
    
+class RegisterUser(Resource):
+    def put(self):
+        new_user = request.get_json()
+        print(new_user)
+        insert_new_user = create_user(new_user)
+        if insert_new_user['status']:
+            return insert_new_user
+        else:
+            return insert_new_user, 500
+api.add_resource(RegisterUser, '/register')
+
+class Login(Resource):
+    def post(self):
+        given_credentials = request.get_json()
+        cred_check = check_user_credentials(given_credentials)
+        if cred_check['status']:
+            return {
+                'user': given_credentials['username'],
+                'searchList': cred_check['user']['searchList'],
+                'reminders': cred_check['user']['reminders'],
+                'token': create_access_token(identity=given_credentials['username']),
+                'accessLevel': cred_check['user']['accessLevel']
+            }
+        else:
+            return {'status': False, 'message': 'Incorrect username or password'}, 401
+api.add_resource(Login, '/login')
 
 class Events(Resource):
     def get(self):

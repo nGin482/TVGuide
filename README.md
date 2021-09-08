@@ -28,7 +28,9 @@ If one is found, the following information is collected:
   - Baptiste
 
 ## To Do List
-1. New branch for reworking get_shows() -- list(filter()) then append list to all_shows
-2. Move Discord functionality to separate module
-3. API
-4. Deploy
+1. Web UI
+2. Reminders work
+3. Users Collection
+4. IMDB API handle to clarify episodes
+5. Actors from IMDB API
+6. Deploy

@@ -1,4 +1,4 @@
-from aux_methods import get_today_date
+from aux_methods.helper_methods import get_today_date
 import json
 
 def sort_shows_by_title(fta_shows, bbc_shows):

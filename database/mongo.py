@@ -11,8 +11,9 @@ def client():
         
 
 def database():
-    if client() is not None:
-        db = client().tvguide
+    mongo_client = client()
+    if mongo_client is not None:
+        db = mongo_client.tvguide
         return db
     else:
         return None
