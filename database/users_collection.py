@@ -67,9 +67,10 @@ def check_user_credentials(creds: dict) -> dict:
             return {'status': True, 'user': user}
     return {'status': False}
 
-def get_user_shows(user:str) -> list | dict:
+def get_user_shows(user: str):
     """
-    Return a list of show IDs that the user is interested in.
+    If the user exists, return a `list` of show IDs that the user is interested in.\n
+    If not, return the `dict` from the user check
     """
 
     user_exists = get_user(user) # Check if the user exists
