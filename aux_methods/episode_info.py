@@ -141,7 +141,7 @@ def doctor_who_episodes(show_title: str) -> tuple:
         return 2, 0, 'The Christmas Invasion'
     elif 'Runaway Bride' in show_title:
         return 3, 0, 'The Runaway Bride'
-    elif 'Voyage of the Damned' in show_title:
+    elif 'Voyage Of The Damned' in show_title:
         return 4, 0, 'Voyage of the Damned'
     elif 'Christmas Carol' in show_title:
         return 6, 0, 'A Christmas Carol'
@@ -149,11 +149,11 @@ def doctor_who_episodes(show_title: str) -> tuple:
         return 7, 0, 'The Doctor, the Widow and the Wardrobe'
     elif 'Last Christmas' in show_title:
         return 9, 0, 'Last Christmas'
-    elif 'Husbands of River Song' in show_title:
+    elif 'Husbands Of River Song' in show_title:
         return 9, 13, 'The Husbands of River Song'
-    elif 'Return of Doctor Mysterio' in show_title:
+    elif 'Return Of Doctor Mysterio' in show_title:
         return 10, 0, 'The Return of Doctor Mysterio'
-    elif 'Twice Upon a Time' in show_title:
+    elif 'Twice Upon A Time' in show_title:
         return 10, 13, 'Twice Upon a Time'
     elif 'Resolution' in show_title:
         return 11, 11, 'Resolution'
