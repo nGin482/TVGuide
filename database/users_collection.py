@@ -1,7 +1,9 @@
 from pymongo import errors, ReturnDocument
 from database.mongo import database
+from aux_methods.helper_methods import get_today_date
 import bcrypt
 import uuid
+import json
 import os
 
 def users_collection():
@@ -43,7 +45,7 @@ def create_user(user_details: dict) -> dict:
         'password': bcrypt.hashpw(user_details['password'].encode(), bcrypt.gensalt(rounds=13)).decode(),
         'searchList': [],
         'reminders': [],
-        'accessLevel': 'user'
+        'role': 'user'
     }
 
     try:
@@ -67,7 +69,7 @@ def check_user_credentials(creds: dict) -> dict:
             return {'status': True, 'user': user}
     return {'status': False}
 
-def get_user_shows(user: str):
+def get_user_shows(user: str) -> dict:
     """
     If the user exists, return a `list` of show IDs that the user is interested in.\n
     If not, return the `dict` from the user check
@@ -75,8 +77,28 @@ def get_user_shows(user: str):
 
     user_exists = get_user(user) # Check if the user exists
     if user_exists['status']:
-        return user_exists['user']['searchList']
+        return {'status': True, 'searchList': user_exists['user']['searchList']}
     return user_exists
+
+def get_tvguide_for_user(user: str) -> list:
+    """
+    Search the TV Guide for the shows that a given user is interested in
+    """
+
+    user_search_list = get_user_shows(user) # Find what shows the user is interested in
+    if user_search_list['status']:
+        try:
+            with open('today_guide/' + get_today_date('string') + '.json') as fd:
+                guide = json.load(fd)
+            
+            user_shows = [show for show in guide['FTA'] if show['title'] in user_search_list['searchList']]
+            user_shows.extend([show for show in guide['BBC'] if show['title'] in user_search_list['searchList']])
+            
+            return user_shows
+        except FileNotFoundError:
+            return []
+    else:
+        return user_search_list
 
 def add_show_for_user(user: str, show: str) -> dict:
     """
