@@ -121,3 +121,20 @@ def add_show_for_user(user: str, show: str) -> dict:
     except TypeError:
         if user_show is None:
             return {'status': False, 'message': 'No user could be found with the given username.'}
+
+def add_reminder_for_user(user: str, reminderID: str) -> dict:
+    """
+    Allocate the `reminderID` generated from creating a `Reminder` document to the given user.\n
+    Return the status of the insert.
+    """
+    # TODO: It is possible to allocate a duplicate Reminder for the same show without a reasonable check
+    
+    add_reminder = users_collection().find_one_and_update(
+        {'username': user},
+        {'$push': {'reminders': reminderID}},
+        return_document=ReturnDocument.AFTER
+    )
+    if add_reminder:
+        return {'status': True, 'message': 'The specified reminder has been allocated to the given user.'}
+    else:
+        return {'status': False, 'message': 'The user could not be found.'}
