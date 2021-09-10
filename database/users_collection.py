@@ -122,6 +122,28 @@ def add_show_for_user(user: str, show: str) -> dict:
         if user_show is None:
             return {'status': False, 'message': 'No user could be found with the given username.'}
 
+def remove_show_for_user(user: str, show: str) -> dict:
+    """
+    Remove a given show from the user's search list.
+    """
+    
+    user_show = users_collection().find_one_and_update(
+        {'username': user},
+        {'$pull': {'searchList': show}},
+        return_document=ReturnDocument.AFTER
+    )
+    print(user_show)
+    try: 
+        if show not in user_show['searchList']:
+            return {'status': True, 'message': '%s has been removed from your search list.' % show, 'updated_searchList': user_show['searchList']}
+        else:
+            return {'status': False, 'message': '%s was unable to be added to your search list.' %show}
+    except errors.WriteError:
+        return {'status': False, 'message': '%s was unable to be added to your search list.' %show, 'error': 'The server is currently having trouble updating the database.'}
+    except TypeError:
+        if user_show is None:
+            return {'status': False, 'message': 'No user could be found with the given username.'}
+
 def add_reminder_for_user(user: str, reminderID: str) -> dict:
     """
     Allocate the `reminderID` generated from creating a `Reminder` document to the given user.\n
