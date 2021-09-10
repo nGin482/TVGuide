@@ -1,5 +1,6 @@
 from pymongo import errors, ReturnDocument
 from database.mongo import database
+import uuid
 
 # Handlers for the reminders
 
@@ -40,6 +41,7 @@ def create_reminder(reminder_settings):
         
     if 'show' in reminder_settings.keys() and 'reminder time' in reminder_settings.keys() and 'interval' in reminder_settings.keys():
         try:
+            reminder_settings['reminderID'] = str(uuid.uuid4())
             reminder = reminders_collection().insert_one(reminder_settings)
         except errors.WriteError as err:
             return {'status': False, 'message': 'An error occurred while setting the reminder for ' + reminder_settings['show'] + '.', 'error': err}
