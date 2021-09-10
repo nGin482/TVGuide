@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, Response
 from flask_restful import Api, Resource, reqparse
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, JWTManager
@@ -192,7 +192,7 @@ class Login(Resource):
                 'searchList': cred_check['user']['searchList'],
                 'reminders': cred_check['user']['reminders'],
                 'token': create_access_token(identity=given_credentials['username']),
-                'accessLevel': cred_check['user']['accessLevel']
+                'role': cred_check['user']['role']
             }
         else:
             return {'status': False, 'message': 'Incorrect username or password'}, 401
