@@ -1,9 +1,16 @@
 from database.users_collection import users_collection, get_all_users, create_user, add_show_for_user
+import mongomock
 import unittest
 
 # python3 -m unittest discover
 
 class TestDatabase(unittest.TestCase):
+    mongo_client = mongomock.MongoClient().tvguide
+    showlist_collection = mongo_client.ShowList
+    recorded_shows_collection = mongo_client.RecordedShows
+    reminders_collection = mongo_client.Reminders
+    users_collection = mongo_client.Users
+    
     @classmethod
     def setUpClass(cls):
         user = {
@@ -13,7 +20,15 @@ class TestDatabase(unittest.TestCase):
             'shows': [],
             'reminders': []
         }
-        users_collection().insert_one(user)
+
+    def test_get_showlist_empty(self):
+        """
+        """
+        get_searchlist = [show for show in self.showlist_collection.find({})]
+        self.assertEqual([], get_searchlist)
+
+    def test_add_show_to_searchlist(self):
+        pass
         
     
     def test_users_collection(self):
