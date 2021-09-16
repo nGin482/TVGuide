@@ -152,7 +152,10 @@ def search_free_to_air():
     remove_doubles(shows_on)
     show_titles = [check_show_titles(show['title']) for show in shows_on]
     get_today_shows_data(show_titles)
-    shows_on = [search_episode_information(show) for show in shows_on]
+    if imdb_api_status == 200:
+        shows_on = [search_episode_information(show) for show in shows_on]
+    else:
+        print('IMDB API is not available')
     shows_on = [search_for_repeats(show) for show in shows_on]
 
     return shows_on
@@ -228,7 +231,10 @@ def search_bbc_channels():
     #     check = check_time_sort(shows_on)
     show_titles = [check_show_titles(show['title']) for show in shows_on]
     get_today_shows_data(show_titles)
-    shows_on = [search_episode_information(show) for show in shows_on]
+    if imdb_api_status == 200:
+        shows_on = [search_episode_information(show) for show in shows_on]
+    else:
+        print('IMDB API is not available')
     shows_on = [search_for_repeats(show) for show in shows_on]
     return shows_on
 
@@ -338,6 +344,7 @@ if __name__ == '__main__':
     status = compare_dates()
     print(status)
     show_list = search_list()
+    imdb_api_status = get('https://imdb-api.com/').status_code
     fta_shows = search_free_to_air()
     bbc_shows = search_bbc_channels()
     
