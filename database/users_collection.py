@@ -160,3 +160,18 @@ def add_reminder_for_user(user: str, reminderID: str) -> dict:
         return {'status': True, 'message': 'The specified reminder has been allocated to the given user.'}
     else:
         return {'status': False, 'message': 'The user could not be found.'}
+
+def remove_reminder_for_user(user: str, reminderID: str) -> dict:
+    """
+    Remove a `Reminder` by the given `ID` from the list of `Reminder`s attached to the given `User`
+    """
+    remove_reminder: dict = users_collection().find_one_and_update(
+        {'username': user},
+        {'$pull': {'reminders': reminderID}},
+        return_document=ReturnDocument.AFTER
+    )
+
+    if remove_reminder:
+        return {'status': True, 'message': 'The reminder has been removed.'}
+    else:
+        return {'status': False, 'message': 'The user could not be found.'}
