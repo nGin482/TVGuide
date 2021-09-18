@@ -28,7 +28,11 @@ def get_one_reminder(show):
         return {'status': False, 'message': 'There is no reminder for this show.'}
 
 def get_reminder_by_id(reminderID: str) -> dict:
-    return list(filter(lambda reminder_object: reminder_object['reminderID'] == reminderID, get_all_reminders()))[0]
+    reminders_found = list(filter(lambda reminder_object: reminder_object['reminderID'] == reminderID, get_all_reminders()))
+    if len(reminders_found) > 0:
+        return {'status': True, 'reminder': reminders_found[0]}
+    else:
+        return {'status': False, 'message': f'There is no reminder that has the given ID: {reminderID}'}
 
 def create_reminder(reminder_settings):
     
