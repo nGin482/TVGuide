@@ -4,7 +4,7 @@ from flask_cors import CORS
 from flask_jwt_extended import create_access_token, JWTManager
 from database.show_list_collection import get_showlist, find_show, insert_into_showlist_collection, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, insert_new_episode, delete_recorded_show
-from database.reminder_collection import get_all_reminders, get_one_reminder, create_reminder, edit_reminder, remove_reminder
+from database.reminder_collection import get_all_reminders, get_one_reminder, create_reminder, edit_reminder, remove_reminder_by_title
 from database.users_collection import create_user, check_user_credentials
 from aux_methods.helper_methods import get_today_date, valid_reminder_fields
 import json
@@ -164,7 +164,7 @@ class Reminder(Resource):
         reminder_check = get_one_reminder(show)
         if not reminder_check['status']:
             return {'message': 'There is no reminder set for ' + show + '.'}, 404
-        remove_reminder_status = remove_reminder(show)
+        remove_reminder_status = remove_reminder_by_title(show)
         if not remove_reminder_status['status']:
             return remove_reminder_status, 500
         del remove_reminder_status['reminder']['_id']
