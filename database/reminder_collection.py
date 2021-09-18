@@ -75,7 +75,7 @@ def edit_reminder(reminder):
     else:
         return {'status': False, 'message': 'A reminder has not been set for ' + reminder['show'] + '.'}
 
-def remove_reminder(show):
+def remove_reminder_by_title(show: str):
     check_reminder = get_one_reminder(show)
     if check_reminder['status']:
         deleted_reminder = reminders_collection().find_one_and_delete(
@@ -88,3 +88,17 @@ def remove_reminder(show):
             return {'status': False, 'message': 'The reminder for ' + show + ' was not removed.'}
     else:
         return {'status': False, 'message': 'There is no reminder available for ' + show + '.'}
+
+def remove_reminder_by_ID(reminderID: str) -> dict:
+    check_reminder = get_reminder_by_id(reminderID)
+    if check_reminder['status']:
+        deleted_reminder = reminders_collection().find_one_and_delete(
+            {'reminderID': reminderID}
+        )
+        check_again = get_reminder_by_id(reminderID)
+        if not check_again['status']:
+            return {'status': True, 'message': 'The reminder for ' + check_reminder['reminder']['show'] + ' has been removed.', 'reminder': deleted_reminder}
+        else:
+            return {'status': False, 'message': 'The reminder for ' + check_reminder['reminder']['show'] + ' was not removed.'}
+    else:
+        return {'status': False, 'message': 'There is no reminder available for ' + check_reminder['reminder']['show'] + '.'}
