@@ -10,14 +10,18 @@ def search_episode_information(show: dict) -> dict:
 
     # get season number and episode number from episode title
     if 'series_num' not in show.keys() and 'episode_title' in show.keys():
-        title = show['title']
-        if 'Death In Paradise' in show['title']:
-            title = 'Death in Paradise'
+        episode_title: str = show['episode_title']
+        if ' ' in episode_title:
+            episode_title = episode_title.replace(' ', '%20')
         
-        episode_req = requests.get('https://imdb-api.com/en/API/SearchEpisode/' + os.getenv('IMDB_API') + '/' + title)
+        imdb_api_key = os.getenv('IMDB_API')
+        episode_req = requests.get(f'https://imdb-api.com/en/API/SearchEpisode/{imdb_api_key}/{episode_title}')
         
         if episode_req.status_code == 200:
             results = episode_req.json()['results']
+            title = show['title']
+            if 'Death In Paradise' in show['title']:
+                title = 'Death in Paradise'
             view_imdb_api_results(show, results)
             for result in results:
                 if title in result['description'] and show['episode_title'] == result['title']:
