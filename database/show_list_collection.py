@@ -4,25 +4,28 @@ from database.mongo import database
 # Handlers for the Show List collection - All shows being searched for
 
 def showlist_collection():
-    if database() is not None:
-        showlist = database().ShowList
+    database = database()
+    if database is not None:
+        showlist = database.get_collection('ShowList')
         return showlist
     else:
         return []
 
-def get_showlist():
-    if showlist_collection() == []:
+def get_showlist() -> list:
+    showlist_col = showlist_collection()
+    if showlist_col == []:
         return []
     list_of_shows = []
-    for show in showlist_collection().find():
+    for show in showlist_col.find():
         del show['_id']
         list_of_shows.append(show)
     return list_of_shows
 
 def search_list():
-    if showlist_collection() == []:
+    showlist_col = showlist_collection()
+    if showlist_col == []:
         return []
-    return [show['show'] for show in showlist_collection().find()]
+    return [show['show'] for show in showlist_col.find()]
 
 def find_show(show_to_find):
     list_of_shows = search_list()

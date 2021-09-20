@@ -5,8 +5,9 @@ from aux_methods.helper_methods import get_today_date
 # Handlers for all recorded data for each show
 
 def recorded_shows_collection():
-    if database() is not None:
-        recorded_shows = database().RecordedShows
+    database = database()
+    if database is not None:
+        recorded_shows = database.get_collection('RecordedShows')
         return recorded_shows
     else:
         return []
