@@ -13,7 +13,7 @@ def users_collection():
     """
     db = database()
     if db is not None:
-        return db.Users
+        return db.get_collection('Users')
     else:
         return []
 
@@ -68,6 +68,20 @@ def check_user_credentials(creds: dict) -> dict:
         if bcrypt.checkpw(creds['password'].encode(), user['password'].encode()):
             return {'status': True, 'user': user}
     return {'status': False}
+
+def change_password(user: str, new_password: str) -> dict:
+    """
+    Change the given user's password to the new one given
+    """
+    try:
+        updated_user_password: dict = users_collection().find_one_and_update(
+            {'username': user},
+            {'$set': {'password': bcrypt.hashpw(new_password.encode(), bcrypt.gensalt(rounds=13)).decode()}},
+            return_document=ReturnDocument.AFTER
+        )
+        return {'status': True, 'message': 'Your password was changed.'}
+    except errors.PyMongoError as e:
+        return {'status': False, 'message': 'Your password was not changed.'}
 
 def get_user_shows(user: str) -> dict:
     """
