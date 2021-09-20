@@ -73,7 +73,7 @@ def get_show_id(show_title: str) -> str:
     if 'imdb_id' in show_data.keys():
         return show_data['imdb_id']
 
-def view_imdb_api_results(show: dict, imdb_results: dict) -> None:
+def view_imdb_api_results(show: dict, imdb_results: dict):
     """
     Write the results from the IMDB API request to a JSON file
     """
@@ -94,7 +94,7 @@ def clear_imdb_api_results():
     Remove existing results from IMDB API searches
     """
 
-    with open('aux_methods/imdb_api_results.json') as fd:
+    with open('aux_methods/imdb_api_results.json', 'w+') as fd:
         json.dump([], fd)
 
 def morse_episodes(guide_title: str) -> tuple:
