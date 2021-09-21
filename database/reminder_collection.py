@@ -5,9 +5,9 @@ import uuid
 # Handlers for the reminders
 
 def reminders_collection():
-    database = database()
-    if database is not None:
-        reminders = database.get_collection('Reminders')
+    db = database()
+    if db is not None:
+        reminders = db.get_collection('Reminders')
         return reminders
     else:
         return []
