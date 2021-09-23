@@ -26,7 +26,7 @@ def search_episode_information(show: dict) -> dict:
                 title = 'Death in Paradise'
             view_imdb_api_results(show, results)
             for result in results:
-                if title in result['description'] and show['episode_title'] == result['title']:
+                if title in result['description'] and show['episode_title'].lower() == result['title'].lower():
                     print(result['description'])
                     description = extract_information(result['description'])
                     show['series_num'] = description[0]
