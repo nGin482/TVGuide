@@ -85,9 +85,13 @@ def read_events():
     except FileNotFoundError:
         return []
 
-def status_setting_repeats(result):
+def status_setting_repeats(result: dict):
     events = read_events()
     
+    if 'result' in result.keys():
+        if 'show' in result['result'].keys():
+            if 'show is now being recorded' in result['result']['show']:
+                del result['result']['show']['_id']
     events.append(result)
 
     with open('log/events.json', 'w+') as fd:
@@ -129,13 +133,13 @@ def log_guide_information(fta_shows, bbc_shows):
     guide = organise_guide(fta_shows, bbc_shows)
     write_to_backup_file(guide)
 
-def log_guide(fta_shows, bbc_shows):
+def log_guide(fta_shows: list, bbc_shows: list):
 
     log_guide_information(fta_shows, bbc_shows)
     
     clear_events_log()
     for show in fta_shows:
-        if 'HD' not in show['channel'] and 'GEM' not in show['channel'] and show['episode_info']:
+        if 'HD' not in show['channel'] and show['episode_info']:
             log_repeats = flag_repeats(show)
             status_setting_repeats(log_repeats)
     for show in bbc_shows:
