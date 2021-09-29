@@ -79,12 +79,7 @@ def find_recorded_episode(show):
 
 def search_for_repeats(show):
 
-    if 'GEM' in show['channel']:
-        status = False
-    else:
-        status = True
-
-    if status and show['episode_info']:
+    if show['episode_info']:
         check_episode = find_recorded_episode(show)
         if check_episode['status']:
             show['repeat'] = True
