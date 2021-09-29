@@ -66,6 +66,8 @@ def check_show_titles(show):
     if type(show) is str:
         if 'Maigret' in show:
             return 'Maigret'
+        if 'Death in Paradise' in show:
+            return 'Death In Paradise'
         if 'Revenge Of The Fallen' in show or 'Dark Of The Moon' in show \
                 or 'Age of Extinction' in show or 'The Last Knight' in show:
             return 'Transformers'
@@ -80,6 +82,8 @@ def check_show_titles(show):
     else:
         if 'Maigret' in show['title']:
             return 'Maigret'
+        if 'Death in Paradise' in show['title']:
+            return 'Death In Paradise'
         if 'Revenge Of The Fallen' in show['title'] or 'Dark Of The Moon' in show['title'] \
                 or 'Age of Extinction' in show['title'] or 'The Last Knight' in show['title']:
             return 'Transformers'
