@@ -35,7 +35,7 @@ def flag_repeats(show):
     else:
         if check_episode['level'] == 'Episode':
             insert_episode = insert_new_episode(show)
-            update_JSON_file_episode(show, insert_episode)
+            update_JSON_file_episode(show, insert_episode['insert_episode_result']['episode'][0])
             return {'show': show, 'result': insert_episode}
         elif check_episode['level'] == 'Season':
             insert_season = insert_new_season(show)
