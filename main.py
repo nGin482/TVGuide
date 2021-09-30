@@ -1,6 +1,7 @@
 from aux_methods.helper_methods import format_time, format_title, show_list_for_message, remove_doubles, check_show_titles, show_string
 from aux_methods.episode_info import morse_episodes, doctor_who_episodes, search_episode_information
 from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
+from database.recorded_shows_collection import backup_recorded_shows
 from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
 from log import log_message_sent, compare_dates, delete_latest_entry, log_guide
 from backups import write_to_backup_file
@@ -348,6 +349,8 @@ if __name__ == '__main__':
     imdb_api_status = get('https://imdb-api.com/').status_code
     fta_shows = search_free_to_air()
     bbc_shows = search_bbc_channels()
+
+    backup_recorded_shows()
     
     client.loop.create_task(send_message())
     client.run(os.getenv('HERMES'))

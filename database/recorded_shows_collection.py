@@ -1,6 +1,7 @@
 from pymongo import errors, ReturnDocument
 from database.mongo import database
 from aux_methods.helper_methods import get_today_date
+import json
 
 # Handlers for all recorded data for each show
 
@@ -520,3 +521,17 @@ def check_repeat(show):
         return True
     else:
         return False
+
+def backup_recorded_shows():
+    """
+    Create a local backup of the `RecordedShows` collection by storing data locally in JSON files
+    """
+    
+    all_recorded_shows = get_all_recorded_shows()
+
+    for recorded_show in all_recorded_shows:
+        show_data: dict = recorded_show['show']
+        del show_data['_id']
+        show_name: str = show_data['show']
+        with open(f'database/backups/recorded_shows/{show_name}.json', 'w+') as fd:
+            json.dump(show_data, fd, indent='\t')
