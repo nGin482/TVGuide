@@ -123,6 +123,7 @@ def search_free_to_air():
                 show['series_num'] = str(check_dw_title[0])
                 show['episode_num'] = str(check_dw_title[1])
                 show['episode_title'] = check_dw_title[2]
+                show['episode_info'] = True
         if 'Vera' in show['title']:
             if show['title'] != 'Vera':
                 remove_idx.append(idx)
