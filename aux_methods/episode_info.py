@@ -148,10 +148,10 @@ def doctor_who_episodes(show_title: str) -> tuple:
         show_title = show_title.split(': ')[1]
     
     for idx, tennant_special in enumerate(tennant_specials):
-        if show_title in tennant_special:
+        if show_title.lower() in tennant_special.lower():
             return 'Tennant Specials', idx+1, tennant_special
     for idx, smith_special in enumerate(smith_specials):
-        if show_title in smith_special:
+        if show_title.lower() in smith_special.lower():
             return 'Smith Specials', idx+1, smith_special
     
     if 'Christmas Invasion' in show_title:
