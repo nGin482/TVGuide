@@ -2,6 +2,7 @@ from pymongo import errors, ReturnDocument
 from database.mongo import database
 from aux_methods.helper_methods import get_today_date
 import json
+import os
 
 # Handlers for all recorded data for each show
 
@@ -530,8 +531,30 @@ def backup_recorded_shows():
     all_recorded_shows = get_all_recorded_shows()
 
     for recorded_show in all_recorded_shows:
-        show_data: dict = recorded_show['show']
-        del show_data['_id']
+        del recorded_show['_id']
+        show_name: str = recorded_show['show']
+        if os.path.isdir('database/backups/recorded_shows'):
+            with open(f'database/backups/recorded_shows/{show_name}.json', 'w+') as fd:
+                json.dump(recorded_show, fd, indent='\t')
+        else:
+            os.mkdir('database/backups/recorded_shows')
+            with open(f'database/backups/recorded_shows/{show_name}.json', 'w+') as fd:
+                json.dump(recorded_show, fd, indent='\t')
+
+def rollback_recorded_shows_collection():
+    """
+    Rollback the `RecordedShows` collection to a point before the TVGuide has interacted with the DB for the current day
+    """
+    
+    for recorded_show in os.listdir('database/backups'):
+        print(recorded_show)
+        with open(f'database/backups/{recorded_show}') as fd:
+            show_data = json.load(fd)
         show_name: str = show_data['show']
-        with open(f'database/backups/recorded_shows/{show_name}.json', 'w+') as fd:
-            json.dump(show_data, fd, indent='\t')
+        recorded_shows_collection().find_one_and_update(
+            {'show': show_name},
+            {'$set': {'seasons': show_data['seasons']}},
+            return_document=ReturnDocument.AFTER
+        )
+        # how to notify that this is done
+    pass

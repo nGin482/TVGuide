@@ -14,6 +14,7 @@
 /episode_search_results
 /aux_methods/__pycache__
 /misc_working
+/database/backups
 
 # files
 /aux_methods.pyc
