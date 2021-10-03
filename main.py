@@ -1,5 +1,5 @@
 from aux_methods.helper_methods import format_time, format_title, show_list_for_message, remove_doubles, check_show_titles, show_string
-from aux_methods.episode_info import morse_episodes, doctor_who_episodes, search_episode_information
+from aux_methods.episode_info import morse_episodes, doctor_who_episodes, transformers_shows, search_episode_information
 from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import backup_recorded_shows
 from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
@@ -141,6 +141,15 @@ def search_free_to_air():
             morse = {'title': titles[0], 'time': show['time'], 'channel': show['channel'],
                      'episode_info': True, 'series_num': str(episode[0]), 'episode_num': str(episode[1]),
                      'episode_title': episode[2], 'repeat': False}
+        if 'Transformers' in show['title'] or 'Bumblebee' in show['title']:
+            check_transformers = transformers_shows(show['title'])
+            if isinstance(check_transformers, tuple):
+                if 'Bumblebee' in show['title']:
+                    show['title'] = 'Bumblebee'
+                    show['episode_info'] = True
+                show['series_num'] = str(check_transformers[0])
+                show['episode_num'] = str(check_transformers[1])
+                show['episode_title'] = check_transformers[2]
     for idx in reversed(remove_idx):
         shows_on.pop(idx)
 

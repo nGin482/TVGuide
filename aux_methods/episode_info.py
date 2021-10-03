@@ -178,3 +178,19 @@ def doctor_who_episodes(show_title: str) -> tuple:
         return 12, 11, 'Revolution of the Daleks'
     else:
         return show_title
+
+def transformers_shows(transformers: str) -> tuple:
+    if 'Fallen' in transformers:
+        return 1, 2, 'Revenge of the Fallen'
+    elif 'Dark' in transformers:
+        return 1, 3, 'Dark of the Moon'
+    elif 'Extinction' in transformers:
+        return 1, 4, 'Age of Extinction'
+    elif 'Knight' in transformers:
+        return 1, 5, 'The Last Knight'
+    elif 'Bumblebee' in transformers:
+        return 1, 6, 'Bumblebee'
+    elif transformers == 'Transformers':
+        return 1, 1, 'Transformers'
+    else:
+        return transformers
