@@ -546,9 +546,9 @@ def rollback_recorded_shows_collection():
     Rollback the `RecordedShows` collection to a point before the TVGuide has interacted with the DB for the current day
     """
     
-    for recorded_show in os.listdir('database/backups'):
+    for recorded_show in os.listdir('database/backups/recorded_shows'):
         print(recorded_show)
-        with open(f'database/backups/{recorded_show}') as fd:
+        with open(f'database/backups/recorded_shows/{recorded_show}') as fd:
             show_data = json.load(fd)
         show_name: str = show_data['show']
         recorded_shows_collection().find_one_and_update(
