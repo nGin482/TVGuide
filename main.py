@@ -146,7 +146,7 @@ def search_free_to_air():
             if isinstance(check_transformers, tuple):
                 if 'Bumblebee' in show['title']:
                     show['title'] = 'Bumblebee'
-                    show['episode_info'] = True
+                show['episode_info'] = True
                 show['series_num'] = str(check_transformers[0])
                 show['episode_num'] = str(check_transformers[1])
                 show['episode_title'] = check_transformers[2]
