@@ -51,7 +51,7 @@ def create_user(user_details: dict) -> dict:
     try:
         inserted_user = users_collection().insert_one(user)
         if inserted_user.inserted_id:
-            return {'status': True}
+            return {'status': True, 'message': 'The user has been added.'}
         else:
             return {'status': False, 'message': 'The server encountered difficulties in registering a new user. Try again.'}   
     except AttributeError:
@@ -189,3 +189,19 @@ def remove_reminder_for_user(user: str, reminderID: str) -> dict:
         return {'status': True, 'message': 'The reminder has been removed.'}
     else:
         return {'status': False, 'message': 'The user could not be found.'}
+
+def remove_user(user: str) -> dict:
+    """
+    Remove a user from the `Users` Collection that has the given username
+    """
+    check_user = get_user(user)
+    if check_user['status']:
+        user_removed = users_collection().find_one_and_delete(
+            {'username': user}
+        )
+        if user_removed:
+            return {'status': True, 'message': 'The user has been removed.'}
+        else:
+            return {'status': False, 'message': 'There was a problem deleting this user.'}
+    else:
+        return {'status': False, 'message': 'There is no user with the given name to delete.'}
