@@ -3,7 +3,7 @@ from aux_methods.episode_info import morse_episodes, doctor_who_episodes, transf
 from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import backup_recorded_shows
 from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
-from log import log_message_sent, compare_dates, delete_latest_entry, log_guide
+from log import log_message_sent, compare_dates, delete_latest_entry, log_guide, revert_tvguide
 from backups import write_to_backup_file
 from datetime import datetime, date
 from dotenv import load_dotenv
@@ -368,6 +368,8 @@ if __name__ == '__main__':
     # check_reminders_interval()
     # compare_reminder_interval()
     calculate_reminder_time()
+
+    # revert_tvguide()
 
     # add_show_to_list('Baptiste')
     # delete_latest_entry()
