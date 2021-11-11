@@ -91,7 +91,7 @@ def status_setting_repeats(result: dict):
     
     if 'result' in result.keys():
         if 'show' in result['result'].keys():
-            if 'show is now being recorded' in result['result']['show']:
+            if 'show is now being recorded' in result['result']['message']:
                 del result['result']['show']['_id']
     events.append(result)
 
