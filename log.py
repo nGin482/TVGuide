@@ -155,3 +155,19 @@ def revert_tvguide():
 
     delete_latest_entry()
     rollback_recorded_shows_collection()
+
+def log_discord_message_too_long(message_length, fta_length):
+
+    today_date = get_today_date('String')
+    log_message = f'{today_date}\nDiscord tried sending the TVGuide message.\nThe maximum character length of a Discord message is 2000.\n \
+        The length of this message is {message_length} and the length of the Free to Air portion is {fta_length}.\n \
+            As a result, the message was split into the Free to Air and BBC portions and on the AM/PM portions of Free to Air.' 
+
+    try:
+        with open('log/message_logging.txt') as fd:
+            current_log_contents = fd.read()
+    except FileNotFoundError:
+        current_log_contents = ''
+            
+    with open('log/message_logging.txt', 'w', encoding='utf-8') as fd:
+        fd.write(f'{current_log_contents}\n\n\n{log_message}')
