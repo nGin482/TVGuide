@@ -3,7 +3,7 @@ from aux_methods.episode_info import morse_episodes, doctor_who_episodes, transf
 from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import backup_recorded_shows
 from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
-from log import log_message_sent, compare_dates, delete_latest_entry, log_guide, revert_tvguide
+from log import log_discord_message_too_long, log_message_sent, compare_dates, delete_latest_entry, log_guide, revert_tvguide
 from backups import write_to_backup_file
 from datetime import datetime, date
 from dotenv import load_dotenv
@@ -12,6 +12,7 @@ from requests import get
 from reminders import *
 import discord
 import os
+import re
 
 load_dotenv('.env')
 client = discord.Client()
@@ -316,7 +317,34 @@ async def send_message():
         await client.wait_until_ready()
         tvguide_channel = client.get_channel(int(os.getenv('TVGUIDE_CHANNEL')))
         try:
-            await tvguide_channel.send(message)
+            if len(message) > 2000:
+                bbc_idx = message.find("BBC: ")
+
+                fta_message = message[:bbc_idx]
+                bbc_message = message[bbc_idx:]
+
+                if len(fta_message) > 2000:
+                    print(len(fta_message))
+                    
+                    fta_pm_idx = re.search('[1][2]:[0-5][0-9]:', fta_message).start()
+                    
+                    fta_am_message = fta_message[:fta_pm_idx] +  '\n\n'
+                    fta_pm_message = fta_message[fta_pm_idx:]
+
+                    await tvguide_channel.send(fta_am_message)
+                    await tvguide_channel.send(fta_pm_message)
+                    # await tvguide_channel.send(bbc_message)
+
+                    log_discord_message_too_long(len(message), len(fta_message))
+                else:
+                    await tvguide_channel.send(fta_message)
+                    await tvguide_channel.send(bbc_message)
+
+
+                
+                # still too big on Thursday 18/11/21
+            else:
+                await tvguide_channel.send(message)
         except AttributeError:
             ngin = await client.fetch_user(int(os.getenv('NGIN')))
             await ngin.send('The channel resolved to NoneType so the message could not be sent')
