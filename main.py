@@ -1,5 +1,5 @@
 from aux_methods.helper_methods import format_time, format_title, show_list_for_message, remove_doubles, check_show_titles, show_string
-from aux_methods.episode_info import morse_episodes, doctor_who_episodes, transformers_shows, search_episode_information
+from aux_methods.episode_info import morse_episodes, doctor_who_episodes, transformers_shows, search_episode_information, red_election
 from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import backup_recorded_shows
 from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
@@ -151,6 +151,8 @@ def search_free_to_air():
                 show['series_num'] = str(check_transformers[0])
                 show['episode_num'] = str(check_transformers[1])
                 show['episode_title'] = check_transformers[2]
+        if 'Red Election' in show['title']:
+            show = red_election(show)
     for idx in reversed(remove_idx):
         shows_on.pop(idx)
 

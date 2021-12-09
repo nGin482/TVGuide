@@ -194,3 +194,14 @@ def transformers_shows(transformers: str) -> tuple:
         return 1, 1, 'Transformers'
     else:
         return transformers
+
+def red_election(show: dict):
+    
+    show['episode_title'] = show['episode_title'][show['episode_title'].find('Series'):]
+    
+    if 'series_num' not in show.keys() or show['series_num'] == 'Unknown':
+        episode_details = show['episode_title'].split(' ')
+        show['series_num'] = episode_details[1]
+        show['episode_num'] = episode_details[3]
+    
+    return show
