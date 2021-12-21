@@ -37,16 +37,27 @@ def get_page(url):
 def find_info(url):
     """Searches the page for information"""
 
-    schedule = []
+    schedule = [
+        {
+            'channel': 'BBC First',
+            'schedule': []
+        },
+        {
+            'channel': 'BBC UKTV',
+            'schedule': []
+        }
+    ]
 
     text = get_page(url)
     soup = BeautifulSoup(text, 'html.parser')
 
     for div in soup('body', {'id': 'schedule'}):
-        for article in div('article', {'id': 'bbc-first'}):
-            schedule.append(article)
-        for article in div('article', {'id': 'bbc-uktv'}):
-            schedule.append(article)
+        bbc_first_article = div.find('article', {'id': 'bbc-first'})
+        if bbc_first_article:
+            schedule[0]['schedule'].append(bbc_first_article)
+        bbc_uktv_article = div.find('article', {'id': 'bbc-uktv'})
+        if bbc_uktv_article:
+            schedule[1]['schedule'].append(bbc_uktv_article)
 
     return schedule
     # except urllib.error.URLError:
@@ -185,58 +196,60 @@ def search_bbc_channels():
     url = 'https://www.bbcstudios.com.au/tv-guide/'
 
     schedule = find_info(url)
-    bbc_first = schedule[0]
-    bbc_uktv = schedule[1]
+    bbc_first = schedule[0]['schedule']
+    bbc_uktv = schedule[1]['schedule']
 
     shows_on = []
 
-    for div in bbc_first('div', class_='event'):
-        title = div.find('h3').text
-        episode_tag = div.find('h4').text
-        for show in show_list:
-            if show in title:
-                if show[0] == title[0]:
-                    if 'Series' in episode_tag:
-                        series_num = episode_tag[7:8]
-                        episode_num = episode_tag[-1:]
+    if len(bbc_first) > 0:
+        for div in bbc_first[0]('div', class_='event'):
+            title = div.find('h3').text
+            episode_tag = div.find('h4').text
+            for show in show_list:
+                if show in title:
+                    if show[0] == title[0]:
+                        if 'Series' in episode_tag:
+                            series_num = episode_tag[7:8]
+                            episode_num = episode_tag[-1:]
 
-                        start_time = div.find('time').text[:7]
-                        start_time = datetime.strptime(format_time(start_time), '%H:%M')
+                            start_time = div.find('time').text[:7]
+                            start_time = datetime.strptime(format_time(start_time), '%H:%M')
 
-                        shows_on.append({'title': title, 'channel': 'BBC First', 'time': start_time,
-                                         'episode_info': True, 'series_num': series_num, 'episode_num': episode_num,
-                                         'repeat': False})
-                    else:
-                        start_time = div.find('time').text[:7]
-                        start_time = datetime.strptime(format_time(start_time), '%H:%M')
+                            shows_on.append({'title': title, 'channel': 'BBC First', 'time': start_time,
+                                            'episode_info': True, 'series_num': series_num, 'episode_num': episode_num,
+                                            'repeat': False})
+                        else:
+                            start_time = div.find('time').text[:7]
+                            start_time = datetime.strptime(format_time(start_time), '%H:%M')
 
-                        shows_on.append({'title': title, 'channel': 'BBC First', 'time': start_time,
-                                         'episode_info': True, 'episode_title': episode_tag,
-                                         'repeat': False})
+                            shows_on.append({'title': title, 'channel': 'BBC First', 'time': start_time,
+                                            'episode_info': True, 'episode_title': episode_tag,
+                                            'repeat': False})
 
-    for div in bbc_uktv('div', class_='event'):
-        title = div.find('h3').text
-        episode_tag = div.find('h4').text
-        for show in show_list:
-            if show in title:
-                if show[0] == title[0]:
-                    if 'Series' in episode_tag:
-                        series_num = episode_tag[7:8]
-                        episode_num = episode_tag[-1:]
+    if len(bbc_uktv) > 0:
+        for div in bbc_uktv[0]('div', class_='event'):
+            title = div.find('h3').text
+            episode_tag = div.find('h4').text
+            for show in show_list:
+                if show in title:
+                    if show[0] == title[0]:
+                        if 'Series' in episode_tag:
+                            series_num = episode_tag[7:8]
+                            episode_num = episode_tag[-1:]
 
-                        start_time = div.find('time').text[:7]
-                        start_time = datetime.strptime(format_time(start_time), '%H:%M')
+                            start_time = div.find('time').text[:7]
+                            start_time = datetime.strptime(format_time(start_time), '%H:%M')
 
-                        shows_on.append({'title': title, 'channel': 'UKTV', 'time': start_time,
-                                         'episode_info': True, 'series_num': series_num, 'episode_num': episode_num,
-                                         'repeat': False})
-                    else:
-                        start_time = div.find('time').text[:7]
-                        start_time = datetime.strptime(format_time(start_time), '%H:%M')
+                            shows_on.append({'title': title, 'channel': 'UKTV', 'time': start_time,
+                                            'episode_info': True, 'series_num': series_num, 'episode_num': episode_num,
+                                            'repeat': False})
+                        else:
+                            start_time = div.find('time').text[:7]
+                            start_time = datetime.strptime(format_time(start_time), '%H:%M')
 
-                        shows_on.append({'title': title, 'channel': 'UKTV', 'time': start_time,
-                                         'episode_info': True, 'episode_title': episode_tag,
-                                         'repeat': False})
+                            shows_on.append({'title': title, 'channel': 'UKTV', 'time': start_time,
+                                            'episode_info': True, 'episode_title': episode_tag,
+                                            'repeat': False})
 
     shows_on.sort(key=lambda show_obj: show_obj['time'])
     # check = check_time_sort(shows_on)
