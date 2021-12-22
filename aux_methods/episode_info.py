@@ -1,4 +1,5 @@
 from datetime import datetime
+from log import log_silent_witness_episode
 import requests
 import json
 import os
@@ -205,3 +206,51 @@ def red_election(show: dict):
         show['episode_num'] = episode_details[3]
     
     return show
+
+def check_silent_witness(episode_title: str):
+
+    """
+    213	"Redemption - Part 1"
+    214	"Redemption - Part 2"
+    215	"Bad Love - Part 1"
+    216	"Bad Love - Part 2"
+    217	"Reputations - Part 1"
+    218	"Reputations - Part 2"
+    219	"Brother's Keeper - Part 1"
+    220	"Brother's Keeper - Part 2"
+    221	"Matters of Life and Death - Part 1"
+    222	"Matters of Life and Death - Part 2"
+    """
+
+    season_24_episodes = ["Redemption - Part 1", "Redemption - Part 2", "Bad Love - Part 1", "Bad Love - Part 2", 
+        "Reputations - Part 1", "Reputations - Part 2", "Brother's Keeper - Part 1", "Brother's Keeper - Part 2",
+        "Matters of Life and Death - Part 1", "Matters of Life and Death - Part 2"]
+
+    for idx, episode in enumerate(season_24_episodes):
+        if episode_title == episode:
+            return True, idx
+    return False, -1
+
+def silent_witness_episode(show: dict):
+    """
+    Confirm that the given Silent Witness episode is from Season 24
+    """
+
+    if 'series_num' in show.keys():
+        print('Season {series_num}, Episode {episode_num}:, {episode_title}'.format(**show))
+        if show['series_num'] == '24':
+            return {'status': True, 'show': show}
+    else:
+        print('Episode title: {episode_title}'.format(**show))
+
+    check_episode = check_silent_witness(show['episode_title'])
+        
+    print(check_episode)
+    print()
+    log_silent_witness_episode(show)
+    if check_episode[0]:
+        show['season_num'] = 24
+        show['episode_num'] = check_episode[1] + 1
+        return {'status': True, 'show': show}
+    else:
+        return {'status': False}

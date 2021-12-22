@@ -1,5 +1,5 @@
 from aux_methods.helper_methods import format_time, format_title, show_list_for_message, remove_doubles, check_show_titles, show_string
-from aux_methods.episode_info import morse_episodes, doctor_who_episodes, transformers_shows, search_episode_information, red_election
+from aux_methods.episode_info import morse_episodes, doctor_who_episodes, silent_witness_episode, transformers_shows, search_episode_information, red_election
 from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import backup_recorded_shows
 from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
@@ -164,6 +164,12 @@ def search_free_to_air():
                 show['episode_title'] = check_transformers[2]
         if 'Red Election' in show['title']:
             show = red_election(show)
+        if 'Silent Witness' in show['title']:
+            silent_witness_status = silent_witness_episode(show)
+            if silent_witness_status['status']:
+                show = silent_witness_status['show']
+            else:
+                remove_idx.append(idx)
     for idx in reversed(remove_idx):
         shows_on.pop(idx)
 
@@ -251,6 +257,16 @@ def search_bbc_channels():
                                             'episode_info': True, 'episode_title': episode_tag,
                                             'repeat': False})
 
+    remove_idx = []
+    for idx, show in enumerate(shows_on):
+        if 'Silent Witness' in show['title']:
+            silent_witness_status = silent_witness_episode(show)
+            if silent_witness_status['status']:
+                show = silent_witness_status['show']
+            else:
+                remove_idx.append(idx)
+    for index in reversed(remove_idx):
+        shows_on.pop(index)
     shows_on.sort(key=lambda show_obj: show_obj['time'])
     # check = check_time_sort(shows_on)
     # while check[0] != -1 and check[1] != -1:

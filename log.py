@@ -1,3 +1,4 @@
+from datetime import datetime
 from backups import write_to_backup_file
 from repeat_handler import flag_repeats, tear_down
 from guide import organise_guide
@@ -171,3 +172,23 @@ def log_discord_message_too_long(message_length, fta_length):
             
     with open('log/message_logging.txt', 'w', encoding='utf-8') as fd:
         fd.write(f'{current_log_contents}\n\n\n{log_message}')
+
+def log_silent_witness_episode(silent_witness: dict):
+
+    try:
+        with open('log/silent_witness_episodes.json') as sw:
+            silent_witness_episodes: list = json.load(sw)
+    except FileNotFoundError:
+        with open('log/silent_witness_episodes.json', 'w+') as sw:
+            json.dump([], sw)
+        silent_witness_episodes = []
+    
+    if type(silent_witness['time']) is not str:
+        silent_witness['time'] = silent_witness['time'].strftime('%H:%M')
+    
+    silent_witness_episodes.append(silent_witness)
+
+    with open('log/silent_witness_episodes.json', 'w+') as sw:
+        json.dump(silent_witness_episodes, sw, indent='\t')
+
+    silent_witness['time'] = datetime.strptime(silent_witness['time'], '%H:%M')
