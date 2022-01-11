@@ -26,12 +26,16 @@ def search_episode_information(show: dict) -> dict:
             if 'Death In Paradise' in show['title']:
                 title = 'Death in Paradise'
             view_imdb_api_results(show, results)
-            for result in results:
-                if title in result['description'] and show['episode_title'].lower() == result['title'].lower():
-                    print(result['description'])
-                    description = extract_information(result['description'])
-                    show['series_num'] = description[0]
-                    show['episode_num'] = description[1]
+            if results:
+                for result in results:
+                    if title in result['description'] and show['episode_title'].lower() == result['title'].lower():
+                        print(result['description'])
+                        description = extract_information(result['description'])
+                        show['series_num'] = description[0]
+                        show['episode_num'] = description[1]
+            else:
+                print(f"IMDB API returned None when looking up {show['title']}'s {show['episode_title']} episode")
+                return show
     
     # get episode title from season number and episode number
     if ('episode_title' not in show.keys() or show['episode_title'] == '') and 'series_num' in show.keys():
@@ -177,6 +181,8 @@ def doctor_who_episodes(show_title: str) -> tuple:
         return 11, 11, 'Resolution'
     elif 'Revolution Of The Daleks' in show_title:
         return 12, 11, 'Revolution of the Daleks'
+    elif 'Eve of the Daleks' in show_title or 'Eve Of The Daleks' in show_title:
+        return 13, 7, 'Eve of the Daleks'
     else:
         return show_title
 
@@ -231,13 +237,15 @@ def check_silent_witness(episode_title: str):
             return True, idx
     return False, -1
 
+
+# above method may not be working for all cases ie. would return false here --> "One Of Our Own Part 2"
+# https://www.w3schools.com/python/python_regex.asp
 def silent_witness_episode(show: dict):
     """
     Confirm that the given Silent Witness episode is from Season 24
     """
 
     if 'series_num' in show.keys():
-        print('Season {series_num}, Episode {episode_num}:, {episode_title}'.format(**show))
         if show['series_num'] == '24':
             return {'status': True, 'show': show}
     else:
@@ -245,11 +253,9 @@ def silent_witness_episode(show: dict):
 
     check_episode = check_silent_witness(show['episode_title'])
         
-    print(check_episode)
-    print()
     log_silent_witness_episode(show)
     if check_episode[0]:
-        show['season_num'] = 24
+        show['series_num'] = 24
         show['episode_num'] = check_episode[1] + 1
         return {'status': True, 'show': show}
     else:
