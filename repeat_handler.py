@@ -56,7 +56,7 @@ def find_recorded_episode(show):
         if 'series_num' in show.keys():
             show_season = list(filter(lambda season: season['season number'] == show['series_num'], show_information['seasons']))
             if len(show_season) > 0:
-                episode_recorded = list(filter(lambda season: season['episode number'] == show['episode_num'], show_season[0]['episodes']))
+                episode_recorded = list(filter(lambda episode: episode['episode number'] == show['episode_num'], show_season[0]['episodes']))
                 if len(episode_recorded) > 0:
                     return {'status': True, 'episode': episode_recorded[0]}
                 else:
@@ -66,7 +66,7 @@ def find_recorded_episode(show):
         else:
             show_season = list(filter(lambda season: season['season number'] == 'Unknown', show_information['seasons']))
             if len(show_season) > 0:
-                episode_recorded = list(filter(lambda season: season['episode title'] == show['episode_title'], show_season[0]['episodes']))
+                episode_recorded = list(filter(lambda episode: episode['episode title'] == show['episode_title'], show_season[0]['episodes']))
                 if len(episode_recorded) > 0:
                     return {'status': True, 'episode': episode_recorded[0]}
                 else:
