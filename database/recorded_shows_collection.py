@@ -15,10 +15,14 @@ def recorded_shows_collection():
         return []
 
 def get_all_recorded_shows():
-    all_recored_shows = []
-    for recorded_show in recorded_shows_collection().find():
-        all_recored_shows.append(recorded_show)
-    return all_recored_shows
+    # TODO: DB-001
+    try:
+        all_recored_shows = []
+        for recorded_show in recorded_shows_collection().find():
+            all_recored_shows.append(recorded_show)
+        return all_recored_shows
+    except AttributeError:
+        return []
 
 def get_one_recorded_show(show):
     recorded_shows = get_all_recorded_shows()

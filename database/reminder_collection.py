@@ -13,10 +13,14 @@ def reminders_collection():
         return []
 
 def get_all_reminders():
-    reminders = []
-    for reminder in reminders_collection().find():
-        reminders.append(reminder)
-    return reminders
+    # TODO: DB-001
+    try:
+        reminders = []
+        for reminder in reminders_collection().find():
+            reminders.append(reminder)
+        return reminders
+    except AttributeError:
+        return []
 
 def get_one_reminder(show):
     reminders = get_all_reminders()
