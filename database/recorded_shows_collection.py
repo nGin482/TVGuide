@@ -154,7 +154,7 @@ def insert_new_episode(show):
 
                 if len(episode) > 0:
                     result = {
-                        'season': season['season number'],
+                        'season': seasons['season number'],
                         'episode': episode
                     }
                     return {'status': True, 'message': 'The episode was added to ' + show['title'] + '.', 'insert_episode_result': result}
@@ -558,3 +558,24 @@ def rollback_recorded_shows_collection():
         )
         # how to notify that this is done
     pass
+
+def update_recorded_episode(guide_show: dict):
+    """
+    When receiving new information about an episode, update the episode stored in the database
+    """
+
+    # add new episode to season
+    # then remove episode from 'Unknown' season
+
+    try:
+        removed_episode = recorded_shows_collection().find_one_and_update(
+            {'show': guide_show['title']},
+            {'$pull': {'seasons.$[season].episodes': {'episode title': guide_show['episode_title']}}},
+            array_filters = [
+                {'season.season number': 'Unknown'}
+            ],
+            return_document = ReturnDocument.AFTER
+        )
+        return {'status': True}
+    except errors.OperationFailure as err:
+        return {'status': False, 'message': 'An error occurred when trying to remove this episode.', 'error': err}
