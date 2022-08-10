@@ -1,7 +1,7 @@
 from database.recorded_shows_collection import (
     get_all_recorded_shows, get_one_recorded_show,
     insert_new_recorded_show, insert_new_season, insert_new_episode,
-    mark_as_repeat, add_channel
+    mark_as_repeat, add_channel, update_recorded_episode
 )
 from aux_methods.helper_methods import check_show_titles
 import json
@@ -58,6 +58,10 @@ def find_recorded_episode(show):
             if len(show_season) > 0:
                 episode_recorded = list(filter(lambda episode: episode['episode number'] == show['episode_num'], show_season[0]['episodes']))
                 if len(episode_recorded) > 0:
+                    if show['series_num'] != '' and show['episode_num'] != '' and show_season[0]['season number'] == 'Unknown':
+                        document_updated = update_recorded_episode(show)['status']
+                        if document_updated:
+                            print(f"The document for {show['title']} was updated") # TODO: take this further down notification line
                     return {'status': True, 'episode': episode_recorded[0]}
                 else:
                     return {'status': False, 'level': 'Episode'}
