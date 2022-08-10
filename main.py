@@ -227,7 +227,11 @@ def search_bbc_channels():
 
     url = 'https://www.bbcstudios.com.au/tv-guide/'
 
-    schedule = find_info(url)
+    try:
+        schedule = find_info(url)
+    except BBCNotCollectedException:
+        # TODO: Need a way to notify if this is raised
+        return []
     bbc_first = schedule[0]['schedule']
     bbc_uktv = schedule[1]['schedule']
 
