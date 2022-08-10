@@ -2,6 +2,7 @@ from aux_methods.helper_methods import format_time, show_list_for_message, remov
 from aux_methods.episode_info import morse_episodes, doctor_who_episodes, silent_witness_episode, transformers_shows, search_episode_information, red_election
 from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import backup_recorded_shows
+from exceptions.BBCNotCollectedException import BBCNotCollectedException
 from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
 from log import log_discord_message_too_long, log_message_sent, compare_dates, log_guide, revert_tvguide
 from data_validation.validation import Validation
@@ -49,17 +50,41 @@ def find_info(url):
         }
     ]
 
+    bbc_first_flag = True
+    bbc_uktv_flag = True
+
     text = get_page(url)
     soup = BeautifulSoup(text, 'html.parser')
 
-    for div in soup('body', {'id': 'schedule'}):
-        bbc_first_article = div.find('article', {'id': 'bbc-first'})
-        if bbc_first_article:
-            schedule[0]['schedule'].append(bbc_first_article)
-        bbc_uktv_article = div.find('article', {'id': 'bbc-uktv'})
-        if bbc_uktv_article:
-            schedule[1]['schedule'].append(bbc_uktv_article)
+    channel_block: BeautifulSoup
+    channel_blocks: BeautifulSoup = soup.find_all('div', class_='channel-block')
+    # print(channel_blocks)
+    for channel_block in channel_blocks:
+        # print(channel_block.find('div', class_='channel-patch').attrs)
+        if 'bbc-first' in channel_block.find('div', class_='channel-patch').attrs['class'][1]:
+            # for window in channel_block.find_('div', class_='channel-window'):
+            #     print(window)
+            channel_window: BeautifulSoup = channel_block.find('div', class_='channel-window')
+            if 'no-events' in channel_window.attrs['class']:
+                bbc_first_flag = False
+            else:
+                print(channel_window)
+                channel_container: BeautifulSoup = channel_window.find('div', class_='channel-container')
+                schedule[0]['schedule'].append(channel_container)
+        if 'bbc-uktv' in channel_block.find('div', class_='channel-patch').attrs['class'][1]:
+            channel_window: BeautifulSoup = channel_block.find('div', class_='channel-window')
+            if 'no-events' in channel_window.attrs['class']:
+                bbc_uktv_flag = False
+            else:
+                print(channel_block)
+                print(channel_window)
+                channel_container: BeautifulSoup = channel_window.find('div', class_='channel-container')
+                schedule[1]['schedule'].append(channel_container)
 
+    if not bbc_first_flag and not bbc_uktv_flag:
+        raise BBCNotCollectedException('BBC Guide data can not be collected at this time.')
+    print()
+    print(schedule)
     return schedule
     # except urllib.error.URLError:
     #     return schedule.append({'error': 'Error accessing page'})
@@ -209,9 +234,9 @@ def search_bbc_channels():
     shows_on = []
 
     if len(bbc_first) > 0:
-        for div in bbc_first[0]('div', class_='event'):
-            title = div.find('h3').text
-            episode_tag = div.find('h4').text
+        for div in bbc_first[0]('div', class_='event-block'):
+            title = div.find('h4').text
+            episode_tag = div.find('h5').text
             for show in show_list:
                 if show in title:
                     if show[0] == title[0]:
@@ -435,7 +460,7 @@ if __name__ == '__main__':
     # delete_latest_entry()
 
     # send_message(websites, False)
-    # search_free_to_air()
+    # print(search_bbc_channels())
 
     # get_date_from_latest_email()
     # compare_dates()
