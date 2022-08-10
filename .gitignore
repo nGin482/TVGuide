@@ -2,17 +2,15 @@
 /.idea
 /venv
 /__pycache__
+*/__pycache__
 /Project-BackUp
 /BackUps
 /shows
-/tests/__pycache__
 /tests/misc
 /txt
 /log
 /today_guide
-/database/__pycache__
 /episode_search_results
-/aux_methods/__pycache__
 /misc_working
 /database/backups
 
