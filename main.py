@@ -1,9 +1,10 @@
-from aux_methods.helper_methods import format_time, format_title, show_list_for_message, remove_doubles, check_show_titles, show_string
+from aux_methods.helper_methods import format_time, show_list_for_message, remove_doubles, check_show_titles, show_string
 from aux_methods.episode_info import morse_episodes, doctor_who_episodes, silent_witness_episode, transformers_shows, search_episode_information, red_election
 from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import backup_recorded_shows
 from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
-from log import log_discord_message_too_long, log_message_sent, compare_dates, delete_latest_entry, log_guide, revert_tvguide
+from log import log_discord_message_too_long, log_message_sent, compare_dates, log_guide, revert_tvguide
+from data_validation.validation import Validation
 from backups import write_to_backup_file
 from datetime import datetime, date
 from dotenv import load_dotenv
@@ -117,10 +118,10 @@ def search_free_to_air():
                             show_dict['series_num'] = str(guide_show['series_num'])
                             show_dict['episode_num'] = str(guide_show['episode_num'])
                             if 'episode_title' in guide_show.keys():
-                                show_dict['episode_title'] = format_title(guide_show['episode_title'])
+                                show_dict['episode_title'] = Validation.format_title(guide_show['episode_title'])
                         if 'episode_title' in guide_show.keys():
                             show_dict['episode_info'] = True
-                            show_dict['episode_title'] = format_title(guide_show['episode_title'])
+                            show_dict['episode_title'] = Validation.format_title(guide_show['episode_title'])
                         show_dict['repeat'] = False
                         shows_on.append(show_dict)
 
