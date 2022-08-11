@@ -143,3 +143,65 @@ class DoctorWhoGuideShow(GuideShow):
             return 13, 7, 'Eve of the Daleks'
         else:
             return self.title
+
+class MorseGuideShow(GuideShow):
+
+    def morse_handle(self):
+        titles = self.title.split(': ')
+        episode = self.morse_episodes(titles[1])
+        
+        super().title = ' Inspector Morse'
+        super().episode_info = True
+        super().season_number = str(episode[0])
+        super().episode_number = episode[1]
+        super().episode_title = episode[2]
+
+        return self
+
+    def morse_episodes(guide_title: str) -> tuple:
+        """
+        Given an episode's title, return the `season number`, `episode number` and correct `episode title` of an Inspector Morse episode
+        """
+
+        morse_titles = [
+            {'Episodes': ['The Dead Of Jericho', 'The Silent World Of Nicholas Quinn', 'Service Of All The Dead']},
+            {'Episodes':
+                ['The Wolvercote Tongue', 'Last Seen Wearing', 'The Settling Of The Sun', 'Last Bus To Woodstock']},
+            {'Episodes': ['Ghost In The Machine', 'The Last Enemy', 'Deceived By Flight', 'The Secret Of Bay 5B']},
+            {'Episodes': ['The Infernal Spirit', 'The Sins Of The Fathers', 'Driven To Distraction',
+                        'The Masonic Mysteries']},
+            {'Episodes':
+                ['Second Time Around', 'Fat Chance', 'Who Killed Harry Field?', 'Greeks Bearing Gifts', 'Promised Land']},
+            {'Episodes': ['Dead On Time', 'Happy Families', 'The Death Of The Self', 'Absolute Conviction',
+                        'Cherubim And Seraphim']},
+            {'Episodes': ['Deadly Slumber', 'The Day Of The Devil', 'Twilight Of The Gods']},
+            {'Episodes': ['The Way Through The Woods', 'The Daughters Of Cain', 'Death Is Now My Neighbour',
+                        'The Wench Is Dead', 'The Remorseful Day']}]
+
+        if 'Service Of All' in guide_title:
+            return 1, 3, 'Service Of All The Dead'
+        if 'Infernal Spirit' in guide_title:
+            return 4, 1, 'The Infernal Serpent'
+        if 'In Australia' in guide_title:
+            return 5, 4, 'Promised Land'
+        if 'Death Is' in guide_title:
+            return 8, 3, 'Death Is Now My Neighbour'
+        else:
+            for season_idx, season in enumerate(morse_titles):
+                for episode_idx, title in enumerate(season['Episodes']):
+                    if 'The' in guide_title and 'The' not in title:
+                        title = 'The ' + title
+                    if guide_title in title:
+                        return season_idx+1, episode_idx+1, title
+
+class RedElectionGuideShow(GuideShow):
+
+    def red_election(self):
+        super().episode_title = super().episode_title[super().episode_title.find('Series'):]
+        
+        if self.season_number in {'', 'Unknown'}:
+            episode_details = super().episode_title.split(' ')
+            super().season_number = episode_details[1]
+            super().episode_number = episode_details[3]
+        
+        return self

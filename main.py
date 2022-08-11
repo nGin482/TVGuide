@@ -1,7 +1,7 @@
 
 from aux_methods.helper_methods import format_time, show_list_for_message, remove_doubles, check_show_titles, show_string
-from aux_methods.episode_info import morse_episodes, silent_witness_episode, search_episode_information, red_election
-from database.models import DoctorWhoGuideShow, GuideShow, TransformersGuideShow
+from aux_methods.episode_info import silent_witness_episode, search_episode_information, red_election
+from database.models import DoctorWhoGuideShow, GuideShow, MorseGuideShow, RedElectionGuideShow, TransformersGuideShow
 from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import backup_recorded_shows
 from exceptions.BBCNotCollectedException import BBCNotCollectedException
@@ -132,7 +132,6 @@ def search_free_to_air():
             title = guide_show['title']
             for show in show_list:
                 if show in title:
-                    show_dict = {}
                     show_date = guide_show['start_time'][:-9]
                     if int(show_date[-2:]) == int(datetime.today().day):
                         episode_info = False
@@ -159,7 +158,6 @@ def search_free_to_air():
                         )
                         shows_on.append(show_object)
 
-    morse = {}
     remove_idx = []
     show: GuideShow
     for idx, show in enumerate(shows_on):
@@ -177,17 +175,11 @@ def search_free_to_air():
             if show.title != 'Lewis':
                 remove_idx.append(idx)
         if 'Morse' in show.title:
-            remove_idx.append(idx)
-            titles = show.title.split(': ')
-            episode = morse_episodes(titles[1])
-            morse = GuideShow(
-                titles[0], show.time, show.channel,
-                True, str(episode[0]), episode[1], episode[2]
-            )
+            show = MorseGuideShow().morse_handle(show)
         if 'Transformers' in show.title or 'Bumblebee' in show.title:
             show = TransformersGuideShow().transformers_handle()
         if 'Red Election' in show.title:
-            show = red_election(show)
+            show = RedElectionGuideShow().red_election(show)
         if 'Silent Witness' in show.title:
             silent_witness_status = silent_witness_episode(show)
             if silent_witness_status['status']:
@@ -197,8 +189,6 @@ def search_free_to_air():
     for idx in reversed(remove_idx):
         shows_on.pop(idx)
 
-    if morse:
-        shows_on.append(morse)
     shows_on.sort(key=lambda show_obj: show_obj.time)
     # check = check_time_sort(shows_on)
     # while check[0] != -1 and check[1] != -1:
