@@ -1,11 +1,12 @@
+
 from aux_methods.helper_methods import format_time, show_list_for_message, remove_doubles, check_show_titles, show_string
-from aux_methods.episode_info import morse_episodes, doctor_who_episodes, silent_witness_episode, transformers_shows, search_episode_information, red_election
+from aux_methods.episode_info import morse_episodes, silent_witness_episode, search_episode_information, red_election
+from database.models import DoctorWhoGuideShow, GuideShow, TransformersGuideShow
 from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import backup_recorded_shows
 from exceptions.BBCNotCollectedException import BBCNotCollectedException
 from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
 from log import log_discord_message_too_long, log_message_sent, compare_dates, log_guide, revert_tvguide
-from data_validation.validation import Validation
 from backups import write_to_backup_file
 from datetime import datetime, date
 from dotenv import load_dotenv
@@ -119,7 +120,7 @@ def search_free_to_air():
 
     current_date = datetime.today().date()
     new_url = 'https://epg.abctv.net.au/processed/Sydney_' + str(current_date) + ".json"
-    shows_on = []
+    shows_on: list[GuideShow] = []
 
     data = find_json(new_url)['schedule']
 
@@ -134,63 +135,60 @@ def search_free_to_air():
                     show_dict = {}
                     show_date = guide_show['start_time'][:-9]
                     if int(show_date[-2:]) == int(datetime.today().day):
-                        show_dict['title'] = guide_show['title']
-                        show_dict['channel'] = item['channel']
-                        show_dict['time'] = datetime.strptime(guide_show['start_time'][-8:-3], '%H:%M')
-                        show_dict['episode_info'] = False
+                        episode_info = False
+                        season_number = ''
+                        episode_number = 0
+                        episode_title = ''
                         if 'series_num' in guide_show.keys() and 'episode_num' in guide_show.keys():
-                            show_dict['episode_info'] = True
-                            show_dict['series_num'] = str(guide_show['series_num'])
-                            show_dict['episode_num'] = str(guide_show['episode_num'])
+                            episode_info = True
+                            season_number = str(guide_show['series_num'])
+                            episode_number = guide_show['episode_num']
                             if 'episode_title' in guide_show.keys():
-                                show_dict['episode_title'] = Validation.format_title(guide_show['episode_title'])
+                                episode_title = guide_show['episode_title']
                         if 'episode_title' in guide_show.keys():
-                            show_dict['episode_info'] = True
-                            show_dict['episode_title'] = Validation.format_title(guide_show['episode_title'])
-                        show_dict['repeat'] = False
-                        shows_on.append(show_dict)
+                            episode_info = True
+                            episode_title = guide_show['episode_title']
+                        show_object = GuideShow(
+                            guide_show['title'],
+                            item['channel'],
+                            datetime.strptime(guide_show['start_time'][-8:-3], '%H:%M'),
+                            episode_info,
+                            season_number,
+                            episode_number,
+                            episode_title
+                        )
+                        shows_on.append(show_object)
 
     morse = {}
     remove_idx = []
+    show: GuideShow
     for idx, show in enumerate(shows_on):
-        if 'New Orleans' in show['title']:
+        if 'New Orleans' in show.title:
             remove_idx.append(idx)
-        if 'Doctor Who' in show['title']:
-            check_dw_title = doctor_who_episodes(show['title'])
-            if show['title'] != check_dw_title:
-                show['title'] = 'Doctor Who'
-                show['series_num'] = str(check_dw_title[0])
-                show['episode_num'] = str(check_dw_title[1])
-                show['episode_title'] = check_dw_title[2]
-                show['episode_info'] = True
-        if 'Vera' in show['title']:
-            if show['title'] != 'Vera':
+        if 'Doctor Who' in show.title:
+            show = DoctorWhoGuideShow.doctor_who_handle(show)
+        if 'Vera' in show.title:
+            if show.title != 'Vera':
                 remove_idx.append(idx)
-        if 'Endeavour' in show['title']:
-            if show['title'] != 'Endeavour':
+        if 'Endeavour' in show.title:
+            if show.title != 'Endeavour':
                 remove_idx.append(idx)
-        if 'Lewis' in show['title']:
-            if show['title'] != 'Lewis':
+        if 'Lewis' in show.title:
+            if show.title != 'Lewis':
                 remove_idx.append(idx)
-        if 'Morse' in show['title']:
+        if 'Morse' in show.title:
             remove_idx.append(idx)
-            titles = show['title'].split(': ')
+            titles = show.title.split(': ')
             episode = morse_episodes(titles[1])
-            morse = {'title': titles[0], 'time': show['time'], 'channel': show['channel'],
-                     'episode_info': True, 'series_num': str(episode[0]), 'episode_num': str(episode[1]),
-                     'episode_title': episode[2], 'repeat': False}
-        if 'Transformers' in show['title'] or 'Bumblebee' in show['title']:
-            check_transformers = transformers_shows(show['title'])
-            if isinstance(check_transformers, tuple):
-                if 'Bumblebee' in show['title']:
-                    show['title'] = 'Transformers'
-                show['episode_info'] = True
-                show['series_num'] = str(check_transformers[0])
-                show['episode_num'] = str(check_transformers[1])
-                show['episode_title'] = check_transformers[2]
-        if 'Red Election' in show['title']:
+            morse = GuideShow(
+                titles[0], show.time, show.channel,
+                True, str(episode[0]), episode[1], episode[2]
+            )
+        if 'Transformers' in show.title or 'Bumblebee' in show.title:
+            show = TransformersGuideShow().transformers_handle()
+        if 'Red Election' in show.title:
             show = red_election(show)
-        if 'Silent Witness' in show['title']:
+        if 'Silent Witness' in show.title:
             silent_witness_status = silent_witness_episode(show)
             if silent_witness_status['status']:
                 show = silent_witness_status['show']
@@ -201,18 +199,19 @@ def search_free_to_air():
 
     if morse:
         shows_on.append(morse)
-    shows_on.sort(key=lambda show_obj: show_obj['time'])
+    shows_on.sort(key=lambda show_obj: show_obj.time)
     # check = check_time_sort(shows_on)
     # while check[0] != -1 and check[1] != -1:
     #     sort_shows_by_time(shows_on, check[0], check[1])
     #     check = check_time_sort(shows_on)
     remove_doubles(shows_on)
-    show_titles = [check_show_titles(show['title']) for show in shows_on]
+    print(len(shows_on))
+    show_titles = [show.title for show in shows_on]
     get_today_shows_data(show_titles)
-    if imdb_api_status == 200:
-        shows_on = [search_episode_information(show) for show in shows_on]
-    else:
-        print('IMDB API is not available')
+    # # if imdb_api_status == 200:
+    # #     shows_on = [search_episode_information(show) for show in shows_on]
+    # else:
+    #     print('IMDB API is not available')
     shows_on = [search_for_repeats(show) for show in shows_on]
 
     return shows_on
@@ -350,8 +349,7 @@ def compose_message():
         message = message + "Nothing on Free to Air today\n"
     else:
         for show in fta_shows:
-            show['time'] = show['time'].strftime('%H:%M')
-            message = message + show_string(show)
+            message += show.message_string()
 
     # BBC
     message = message + "\nBBC:\n"
@@ -448,10 +446,11 @@ if __name__ == '__main__':
     fta_shows = search_free_to_air()
     bbc_shows = search_bbc_channels()
 
-    backup_recorded_shows()
+    # backup_recorded_shows()
     
-    client.loop.create_task(send_message())
-    client.run(os.getenv('HERMES'))
+    # client.loop.create_task(send_message())
+    # client.run(os.getenv('HERMES'))
+    print(compose_message())
 
     # print(reminders_found())
     # check_reminders_interval()

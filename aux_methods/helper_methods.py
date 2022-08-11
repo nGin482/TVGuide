@@ -1,5 +1,7 @@
 from datetime import date, datetime
 
+from database.models import GuideShow
+
 def format_time(time):
     """
     format a show's start time to 24 hour time
@@ -27,7 +29,7 @@ def format_time(time):
     return time
 
 
-def remove_doubles(shows_list):
+def remove_doubles(shows_list: list[GuideShow]):
 
     idx_1 = 0
     if len(shows_list) > 1:
@@ -36,7 +38,7 @@ def remove_doubles(shows_list):
             idx_2 = idx_1 + 1
             while idx_2 < len(shows_list):
                 show_2 = shows_list[idx_2]
-                if show_1['channel'] == show_2['channel'] and show_1['time'] == show_2['time']:
+                if show_1.channel == show_2.channel and show_1.time == show_2.time:
                     shows_list.remove(show_2)
                 idx_2 += 1
             idx_1 += 1
