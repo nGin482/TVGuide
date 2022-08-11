@@ -229,6 +229,32 @@ def check_silent_witness(episode_title: str):
         "Reputations - Part 1", "Reputations - Part 2", "Brother's Keeper - Part 1", "Brother's Keeper - Part 2",
         "Matters of Life and Death - Part 1", "Matters of Life and Death - Part 2"]
 
+    """
+    txt = "Brother's Keeper - Part 1"
+    txt2 = "Brother's Keeper (Part 1)"
+    txt3 = "Brother's Keeper Part 1"
+
+    x = re.search("[-(]", txt)
+    print(x)
+
+    y = re.search("[-(]", txt2)
+    print(y)
+
+    z = re.search("[-(]", txt3)
+    print(z)
+
+    """
+
+    # if re.search('[-(]', episode_title):
+    #     pass
+    # else:
+    #     if 'Part ' in episode_title:
+    #         episode_title_name = episode_title[:episode_title.find(' Part ')]
+    #         for idx, episode in enumerate(season_24_episodes):
+    #             if episode_title_name.lower() == episode.lower():
+    #                 return True, idx
+    #         return False, -1
+
     for idx, episode in enumerate(season_24_episodes):
         if episode_title == episode:
             return True, idx
