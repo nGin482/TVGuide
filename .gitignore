@@ -3,6 +3,7 @@
 /venv
 /__pycache__
 */__pycache__
+*/*/__pycache__
 /Project-BackUp
 /BackUps
 /shows
