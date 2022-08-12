@@ -12,7 +12,18 @@ class GuideShow:
     episode_title: str
     repeat: bool
 
-    def __init__(self, title: str, channel: str, time: datetime, episode_info: bool, season_number = '', episode_number = 0, episode_title = '', repeat = False) -> None:
+    def __init__(self, title: str, channel: str, time: datetime, episode_info: bool, season_number, episode_number, episode_title) -> None:
+        if 'Doctor Who' in title:
+            print(f'Title: {title}, Season Number: {season_number}, Episode Number: {episode_number}, Episode Title: {episode_title}')
+        
+        episode_data = GuideShow.get_show(title, season_number, episode_title)
+        if len(episode_data) > 0:
+            title = episode_data[0]
+            episode_info = episode_data[1]
+            season_number = episode_data[2]
+            episode_number = episode_data[3]
+            episode_title = episode_data[4]
+        
         self.title = Validation.check_show_titles(title)
         self.channel = channel
         self.time = time
@@ -20,7 +31,20 @@ class GuideShow:
         self.season_number = season_number
         self.episode_number = episode_number
         self.episode_title = Validation.format_title(episode_title)
-        self.repeat = repeat
+        self.repeat = False # TODO: repeat handling
+
+    @staticmethod
+    def get_show(title: str, season_number, episode_title) -> tuple:
+        if 'Transformers' in title:
+            return TransformersGuideShow.handle(title)
+        elif 'Doctor Who' in title:
+            return DoctorWho.handle(title)
+        elif 'Morse' in title:
+            return MorseGuideShow.handle(title)
+        elif 'Red Election' in title:
+            return RedElection.handle(title, season_number, episode_title)
+        else:
+            return ()
 
     def message_string(self):
         """
@@ -56,19 +80,18 @@ class GuideShow:
         return self.message_string()
 
 
-class TransformersGuideShow(GuideShow):
+class TransformersGuideShow:
 
-    def transformers_handle(self):
-        check_transformers = self.transformers_shows(super().title)
+    @staticmethod
+    def handle(title: str):
+        check_transformers = TransformersGuideShow.transformers_shows(title)
         if isinstance(check_transformers, tuple):
-            if 'Bumblebee' in self.title:
-                self.title = 'Transformers'
-            super().episode_info = True
-            super().season_number = str(check_transformers[0])
-            super().episode_number = check_transformers[1]
-            super().episode_title = check_transformers[2]
-        return super()
+            if 'Bumblebee' in title:
+                title = 'Transformers'
+            return 'Transformers', True, str(check_transformers[0]), check_transformers[1], check_transformers[2]
+        return ()
 
+    @staticmethod
     def transformers_shows(transformers: str) -> tuple:
         if 'Fallen' in transformers:
             return 1, 2, 'Revenge of the Fallen'
@@ -85,79 +108,72 @@ class TransformersGuideShow(GuideShow):
         else:
             return transformers
 
-class DoctorWhoGuideShow(GuideShow):
-    def doctor_who_handle(self):
-        check_dw_title = DoctorWhoGuideShow(self.title, self.channel, self.time, self.episode_info).doctor_who_episodes(self.title)
-        if self.title != check_dw_title:
-            super().title = 'Doctor Who'
-            super().season_number = str(check_dw_title[0])
-            super().episode_number = str(check_dw_title[1])
-            super().episode_title = check_dw_title[2]
-            super().episode_info = True
-        return self
+class DoctorWho:
+    @staticmethod
+    def handle(title: str) -> tuple[str, bool, str, int, str] | tuple:
+        if title != 'Doctor Who':
+            from log import logging_app
+            logging_app(title)
+            
+            check_dw_title: tuple = DoctorWho.doctor_who_episodes(title)
+            return 'Doctor Who', True, str(check_dw_title[0]), check_dw_title[1], check_dw_title[2]
+        return ()
     
-    def doctor_who_episodes(self, show_title: str) -> tuple:
+    @staticmethod
+    def doctor_who_episodes(title: str) -> tuple:
         """
         Given an episode's title, return the `season number`, `episode number` and correct `episode title` of a Doctor Who episode
         """
-        
-        if self.title == 'Doctor Who':
-            return self.title
-        
         tennant_specials = ['The Next Doctor', 'Planet of the Dead', 'The Waters of Mars', 'The End of Time - Part 1', 'The End of Time - Part 2']
         smith_specials = ['The Snowmen', 'The Day of the Doctor', 'The Time of the Doctor']
 
-        if 'Doctor Who: ' in self.title:
-            self.title = self.title.split(': ')[1]
+        if 'Doctor Who: ' in title:
+            title = title.split(': ')[1]
         
         for idx, tennant_special in enumerate(tennant_specials):
-            if self.title.lower() in tennant_special.lower():
+            if title.lower() in tennant_special.lower():
                 return 'Tennant Specials', idx+1, tennant_special
         for idx, smith_special in enumerate(smith_specials):
-            if self.title.lower() in smith_special.lower():
+            if title.lower() in smith_special.lower():
                 return 'Smith Specials', idx+1, smith_special
         
-        if 'Christmas Invasion' in self.title:
+        if 'Christmas Invasion' in title:
             return 2, 0, 'The Christmas Invasion'
-        elif 'Runaway Bride' in self.title:
+        elif 'Runaway Bride' in title:
             return 3, 0, 'The Runaway Bride'
-        elif 'Voyage Of The Damned' in self.title:
+        elif 'Voyage Of The Damned' in title:
             return 4, 0, 'Voyage of the Damned'
-        elif 'Christmas Carol' in self.title:
+        elif 'Christmas Carol' in title:
             return 6, 0, 'A Christmas Carol'
-        elif 'Wardrobe' in self.title:
+        elif 'Wardrobe' in title:
             return 7, 0, 'The Doctor, the Widow and the Wardrobe'
-        elif 'Last Christmas' in self.title:
+        elif 'Last Christmas' in title:
             return 9, 0, 'Last Christmas'
-        elif 'Husbands Of River Song' in self.title:
+        elif 'Husbands Of River Song' in title:
             return 9, 13, 'The Husbands of River Song'
-        elif 'Return Of Doctor Mysterio' in self.title:
+        elif 'Return Of Doctor Mysterio' in title:
             return 10, 0, 'The Return of Doctor Mysterio'
-        elif 'Twice Upon A Time' in self.title:
+        elif 'Twice Upon A Time' in title:
             return 10, 13, 'Twice Upon a Time'
-        elif 'Resolution' in self.title:
+        elif 'Resolution' in title:
             return 11, 11, 'Resolution'
-        elif 'Revolution Of The Daleks' in self.title:
+        elif 'Revolution Of The Daleks' in title:
             return 12, 11, 'Revolution of the Daleks'
-        elif 'Eve of the Daleks' in self.title or 'Eve Of The Daleks' in self.title:
+        elif 'Eve of the Daleks' in title or 'Eve Of The Daleks' in title:
             return 13, 7, 'Eve of the Daleks'
         else:
-            return self.title
+            return title
 
-class MorseGuideShow(GuideShow):
+class MorseGuideShow:
 
-    def morse_handle(self):
-        titles = self.title.split(': ')
-        episode = self.morse_episodes(titles[1])
+    @staticmethod
+    def handle(title: str):
+        titles = title.split(': ')
+        episode = MorseGuideShow.morse_episodes(titles[1])
         
-        super().title = ' Inspector Morse'
-        super().episode_info = True
-        super().season_number = str(episode[0])
-        super().episode_number = episode[1]
-        super().episode_title = episode[2]
+        return 'Inspector Morse', True, str(episode[0]), episode[1], episode[2]
 
-        return self
-
+    @staticmethod
     def morse_episodes(guide_title: str) -> tuple:
         """
         Given an episode's title, return the `season number`, `episode number` and correct `episode title` of an Inspector Morse episode
@@ -194,14 +210,13 @@ class MorseGuideShow(GuideShow):
                     if guide_title in title:
                         return season_idx+1, episode_idx+1, title
 
-class RedElectionGuideShow(GuideShow):
+class RedElection:
 
-    def red_election(self):
-        super().episode_title = super().episode_title[super().episode_title.find('Series'):]
+    def handle(title: str, season_number: str, episode_title: str):
+        from log import logging_app
+        logging_app(f'Logging Red Election Episode\nSeason Number: {season_number}\nEpisode title: {episode_title}')
         
-        if self.season_number in {'', 'Unknown'}:
-            episode_details = super().episode_title.split(' ')
-            super().season_number = episode_details[1]
-            super().episode_number = episode_details[3]
+        episode_details = title[title.find('Series'):]
         
-        return self
+        episode_detail_values = episode_details.split(' ')
+        return 'Red Election', True, episode_detail_values[1], episode_detail_values[3], ''

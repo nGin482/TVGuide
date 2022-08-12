@@ -1,7 +1,7 @@
 
 from aux_methods.helper_methods import format_time, show_list_for_message, remove_doubles, check_show_titles, show_string
 from aux_methods.episode_info import silent_witness_episode, search_episode_information, red_election
-from database.models import DoctorWhoGuideShow, GuideShow, MorseGuideShow, RedElectionGuideShow, TransformersGuideShow
+from database.models import GuideShow
 from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import backup_recorded_shows
 from exceptions.BBCNotCollectedException import BBCNotCollectedException
@@ -163,8 +163,6 @@ def search_free_to_air():
     for idx, show in enumerate(shows_on):
         if 'New Orleans' in show.title:
             remove_idx.append(idx)
-        if 'Doctor Who' in show.title:
-            show = DoctorWhoGuideShow.doctor_who_handle(show)
         if 'Vera' in show.title:
             if show.title != 'Vera':
                 remove_idx.append(idx)
@@ -174,12 +172,6 @@ def search_free_to_air():
         if 'Lewis' in show.title:
             if show.title != 'Lewis':
                 remove_idx.append(idx)
-        if 'Morse' in show.title:
-            show = MorseGuideShow().morse_handle(show)
-        if 'Transformers' in show.title or 'Bumblebee' in show.title:
-            show = TransformersGuideShow().transformers_handle()
-        if 'Red Election' in show.title:
-            show = RedElectionGuideShow().red_election(show)
         if 'Silent Witness' in show.title:
             silent_witness_status = silent_witness_episode(show)
             if silent_witness_status['status']:
@@ -195,7 +187,6 @@ def search_free_to_air():
     #     sort_shows_by_time(shows_on, check[0], check[1])
     #     check = check_time_sort(shows_on)
     remove_doubles(shows_on)
-    print(len(shows_on))
     show_titles = [show.title for show in shows_on]
     get_today_shows_data(show_titles)
     # # if imdb_api_status == 200:
