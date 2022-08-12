@@ -4,6 +4,7 @@ from repeat_handler import flag_repeats, tear_down
 from guide import organise_guide
 from aux_methods.helper_methods import get_today_date, get_current_time, convert_date_string_to_object, get_today_date_for_logging
 from database.recorded_shows_collection import rollback_recorded_shows_collection
+import logging
 import json
 import os
 
@@ -192,3 +193,7 @@ def log_silent_witness_episode(silent_witness: dict):
         json.dump(silent_witness_episodes, sw, indent='\t')
 
     silent_witness['time'] = datetime.strptime(silent_witness['time'], '%H:%M')
+
+def logging_app(log_info: str, level = logging.DEBUG):
+    logging.basicConfig(filename='tvguide.log', filemode='w', level=level)
+    logging.info(log_info)
