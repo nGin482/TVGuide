@@ -62,7 +62,7 @@ def find_recorded_episode(show: GuideShow):
                     if show.season_number != '' and show.episode_number != '' and show_season[0]['season number'] == 'Unknown':
                         document_updated = update_recorded_episode(show)['status']
                         if document_updated:
-                            print(f"The document for {show['title']} was updated") # TODO: take this further down notification line
+                            print(f"The document for {show['title']} was updated") # TODO: most likely will log this
                     return {'status': True, 'episode': episode_recorded[0]}
                 else:
                     return {'status': False, 'level': 'Episode'}
