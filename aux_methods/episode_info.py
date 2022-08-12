@@ -1,5 +1,5 @@
 import re
-from database.models import GuideShow
+from database.models.GuideShow import GuideShow
 from log import log_silent_witness_episode
 import requests
 import json

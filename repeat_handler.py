@@ -1,4 +1,4 @@
-from database.models import GuideShow
+from database.models.GuideShow import GuideShow
 from database.recorded_shows_collection import (
     get_all_recorded_shows, get_one_recorded_show,
     insert_new_recorded_show, insert_new_season, insert_new_episode,

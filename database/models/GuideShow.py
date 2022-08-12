@@ -46,6 +46,9 @@ class GuideShow:
         else:
             return ()
 
+    def check_repeat(title: str, season_number: str, episode_number: int, episode_title: str) -> bool:
+        pass
+
     def message_string(self):
         """
         String that is displayed in the Guide's notification message

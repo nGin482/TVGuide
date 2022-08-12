@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from database.models import GuideShow
+from database.models.GuideShow import GuideShow
 
 def format_time(time):
     """

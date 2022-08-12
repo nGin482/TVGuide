@@ -1,7 +1,7 @@
 
 from aux_methods.helper_methods import format_time, show_list_for_message, remove_doubles, check_show_titles, show_string
 from aux_methods.episode_info import silent_witness_episode, search_episode_information, red_election
-from database.models import GuideShow
+from database.models.GuideShow import GuideShow
 from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import backup_recorded_shows
 from exceptions.BBCNotCollectedException import BBCNotCollectedException
