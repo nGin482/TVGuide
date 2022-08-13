@@ -13,9 +13,6 @@ class GuideShow:
     repeat: bool
 
     def __init__(self, title: str, channel: str, time: datetime, episode_info: bool, season_number, episode_number, episode_title) -> None:
-        if 'Doctor Who' in title:
-            print(f'Title: {title}, Season Number: {season_number}, Episode Number: {episode_number}, Episode Title: {episode_title}')
-        
         episode_data = GuideShow.get_show(title, season_number, episode_title)
         if len(episode_data) > 0:
             title = episode_data[0]
@@ -31,7 +28,7 @@ class GuideShow:
         self.season_number = season_number
         self.episode_number = episode_number
         self.episode_title = Validation.format_title(episode_title)
-        self.repeat = False # TODO: repeat handling
+        self.repeat = self.search_for_repeats()
 
     @staticmethod
     def get_show(title: str, season_number, episode_title) -> tuple:
@@ -46,9 +43,35 @@ class GuideShow:
         else:
             return ()
 
-    def check_repeat(title: str, season_number: str, episode_number: int, episode_title: str) -> bool:
-        pass
+    def search_for_repeats(self) -> bool:
 
+        if self.episode_info:
+            return self.find_recorded_episode()['status']
+
+    def find_recorded_episode(self):
+        from repeat_handler import read_show_data
+        check_show = read_show_data(self.title)
+        # check_show = get_one_recorded_show(show['title'])
+        if check_show:
+            season_number = self.season_number
+            if season_number == '':
+                season_number = 'Unknown'
+            season = check_show.find_season(season_number)
+            if season:
+                episode = season.find_episode(self.episode_number, self.episode_title)
+                if episode:
+                    # if show.season_number != '' and show.episode_number != 0 and season.season_number == 'Unknown':
+                        # document_updated = update_recorded_episode(show)['status']
+                        # if document_updated:
+                        #     print(f"The document for {show['title']} was updated") # TODO: most likely will log this
+                    return {'status': True, 'episode': episode}
+                else:
+                    return {'status': False, 'level': 'Episode'}
+            else:
+                return {'status': False, 'level': 'Season'}
+        else:
+            return {'status': False, 'level': 'Show'}
+    
     def message_string(self):
         """
         String that is displayed in the Guide's notification message

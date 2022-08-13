@@ -1,11 +1,11 @@
 
 from aux_methods.helper_methods import format_time, show_list_for_message, remove_doubles, check_show_titles, show_string
-from aux_methods.episode_info import silent_witness_episode, search_episode_information, red_election
+from aux_methods.episode_info import silent_witness_episode, search_episode_information
 from database.models.GuideShow import GuideShow
 from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import backup_recorded_shows
 from exceptions.BBCNotCollectedException import BBCNotCollectedException
-from repeat_handler import flag_repeats, search_for_repeats, get_today_shows_data
+from repeat_handler import flag_repeats, get_today_shows_data
 from log import log_discord_message_too_long, log_message_sent, compare_dates, log_guide, revert_tvguide
 from backups import write_to_backup_file
 from datetime import datetime, date
@@ -193,7 +193,6 @@ def search_free_to_air():
     # #     shows_on = [search_episode_information(show) for show in shows_on]
     # else:
     #     print('IMDB API is not available')
-    shows_on = [search_for_repeats(show) for show in shows_on]
 
     return shows_on
 
@@ -288,7 +287,6 @@ def search_bbc_channels():
         shows_on = [search_episode_information(show) for show in shows_on]
     else:
         print('IMDB API is not available')
-    shows_on = [search_for_repeats(show) for show in shows_on]
     return shows_on
 
 

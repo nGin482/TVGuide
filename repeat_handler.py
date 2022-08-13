@@ -1,4 +1,5 @@
 from database.models.GuideShow import GuideShow
+from database.models.RecordedShow import RecordedShow
 from database.recorded_shows_collection import (
     get_all_recorded_shows, get_one_recorded_show,
     insert_new_recorded_show, insert_new_season, insert_new_episode,
@@ -20,15 +21,16 @@ def get_today_shows_data(list_of_shows):
 def read_show_data(title: str):
     try:
         with open(f'shows/{title}.json') as filename:
-            show_data: dict = json.load(filename)
-        return {'status': True, 'show': show_data}
+            show_data = RecordedShow(json.load(filename))
+        return show_data
     except FileNotFoundError:
-        return {'status': False}
+        return None
 
-def flag_repeats(show):
+def flag_repeats(show: GuideShow):
+    print('running')
 
     show['title'] = check_show_titles(show)
-    check_episode = find_recorded_episode(show)
+    check_episode = show.find_recorded_episode()
     if check_episode['status']:
         set_repeat = mark_as_repeat(show)
         channel_add = add_channel(show)
@@ -48,48 +50,6 @@ def flag_repeats(show):
         # update the JSON file as these happen
         else:
             return {'status': False, 'message': 'Unable to process this episode.'}
-
-def find_recorded_episode(show: GuideShow):
-    check_show = read_show_data(show.title)
-    # check_show = get_one_recorded_show(show['title'])
-    if check_show['status']:
-        show_information = check_show['show']
-        if show.season_number != '':
-            show_season = list(filter(lambda season: season['season number'] == show.season_number, show_information['seasons']))
-            if len(show_season) > 0:
-                episode_recorded = list(filter(lambda episode: episode['episode number'] == str(show.episode_number), show_season[0]['episodes']))
-                if len(episode_recorded) > 0:
-                    if show.season_number != '' and show.episode_number != '' and show_season[0]['season number'] == 'Unknown':
-                        document_updated = update_recorded_episode(show)['status']
-                        if document_updated:
-                            print(f"The document for {show['title']} was updated") # TODO: most likely will log this
-                    return {'status': True, 'episode': episode_recorded[0]}
-                else:
-                    return {'status': False, 'level': 'Episode'}
-            else:
-                return {'status': False, 'level': 'Season'}
-        else:
-            show_season = list(filter(lambda season: season['season number'] == 'Unknown', show_information['seasons']))
-            if len(show_season) > 0:
-                episode_recorded = list(filter(lambda episode: episode['episode title'] == show.episode_title, show_season[0]['episodes']))
-                if len(episode_recorded) > 0:
-                    return {'status': True, 'episode': episode_recorded[0]}
-                else:
-                    return {'status': False, 'level': 'Episode'}
-            else:
-                return {'status': False, 'level': 'Season'}
-    else:
-        return {'status': False, 'level': 'Show'}
-
-
-def search_for_repeats(show: GuideShow):
-
-    if show.episode_info:
-        check_episode = find_recorded_episode(show)
-        if check_episode['status']:
-            show.repeat = True
-
-    return show
 
 def tear_down():
     """
