@@ -1,10 +1,6 @@
 from datetime import datetime
-import json
-
-from ...file_handling.FileHandle import FileHandleShow
-
 from .GuideShow import GuideShow
-
+import json
 
 class Episode:
     episode_number: int
@@ -115,7 +111,6 @@ class RecordedShow:
 
     def add_season(self, season: Season):
         self.seasons.append(season)
-        FileHandleShow.update_data(self.title, self)
 
     def create_JSON_file(self):
         try:
