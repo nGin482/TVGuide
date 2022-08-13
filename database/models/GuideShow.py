@@ -1,5 +1,7 @@
 from datetime import datetime
+from typing import Union
 from data_validation.validation import Validation
+from .RecordedShow import Episode, RecordedShow, Season
 
 
 class GuideShow:
@@ -48,7 +50,15 @@ class GuideShow:
         if self.episode_info:
             return self.find_recorded_episode()['status']
 
-    def find_recorded_episode(self):
+    def find_recorded_episode(self) -> dict['str', Union[Episode, Season, RecordedShow]]:
+        """
+        Checks the local files in the `shows` directory for information about a `GuideShow`'s information\n
+        Returns a `dict` containting:\n
+        `status: bool` (if information exists in the file)\n
+        and either\n
+        `episode: Episode` (the episode from the file); or
+        `level: str` (what object needs to be created and added if `status` is False)
+        """
         from repeat_handler import read_show_data
         check_show = read_show_data(self.title)
         # check_show = get_one_recorded_show(show['title'])
@@ -66,11 +76,11 @@ class GuideShow:
                         #     print(f"The document for {show['title']} was updated") # TODO: most likely will log this
                     return {'status': True, 'episode': episode}
                 else:
-                    return {'status': False, 'level': 'Episode'}
+                    return {'status': False, 'level': 'Episode', 'show': check_show}
             else:
-                return {'status': False, 'level': 'Season'}
+                return {'status': False, 'level': 'Season', 'show': check_show}
         else:
-            return {'status': False, 'level': 'Show'}
+            return {'status': False, 'level': 'Show', 'show': check_show}
     
     def message_string(self):
         """
