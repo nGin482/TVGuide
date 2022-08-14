@@ -1,10 +1,11 @@
 from datetime import datetime
 from typing import Union
 from data_validation.validation import Validation
-from .RecordedShow import Episode, RecordedShow, Season
+from exceptions.DatabaseError import DatabaseError
 
 
 class GuideShow:
+    from .RecordedShow import RecordedShow
     title: str
     channel: str
     time: datetime
@@ -50,7 +51,7 @@ class GuideShow:
         if self.episode_info:
             return self.find_recorded_episode()['status']
 
-    def find_recorded_episode(self) -> dict['str', Union[Episode, Season, RecordedShow]]:
+    def find_recorded_episode(self) -> dict[str, Union[bool, str, RecordedShow]]:
         """
         Checks the local files in the `shows` directory for information about a `GuideShow`'s information\n
         Returns a `dict` containting:\n
@@ -74,13 +75,56 @@ class GuideShow:
                         # document_updated = update_recorded_episode(show)['status']
                         # if document_updated:
                         #     print(f"The document for {show['title']} was updated") # TODO: most likely will log this
-                    return {'status': True, 'episode': episode}
+                    return {'status': True, 'episode': episode, 'show': check_show}
                 else:
                     return {'status': False, 'level': 'Episode', 'show': check_show}
             else:
                 return {'status': False, 'level': 'Season', 'show': check_show}
         else:
             return {'status': False, 'level': 'Show', 'show': check_show}
+
+    def capture_db_event(self):
+        from .RecordedShow import Episode, RecordedShow, Season
+
+        check_episode = self.find_recorded_episode()
+        recorded_show: RecordedShow = check_episode['show']
+        if check_episode['status']:
+            episode: Episode = check_episode['episode']
+            set_repeat = 'Repeat status is up to date'
+            channel_add = 'Channel list is up to date'
+            if self.channel not in episode.channels:
+                channel_add = episode.add_channel(self.channel)
+                recorded_show.update_JSON_file()
+            if not episode.repeat:
+                set_repeat = episode.mark_as_repeat()
+                recorded_show.update_JSON_file()
+            print('happening on channel/repeat')
+            return {'show': self.to_dict(), 'repeat': set_repeat, 'channel': channel_add}
+        else:
+            if check_episode['level'] == 'Episode':
+                try:
+                    insert_episode = recorded_show.add_episode_to_document(self)
+                except DatabaseError as err:
+                    insert_season = {'status': False, 'error': err}
+                print('happening on episode')
+                return {'show': self.to_dict(), 'result': insert_episode}
+            elif check_episode['level'] == 'Season':
+                new_season = Season(show=self)
+                try:
+                    insert_season = recorded_show.add_season(new_season)
+                except DatabaseError as err:
+                    insert_season = {'status': False, 'error': err}
+                print('happening on season')
+                return {'show': self.to_dict(), 'result': insert_season}
+            elif check_episode['level'] == 'Show':
+                recorded_show = RecordedShow(guide_show=self)
+                recorded_show.create_JSON_file()
+                insert_show = recorded_show.insert_new_recorded_show_document()
+                print('happening on show')
+                return {'show': self.to_dict(), 'result': insert_show}
+            # update the JSON file as these happen
+            else:
+                return {'status': False, 'message': 'Unable to process this episode.'}
     
     def message_string(self):
         """
