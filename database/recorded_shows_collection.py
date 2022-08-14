@@ -1,6 +1,6 @@
+from datetime import date
 from pymongo import errors, ReturnDocument
 from database.mongo import database
-from aux_methods.helper_methods import get_today_date
 import json
 import os
 
@@ -50,7 +50,7 @@ def insert_new_recorded_show(new_show):
                     'episode number': '',
                     'episode title': '',
                     'channels': [new_show['channel']],
-                    'first air date': get_today_date('string'),
+                    'first air date': date.today().strftime('%d-%m-%Y'),
                     'repeat': False
                 }
             ]
@@ -82,7 +82,7 @@ def insert_new_season(show):
                     'episode number': '',
                     'episode title': '',
                     'channels': [show['channel']],
-                    'first air date': get_today_date('string'),
+                    'first air date': date.today().strftime('%d-%m-%Y'),
                     'repeat': False
                 }
             ]
@@ -118,7 +118,7 @@ def insert_new_episode(show):
             'episode number': '',
             'episode title': '',
             'channels': [show['channel']],
-            'first air date': get_today_date('string'),
+            'first air date': date.today().strftime('%d-%m-%Y'),
             'repeat': False
         }
 
