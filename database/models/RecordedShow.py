@@ -28,6 +28,12 @@ class Episode:
         else:
             raise ValueError('Please provide details about the episode recorded')
 
+    def mark_as_repeat(self):
+        self.repeat = True
+
+    def add_channel(self, channel: str):
+        self.channels.append(channel)
+    
     def update_latest_air_date(self):
         self.latest_air_date = datetime.today().strftime('%d/%M/%Y')
     
