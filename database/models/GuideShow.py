@@ -96,30 +96,33 @@ class GuideShow:
                 channel_add = episode.add_channel(self.channel)
                 recorded_show.update_JSON_file()
             if not episode.repeat:
-                set_repeat = episode.mark_as_repeat()
+                set_repeat = episode.mark_as_repeat(self)
                 recorded_show.update_JSON_file()
             print('happening on channel/repeat')
             return {'show': self.to_dict(), 'repeat': set_repeat, 'channel': channel_add}
         else:
             if check_episode['level'] == 'Episode':
                 try:
-                    insert_episode = recorded_show.add_episode_to_document(self)
+                    add_episode_status = recorded_show.add_episode_to_document(self)
                 except DatabaseError as err:
-                    insert_season = {'status': False, 'error': err}
+                    add_episode_status =  err
                 print('happening on episode')
-                return {'show': self.to_dict(), 'result': insert_episode}
+                return {'show': self.to_dict(), 'result': add_episode_status}
             elif check_episode['level'] == 'Season':
                 new_season = Season(show=self)
                 try:
                     insert_season = recorded_show.add_season(new_season)
                 except DatabaseError as err:
-                    insert_season = {'status': False, 'error': err}
+                    insert_season = err
                 print('happening on season')
                 return {'show': self.to_dict(), 'result': insert_season}
             elif check_episode['level'] == 'Show':
                 recorded_show = RecordedShow(guide_show=self)
                 recorded_show.create_JSON_file()
-                insert_show = recorded_show.insert_new_recorded_show_document()
+                try:
+                    insert_show = recorded_show.insert_new_recorded_show_document()
+                except DatabaseError as err:
+                    insert_show = err
                 print('happening on show')
                 return {'show': self.to_dict(), 'result': insert_show}
             # update the JSON file as these happen

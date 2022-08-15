@@ -217,10 +217,10 @@ class RecordedShow:
     def insert_new_recorded_show_document(self):
         document = self.to_dict()
         insert_result = recorded_shows_collection().insert_one(document)
-        if insert_result.inserted_id:
-            return {'status': True, 'message': 'The show is now being recorded.', 'show': document}
+        if not insert_result.inserted_id:
+            raise DatabaseError('The show was not able to be recorded.')
         else:
-            return {'status': False, 'message': 'The show was not able to be recorded.', 'show': document}
+            return 'The show is now being recorded.'
 
     def add_season(self, season: Season):
         """
@@ -243,9 +243,9 @@ class RecordedShow:
             raise DatabaseError('The season was not inserted into the `RecordedShows` collection')
         elif len(inserted_season.keys()) > 0 and not update_file_result:
             raise DatabaseError('The JSON file was not updated with the given season')
-        return inserted_season
+        return 'The season was successfully inserted'
 
-    def add_episode_to_document(self, guide_show: 'GuideShow') -> dict:
+    def add_episode_to_document(self, guide_show: 'GuideShow') -> bool:
         new_episode = Episode(show=guide_show)
         season_number = 'Unknown' if guide_show.season_number == '' else guide_show.season_number
         self.find_season(season_number).add_episode(new_episode)
@@ -263,7 +263,7 @@ class RecordedShow:
             raise DatabaseError('The season was not inserted into the `RecordedShows` collection')
         elif len(inserted_episode.keys()) > 0 and not update_file_result:
             raise DatabaseError('The JSON file was not updated with the given season')
-        return inserted_episode
+        return 'The episode was successfully inserted'
 
     def create_JSON_file(self):
         try:
