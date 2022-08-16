@@ -207,6 +207,13 @@ class RecordedShow:
             self.seasons = [Season(show=guide_show)]
         else:
             raise ValueError('Please provide details about the show recorded')
+
+    @staticmethod
+    def get_all_recorded_shows():
+        try:
+            return [recorded_show for recorded_show in recorded_shows_collection().find()]
+        except AttributeError:
+            return []
     
     def find_season(self, season_number) -> Season:
         results = list(filter(lambda season_obj: season_obj.season_number == season_number, self.seasons))
