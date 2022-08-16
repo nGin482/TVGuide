@@ -268,7 +268,7 @@ class RecordedShow:
     def create_JSON_file(self):
         try:
             with open(f'shows/{self.title}.json', 'w+') as fd:
-                json.dump(self, fd, indent='\t')
+                json.dump(self.to_dict(), fd, indent='\t')
             return True
         except FileExistsError:
             return False
