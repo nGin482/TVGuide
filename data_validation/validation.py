@@ -1,5 +1,11 @@
-class Validation:
+from __future__ import annotations
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from database.models.GuideShow import GuideShow
+
+
+class Validation:
 
     @staticmethod
     def format_time(time: str):
@@ -78,6 +84,27 @@ class Validation:
                     idx = title.rfind(':')
                     title = title[:idx] + title[idx+1:]
                 return title
+
+    @staticmethod
+    def remove_unwanted_shows(guide_list: list[GuideShow]):
+        remove_idx = []
+        for idx, show in enumerate(guide_list):
+            if 'New Orleans' in show.title or 'Hawaii' in show.title:
+                remove_idx.append(idx)
+            if 'Vera' in show.title:
+                if show.title != 'Vera':
+                    remove_idx.append(idx)
+            if 'Endeavour' in show.title:
+                if show.title != 'Endeavour':
+                    remove_idx.append(idx)
+            if 'Lewis' in show.title:
+                if show.title != 'Lewis':
+                    remove_idx.append(idx)
+        for idx in reversed(remove_idx):
+            guide_list.pop(idx)
+
+        return guide_list
+
 
     @staticmethod
     def valid_reminder_fields():
