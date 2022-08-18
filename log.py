@@ -1,6 +1,6 @@
 from datetime import datetime
 from backups import write_to_backup_file
-from .database.models.GuideShow import GuideShow
+from database.models.GuideShow import GuideShow
 from repeat_handler import tear_down
 from guide import organise_guide
 from aux_methods.helper_methods import get_today_date, get_current_time, convert_date_string_to_object, get_today_date_for_logging
@@ -92,10 +92,6 @@ def read_events():
 def status_setting_repeats(result: dict):
     events = read_events()
     
-    if 'result' in result.keys():
-        if 'show' in result['result'].keys():
-            if 'show is now being recorded' in result['result']['message']:
-                del result['result']['show']['_id']
     events.append(result)
 
     with open('log/events.json', 'w+') as fd:
@@ -109,7 +105,7 @@ def clear_events_log():
     except FileNotFoundError:
         return
 
-def log_guide_information(fta_shows, bbc_shows):
+def log_guide_information(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
     """
     Organise the guide into a JSON format and write this to the current day's guide and to the BackUp directory
     """
@@ -119,36 +115,31 @@ def log_guide_information(fta_shows, bbc_shows):
         os.mkdir('today_guide')
     else:
         for filename in os.listdir('today_guide'):
-            if os.path.exists('today_guide/' + filename):
-                os.remove('today_guide/' + filename)
+            if os.path.exists(f'today_guide/{filename}'):
+                os.remove(f'today_guide/{filename}')
 
-    for show in fta_shows:
-        if type(show['time']) is not str:
-            show['time'] = show['time'].strftime('%H:%M')
-    for show in bbc_shows:
-        if type(show['time']) is not str:
-            show['time'] = show['time'].strftime('%H:%M')
+    fta_list = [show.to_dict() for show in fta_shows]
+    bbc_list = [show.to_dict() for show in bbc_shows]
     
-    today_guide = {'FTA': fta_shows, 'BBC': bbc_shows}
-    filename = 'today_guide/' + get_today_date('string') + '.json'
-    with open(filename, 'w+', encoding='utf-8') as fd:
+    today_guide = {'FTA': fta_list, 'BBC': bbc_list}
+    with open(f'today_guide/{datetime.today().strftime("%d-%m-%Y")}.json', 'w+', encoding='utf-8') as fd:
         json.dump(today_guide, fd, ensure_ascii=False, indent=4)
     
-    guide = organise_guide(fta_shows, bbc_shows)
-    write_to_backup_file(guide)
+    # guide = organise_guide(fta_shows, bbc_shows)
+    write_to_backup_file(today_guide)
 
-def log_guide(fta_shows: list[GuideShow], bbc_shows: list[GuideShow]):
+def log_guide(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
 
     log_guide_information(fta_shows, bbc_shows)
     
     clear_events_log()
     for show in fta_shows:
-        if 'HD' not in show['channel'] and show['episode_info']:
-            log_repeats = show.capture_db_event()
-            status_setting_repeats(log_repeats)
+        if 'HD' not in show.channel and show.episode_info:
+            log_event = show.capture_db_event()
+            status_setting_repeats(log_event)
     for show in bbc_shows:
-        log_repeats = show.capture_db_event
-        status_setting_repeats(log_repeats)
+        log_event = show.capture_db_event()
+        status_setting_repeats(log_event)
     tear_down()
 
 def revert_tvguide():
