@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from datetime import datetime
 import json
 from typing import Union
@@ -20,6 +21,7 @@ class GuideShow:
 
     def __init__(self, title: str, channel: str, time: datetime, episode_info: bool, season_number, episode_number, episode_title) -> None:
         title = Validation.check_show_titles(title)
+        self.recorded_show = GuideShow.read_show_data(title)
         episode_data = GuideShow.get_show(title, season_number, episode_title)
         if len(episode_data) > 0:
             title = episode_data[0]
@@ -35,7 +37,6 @@ class GuideShow:
         self.season_number = season_number
         self.episode_number = episode_number
         self.episode_title = Validation.format_title(episode_title)
-        self.recorded_show = GuideShow.read_show_data(title)
         self.repeat = self.search_for_repeats()
 
     @staticmethod
@@ -48,6 +49,8 @@ class GuideShow:
             return MorseGuideShow.handle(title)
         elif 'Red Election' in title:
             return RedElection.handle(title, season_number, episode_title)
+        elif 'Silent Witness' in title:
+            return SilentWitness.handle(season_number, '', episode_title)
         else:
             return ()
 
@@ -174,7 +177,13 @@ class GuideShow:
         return self.message_string()
 
 
-class TransformersGuideShow:
+class SpecialCases(ABC):
+
+    @abstractmethod
+    def handle():
+        pass
+
+class TransformersGuideShow(SpecialCases):
 
     @staticmethod
     def handle(title: str):
@@ -202,7 +211,7 @@ class TransformersGuideShow:
         else:
             return transformers
 
-class DoctorWho:
+class DoctorWho(SpecialCases):
     @staticmethod
     def handle(title: str) -> tuple[str, bool, str, int, str] | tuple:
         if title != 'Doctor Who':
@@ -258,7 +267,7 @@ class DoctorWho:
         else:
             return title
 
-class MorseGuideShow:
+class MorseGuideShow(SpecialCases):
 
     @staticmethod
     def handle(title: str):
@@ -304,7 +313,7 @@ class MorseGuideShow:
                     if guide_title in title:
                         return season_idx+1, episode_idx+1, title
 
-class RedElection:
+class RedElection(SpecialCases):
 
     def handle(title: str, season_number: str, episode_title: str):
         from log import logging_app
@@ -314,3 +323,55 @@ class RedElection:
         
         episode_detail_values = episode_details.split(' ')
         return 'Red Election', True, episode_detail_values[1], episode_detail_values[3], ''
+
+class SilentWitness(SpecialCases):
+    
+    @staticmethod
+    def handle(season_number: str, episode_number: int, episode_title: str):
+        episode_data = SilentWitness.silent_witness(season_number, episode_number, episode_title)
+        return episode_data
+
+    @staticmethod
+    def silent_witness(season_number: str, episode_number: int, episode_title: str):
+        check_episode = SilentWitness.check_silent_witness(episode_title)
+        from log import logging_app
+        logging_app(f'Logging Silent Witness Episode\nSeason Number: {season_number}\nEpisode Number: {episode_number}\nEpisode Title: {episode_number}\nResult: {str(check_episode)}')
+        
+        if season_number == '24':
+            return 'Silent Witness', True, season_number, episode_number, episode_title
+        else:
+            print(f'Episode title: {episode_title}')
+
+        if check_episode:
+            return check_episode
+        else:
+            return False
+
+    def check_silent_witness(episode_title: str):
+        season_24_episodes = {
+            'Redemption': ["Redemption Part 1", "Redemption Part 2"],
+            'Bad Love': ["Bad Love Part 1", "Bad Love Part 2"],
+            'Reputations': ["Reputations Part 1", "Reputations Part 2"],
+            "Brother's Keeper": ["Brother's Keeper Part 1", "Brother's Keeper Part 2"],
+            'Matters of Life and Death': ["Matters of Life and Death Part 1", "Matters of Life and Death Part 2"]
+        }
+
+        silent_witness_story = None
+        index = -1
+
+        for idx, key in enumerate(season_24_episodes.keys()):
+            if key in episode_title:
+                silent_witness_story = season_24_episodes[key]
+                index = idx
+                break
+
+        if silent_witness_story:
+            if 'Part' in episode_title:
+                episode_part_num = [char for char in episode_title if char.isdigit()][0]
+                episode_part_num = int(episode_part_num)
+                episode_number = (index * 2) + episode_part_num
+                return 'Silent Witness', True, '24', episode_number, episode_title
+            else:
+                raise ValueError('Unable to process this episode')
+        else:
+            raise ValueError('This episode is not in Season 24')
