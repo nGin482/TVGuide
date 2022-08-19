@@ -36,7 +36,7 @@ class Episode:
             elif 'latest_air_date' in episode_subdocument.keys():
                 latest_air_date = episode_subdocument['latest_air_date']
             else:
-                latest_air_date = datetime.today().strftime('%d/%M/%Y')
+                latest_air_date = datetime.today().strftime('%d/%m/%Y')
             
             
             self.episode_number = episode_number
@@ -49,8 +49,8 @@ class Episode:
             self.episode_number = show.episode_number
             self.episode_title = show.episode_title
             self.channels = [show.channel]
-            self.first_air_date = datetime.today().strftime('%d/%M/%Y')
-            self.latest_air_date = datetime.today().strftime('%d/%M/%Y')
+            self.first_air_date = datetime.today().strftime('%d/%m/%Y')
+            self.latest_air_date = datetime.today().strftime('%d/%m/%Y')
             self.repeat = show.repeat
         else:
             raise ValueError('Please provide details about the episode recorded')
@@ -87,7 +87,7 @@ class Episode:
         return {'status': True, 'message': 'The episode has been marked as a repeat.', 'episode': self.to_dict()}
     
     def update_latest_air_date(self):
-        self.latest_air_date = datetime.today().strftime('%d/%M/%Y')
+        self.latest_air_date = datetime.today().strftime('%d/%m/%Y')
 
     def add_channel(self, guide_show: GuideShow):
         self.channels.append(guide_show.channel)
@@ -135,11 +135,11 @@ class Episode:
     
     def to_dict(self):
         if type(self.first_air_date) is not str:
-            first_air_date = self.first_air_date.strftime('%d/%M/%Y')
+            first_air_date = self.first_air_date.strftime('%d/%m/%Y')
         else:
             first_air_date = self.first_air_date
         if type(self.latest_air_date) is not str:
-            latest_air_date = self.latest_air_date.strftime('%d/%M/%Y')
+            latest_air_date = self.latest_air_date.strftime('%d/%m/%Y')
         else:
             latest_air_date = self.latest_air_date
         
