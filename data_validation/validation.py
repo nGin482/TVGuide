@@ -100,6 +100,9 @@ class Validation:
             if 'Lewis' in show.title:
                 if show.title != 'Lewis':
                     remove_idx.append(idx)
+            if 'Death In Paradise' in show.title or 'Death in Paradise' in show.title:
+                if show.title.lower() != 'death in paradise':
+                    remove_idx.append(idx)
         for idx in reversed(remove_idx):
             guide_list.pop(idx)
 
