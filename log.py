@@ -187,5 +187,5 @@ def log_silent_witness_episode(silent_witness: dict):
     silent_witness['time'] = datetime.strptime(silent_witness['time'], '%H:%M')
 
 def logging_app(log_info: str, level = logging.DEBUG):
-    logging.basicConfig(filename='tvguide.log', filemode='w', level=level, format='%(asctime)s - %(levelname)s - %(msg)')
+    logging.basicConfig(filename='tvguide.log', filemode='w', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     logging.info(log_info)
