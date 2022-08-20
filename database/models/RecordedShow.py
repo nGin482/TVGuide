@@ -196,12 +196,14 @@ class Season:
 class RecordedShow:
     title: str
     seasons: list[Season]
+    imdb_id: str
 
     def __init__(self, recorded_show_details: dict = {}, guide_show: 'GuideShow' = None) -> None:
         # self._id = recorded_show_details['_id']
         if guide_show is None and len(recorded_show_details.keys()) != 0:
             self.title = recorded_show_details['show']
             self.seasons = [Season(season) for season in recorded_show_details['seasons']]
+            self.imdb_id = recorded_show_details['imdb_id'] if 'imdb_id' in recorded_show_details.keys() else ''
         elif guide_show and len(recorded_show_details.keys()) == 0:
             self.title = guide_show.title
             self.seasons = [Season(show=guide_show)]

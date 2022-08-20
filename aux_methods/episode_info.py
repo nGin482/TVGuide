@@ -1,9 +1,11 @@
-import re
-from database.models.GuideShow import GuideShow
-from log import log_silent_witness_episode
+from __future__ import annotations
 import requests
 import json
 import os
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from database.models.GuideShow import GuideShow
 
 def search_episode_information(show: GuideShow) -> dict:
     """
@@ -209,77 +211,3 @@ def red_election(show: dict):
         show['episode_num'] = episode_details[3]
     
     return show
-
-def check_silent_witness(episode_title: str):
-
-    """
-    213	"Redemption - Part 1"
-    214	"Redemption - Part 2"
-    215	"Bad Love - Part 1"
-    216	"Bad Love - Part 2"
-    217	"Reputations - Part 1"
-    218	"Reputations - Part 2"
-    219	"Brother's Keeper - Part 1"
-    220	"Brother's Keeper - Part 2"
-    221	"Matters of Life and Death - Part 1"
-    222	"Matters of Life and Death - Part 2"
-    """
-
-    season_24_episodes = ["Redemption - Part 1", "Redemption - Part 2", "Bad Love - Part 1", "Bad Love - Part 2", 
-        "Reputations - Part 1", "Reputations - Part 2", "Brother's Keeper - Part 1", "Brother's Keeper - Part 2",
-        "Matters of Life and Death - Part 1", "Matters of Life and Death - Part 2"]
-
-    """
-    txt = "Brother's Keeper - Part 1"
-    txt2 = "Brother's Keeper (Part 1)"
-    txt3 = "Brother's Keeper Part 1"
-
-    x = re.search("[-(]", txt)
-    print(x)
-
-    y = re.search("[-(]", txt2)
-    print(y)
-
-    z = re.search("[-(]", txt3)
-    print(z)
-
-    """
-
-    # if re.search('[-(]', episode_title):
-    #     pass
-    # else:
-    #     if 'Part ' in episode_title:
-    #         episode_title_name = episode_title[:episode_title.find(' Part ')]
-    #         for idx, episode in enumerate(season_24_episodes):
-    #             if episode_title_name.lower() == episode.lower():
-    #                 return True, idx
-    #         return False, -1
-
-    for idx, episode in enumerate(season_24_episodes):
-        if episode_title == episode:
-            return True, idx
-    return False, -1
-
-
-# above method may not be working for all cases ie. would return false here --> "One Of Our Own Part 2"
-# https://www.w3schools.com/python/python_regex.asp
-def silent_witness_episode(show: dict):
-    """
-    Confirm that the given Silent Witness episode is from Season 24
-    """
-
-    if 'series_num' in show.keys():
-        if show['series_num'] == '24':
-            return {'status': True, 'show': show}
-    else:
-        print('Episode title: {episode_title}'.format(**show))
-
-    check_episode = check_silent_witness(show['episode_title'])
-        
-    log_silent_witness_episode(show)
-    if check_episode[0]:
-        show['series_num'] = 24
-        show['episode_num'] = check_episode[1] + 1
-        return {'status': True, 'show': show}
-    else:
-        return {'status': False}

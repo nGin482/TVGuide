@@ -1,10 +1,13 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-import json
 from typing import Union
 from data_validation.validation import Validation
 from .RecordedShow import RecordedShow
 from exceptions.DatabaseError import DatabaseError
+from log import log_imdb_api_results, clear_imdb_api_results
+import requests
+import json
+import os
 
 
 class GuideShow:
@@ -142,6 +145,57 @@ class GuideShow:
             # update the JSON file as these happen
             else:
                 return {'status': False, 'message': 'Unable to process this episode.'}
+
+    def search_imdb_information(self):
+        imdb_api_key = os.getenv('IMDB_API')    
+        # get season number and episode number from episode title
+        results = []
+        if (self.season_number == '' or self.season_number == 'Unknown') and self.episode_title != '':
+            episode_title = self.episode_title.replace(' ', '%20') if ' ' in self.episode_title else self.episode_title
+            
+            episode_req = requests.get(f'https://imdb-api.com/en/API/SearchEpisode/{imdb_api_key}/{episode_title}')
+            
+            if episode_req.status_code == 200:
+                results: list[dict] = episode_req.json()['results']
+                title = 'Death in Paradise' if 'Death In Paradise' in self.title else self.title
+                if results:
+                    for result in results:
+                        if title in result['description'] and self.episode_title.lower() == result['title'].lower():
+                            print(result['description'])
+                            description = GuideShow._extract_information(result['description'])
+                            self.season_number = description[0]
+                            self.episode_number = description[1]
+                else:
+                    print(f"IMDB API returned None when looking up {self.title}'s {self.episode_title} episode")
+        
+        # get episode title from season number and episode number
+        if self.episode_title == '' and self.season_number != '':
+            show_id = self.recorded_show.imdb_id
+            if show_id:
+                season_req = requests.get(f'https://imdb-api.com/en/API/SeasonEpisodes/{imdb_api_key}/{show_id}/{self.season_number}')
+                if season_req.status_code == 200:
+                    episodes = season_req.json()['episodes']
+                    results = episodes
+                    for episode in episodes:
+                        if episode['episodeNumber'] == str(self.episode_number):
+                            self.episode_title = episode['title']
+        log_imdb_api_results(self.to_dict(), results)
+        return self
+
+    @staticmethod
+    def _extract_information(description: str) -> tuple:
+        """
+        Given a description from an IMDB API result, search this string for information regarding season number and episode number
+        """
+
+        desc_break = description.split('|')
+        
+        season_index = desc_break[0].index('Season ')+7
+        season = desc_break[0][season_index:len(desc_break[0])-1]
+        
+        episode:str = desc_break[1][9:desc_break[1].index('-')-1]
+        
+        return season, episode
     
     def message_string(self):
         """

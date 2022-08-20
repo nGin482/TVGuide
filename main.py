@@ -1,13 +1,13 @@
 
 from aux_methods.helper_methods import format_time, show_list_for_message, remove_doubles, check_show_titles, show_string
-from aux_methods.episode_info import silent_witness_episode, search_episode_information
+from aux_methods.episode_info import search_episode_information
 from data_validation.validation import Validation
 from database.models.GuideShow import GuideShow
 from database.show_list_collection import search_list, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import backup_recorded_shows
 from exceptions.BBCNotCollectedException import BBCNotCollectedException
 from repeat_handler import get_today_shows_data
-from log import log_discord_message_too_long, log_message_sent, compare_dates, log_guide, revert_tvguide
+from log import clear_imdb_api_results, log_discord_message_too_long, log_message_sent, compare_dates, log_guide, revert_tvguide
 from datetime import datetime
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
@@ -173,6 +173,7 @@ def search_free_to_air():
             data['episode_title']
         ) for data in shows_data
     ]
+    shows_on = [show.search_imdb_information() for show in shows_on]
     shows_on.sort(key=lambda show_obj: show_obj.time)
     # check = check_time_sort(shows_on)
     # while check[0] != -1 and check[1] != -1:
@@ -256,16 +257,7 @@ def search_bbc_channels():
                                             'episode_info': True, 'episode_title': episode_tag,
                                             'repeat': False})
 
-    remove_idx = []
-    for idx, show in enumerate(shows_on):
-        if 'Silent Witness' in show['title']:
-            silent_witness_status = silent_witness_episode(show)
-            if silent_witness_status['status']:
-                show = silent_witness_status['show']
-            else:
-                remove_idx.append(idx)
-    for index in reversed(remove_idx):
-        shows_on.pop(index)
+    shows_on = Validation.remove_unwanted_shows(shows_on)
     shows_on.sort(key=lambda show_obj: show_obj['time'])
     # check = check_time_sort(shows_on)
     # while check[0] != -1 and check[1] != -1:
@@ -416,6 +408,7 @@ if __name__ == '__main__':
     bbc_shows = search_bbc_channels()
 
     backup_recorded_shows()
+    clear_imdb_api_results()
     
     client.loop.create_task(send_message())
     client.run(os.getenv('HERMES'))
