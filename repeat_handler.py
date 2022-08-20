@@ -3,13 +3,15 @@ from aux_methods.helper_methods import check_show_titles
 import json
 import os
 
-def get_today_shows_data(list_of_shows: str):
+def get_today_shows_data(list_of_shows: list[str]):
     all_recorded_shows = RecordedShow.get_all_recorded_shows()
 
+    list_of_shows = [check_show_titles(title) for title in list_of_shows]
     today_shows: list[dict] = [recorded_show for recorded_show in all_recorded_shows if recorded_show['show'] in list_of_shows]
+    
     for show_data in today_shows:
         del show_data['_id']
-        with open(f'shows/{check_show_titles(show_data["show"])}.json', 'w+') as file:
+        with open(f'shows/{show_data["show"]}.json', 'w+') as file:
             json.dump(show_data, file, indent='\t')
 
 def tear_down():
