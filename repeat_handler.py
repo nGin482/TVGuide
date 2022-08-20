@@ -1,12 +1,12 @@
 from database.models.RecordedShow import RecordedShow
-from aux_methods.helper_methods import check_show_titles
+from data_validation.validation import Validation
 import json
 import os
 
 def get_today_shows_data(list_of_shows: list[str]):
     all_recorded_shows = RecordedShow.get_all_recorded_shows()
 
-    list_of_shows = [check_show_titles(title) for title in list_of_shows]
+    list_of_shows = [Validation.check_show_titles(title) for title in list_of_shows]
     today_shows: list[dict] = [recorded_show for recorded_show in all_recorded_shows if recorded_show['show'] in list_of_shows]
     
     for show_data in today_shows:
