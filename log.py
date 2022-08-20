@@ -1,13 +1,16 @@
+from __future__ import annotations
 from datetime import datetime
 from backups import write_to_backup_file
-from database.models.GuideShow import GuideShow
 from repeat_handler import tear_down
-from guide import organise_guide
-from aux_methods.helper_methods import get_today_date, get_current_time, convert_date_string_to_object, get_today_date_for_logging
+from aux_methods.helper_methods import get_current_time, convert_date_string_to_object, get_today_date_for_logging
 from database.recorded_shows_collection import rollback_recorded_shows_collection
 import logging
 import json
 import os
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from database.models.GuideShow import GuideShow
 
 
 def get_date_from_latest_email():
@@ -36,7 +39,7 @@ def get_date_from_latest_email():
 def compare_dates():
 
     date = get_date_from_latest_email()
-    if date.day != get_today_date('object').day:
+    if date.day != datetime.today().day:
         return True
     else:
         if date.hour <= 6:
@@ -152,7 +155,7 @@ def revert_tvguide():
 
 def log_discord_message_too_long(message_length, fta_length):
 
-    today_date = get_today_date('String')
+    today_date = datetime.today().strftime("%d-%m-%Y")
     log_message = f'{today_date}\nDiscord tried sending the TVGuide message.\nThe maximum character length of a Discord message is 2000.\n \
         The length of this message is {message_length} and the length of the Free to Air portion is {fta_length}.\n \
             As a result, the message was split into the Free to Air and BBC portions and on the AM/PM portions of Free to Air.' 
@@ -166,25 +169,29 @@ def log_discord_message_too_long(message_length, fta_length):
     with open('log/message_logging.txt', 'w', encoding='utf-8') as fd:
         fd.write(f'{current_log_contents}\n\n\n{log_message}')
 
-def log_silent_witness_episode(silent_witness: dict):
+def log_imdb_api_results(show: dict, imdb_results: dict):
+    """
+    Write the results from the IMDB API request to a JSON file
+    """
 
     try:
-        with open('log/silent_witness_episodes.json') as sw:
-            silent_witness_episodes: list = json.load(sw)
+        with open('log/imdb_api_results.json') as fd:
+            results:list = json.load(fd)
     except FileNotFoundError:
-        with open('log/silent_witness_episodes.json', 'w+') as sw:
-            json.dump([], sw)
-        silent_witness_episodes = []
-    
-    if type(silent_witness['time']) is not str:
-        silent_witness['time'] = silent_witness['time'].strftime('%H:%M')
-    
-    silent_witness_episodes.append(silent_witness)
+        results: list[dict] = []
 
-    with open('log/silent_witness_episodes.json', 'w+') as sw:
-        json.dump(silent_witness_episodes, sw, indent='\t')
+    results.append({'show': show, 'api_results': imdb_results})
 
-    silent_witness['time'] = datetime.strptime(silent_witness['time'], '%H:%M')
+    with open('log/imdb_api_results.json', 'w+') as fd:
+        json.dump(results, fd, indent='\t')
+
+def clear_imdb_api_results():
+    """
+    Remove existing results from IMDB API searches
+    """
+
+    with open('log/imdb_api_results.json', 'w+') as fd:
+        json.dump([], fd)
 
 def logging_app(log_info: str, level = logging.DEBUG):
     logging.basicConfig(filename='tvguide.log', filemode='w', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
