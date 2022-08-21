@@ -213,7 +213,8 @@ class RecordedShow:
     @staticmethod
     def get_all_recorded_shows():
         try:
-            return [recorded_show for recorded_show in recorded_shows_collection().find()]
+            collection = recorded_shows_collection().find()
+            return [recorded_show for recorded_show in collection]
         except AttributeError:
             return []
     
