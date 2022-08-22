@@ -110,7 +110,7 @@ class GuideShow:
             set_repeat = 'Repeat status is up to date'
             channel_add = 'Channel list is up to date'
             if self.channel not in episode.channels:
-                channel_add = episode.add_channel(self.channel)
+                channel_add = episode.add_channel(self)
                 self.recorded_show.update_JSON_file()
             if not episode.repeat:
                 set_repeat = episode.mark_as_repeat(self)
