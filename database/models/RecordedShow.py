@@ -167,9 +167,9 @@ class Season:
         else:
             raise ValueError('Please provide information about the season')
 
-    def find_episode(self, episode_number: int, episode_title: str) -> Episode:
+    def find_episode(self, episode_number = 0, episode_title = '') -> Episode:
         if episode_number != 0:
-            results = list(filter(lambda episode_obj: episode_obj.episode_number == str(episode_number), self.episodes))
+            results = list(filter(lambda episode_obj: str(episode_obj.episode_number) == str(episode_number), self.episodes))
         else:
             results = list(filter(lambda episode_obj: episode_obj.episode_title == episode_title, self.episodes))
         if len(results) > 0:
@@ -217,6 +217,10 @@ class RecordedShow:
             return [recorded_show for recorded_show in collection]
         except AttributeError:
             return []
+
+    @staticmethod
+    def get_one_recorded_show(show_title) -> dict:
+        return recorded_shows_collection().find_one({'show': show_title})
     
     def find_season(self, season_number) -> Season:
         results = list(filter(lambda season_obj: season_obj.season_number == season_number, self.seasons))
