@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Union
 from data_validation.validation import Validation
-from .RecordedShow import RecordedShow
-from exceptions.DatabaseError import DatabaseError
+from .RecordedShow import RecordedShow, Season
+from exceptions.DatabaseError import DatabaseError, EpisodeNotFoundError, SeasonNotFoundError, ShowNotFoundError
 from log import log_imdb_api_results, clear_imdb_api_results
 import requests
 import json
@@ -69,16 +69,20 @@ class GuideShow:
     def search_for_repeats(self) -> bool:
 
         if self.episode_info:
-            return self.find_recorded_episode()['status']
+            try:
+                episode = self.find_recorded_episode()
+                if episode:
+                    return True
+            except (EpisodeNotFoundError, SeasonNotFoundError, ShowNotFoundError):
+                return False
+        return False
 
-    def find_recorded_episode(self) -> dict[str, Union[bool, str, RecordedShow]]:
+    def find_recorded_episode(self):
         """
         Checks the local files in the `shows` directory for information about a `GuideShow`'s information\n
-        Returns a `dict` containting:\n
-        `status: bool` (if information exists in the file)\n
-        and either\n
-        `episode: Episode` (the episode from the file); or
-        `level: str` (what object needs to be created and added if `status` is False)
+        Raises `EpisodeNotFoundError` if the episode can't be found in the database.\n
+        Raises `SeasonNotFoundError` if the season can't be found in the database.\n
+        Raises `ShowNotFoundError` if the show can't be found in the database.
         """
         # check_show = get_one_recorded_show(show['title'])
         if self.recorded_show:
@@ -93,20 +97,18 @@ class GuideShow:
                         # document_updated = update_recorded_episode(show)['status']
                         # if document_updated:
                         #     print(f"The document for {show['title']} was updated") # TODO: most likely will log this
-                    return {'status': True, 'episode': episode}
+                    return episode
                 else:
-                    return {'status': False, 'level': 'Episode'}
+                    raise EpisodeNotFoundError
             else:
-                return {'status': False, 'level': 'Season'}
+                raise SeasonNotFoundError
         else:
-            return {'status': False, 'level': 'Show'}
+            raise ShowNotFoundError
 
     def capture_db_event(self):
-        from .RecordedShow import Episode, RecordedShow, Season
-
-        check_episode = self.find_recorded_episode()
-        if check_episode['status']:
-            episode: Episode = check_episode['episode']
+        
+        try:
+            episode = self.find_recorded_episode()
             set_repeat = 'Repeat status is up to date'
             channel_add = 'Channel list is up to date'
             if self.channel not in episode.channels:
@@ -117,34 +119,32 @@ class GuideShow:
                 self.recorded_show.update_JSON_file()
             print('happening on channel/repeat')
             return {'show': self.to_dict(), 'repeat': set_repeat, 'channel': channel_add}
-        else:
-            if check_episode['level'] == 'Episode':
-                try:
-                    add_episode_status = self.recorded_show.add_episode_to_document(self)
-                except DatabaseError as err:
-                    add_episode_status =  err
-                print('happening on episode')
-                return {'show': self.to_dict(), 'result': add_episode_status}
-            elif check_episode['level'] == 'Season':
-                new_season = Season(show=self)
-                try:
-                    insert_season = self.recorded_show.add_season(new_season)
-                except DatabaseError as err:
-                    insert_season = err
-                print('happening on season')
-                return {'show': self.to_dict(), 'result': insert_season}
-            elif check_episode['level'] == 'Show':
-                recorded_show = RecordedShow(guide_show=self)
-                recorded_show.create_JSON_file()
-                try:
-                    insert_show = recorded_show.insert_new_recorded_show_document()
-                except DatabaseError as err:
-                    insert_show = err
-                print('happening on show')
-                return {'show': self.to_dict(), 'result': insert_show}
-            # update the JSON file as these happen
-            else:
-                return {'status': False, 'message': 'Unable to process this episode.'}
+        except EpisodeNotFoundError as err:
+            try:
+                add_episode_status = self.recorded_show.add_episode_to_document(self)
+            except DatabaseError as err:
+                add_episode_status =  err
+            print('happening on episode')
+            return {'show': self.to_dict(), 'result': add_episode_status}
+        except SeasonNotFoundError as err:
+            new_season = Season(show=self)
+            try:
+                insert_season = self.recorded_show.add_season(new_season)
+            except DatabaseError as err:
+                insert_season = err
+            print('happening on season')
+            return {'show': self.to_dict(), 'result': insert_season}
+        except ShowNotFoundError as err:
+            recorded_show = RecordedShow(guide_show=self)
+            recorded_show.create_JSON_file()
+            try:
+                insert_show = recorded_show.insert_new_recorded_show_document()
+            except DatabaseError as err:
+                insert_show = err
+            print('happening on show')
+            return {'show': self.to_dict(), 'result': insert_show}
+        except Exception as err:
+            return {'show': self.to_dict(), 'message': 'Unable to process this episode.', 'error': err}
 
     def search_imdb_information(self):
         imdb_api_key = os.getenv('IMDB_API')    
