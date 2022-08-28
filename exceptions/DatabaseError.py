@@ -21,3 +21,9 @@ class ShowNotFoundError(Exception):
     Raised when the RecordedShow document can not be found in the Database
     """
     pass
+
+class ReminderNotFoundError(Exception):
+    """
+    Raised when the reminder document for the given show could not be found in the Database
+    """
+    pass
