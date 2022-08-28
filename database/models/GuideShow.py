@@ -164,7 +164,7 @@ class GuideShow:
                             print(result['description'])
                             description = GuideShow._extract_information(result['description'])
                             self.season_number = description[0]
-                            self.episode_number = description[1]
+                            self.episode_number = int(description[1])
                 else:
                     print(f"IMDB API returned None when looking up {self.title}'s {self.episode_title} episode")
         
