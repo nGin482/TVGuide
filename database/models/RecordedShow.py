@@ -111,7 +111,7 @@ class Episode:
 
         if len(updated_show.keys()) == 0:
             raise DatabaseError('The episode in the `RecordedShows` collection was not updated')
-        return {'status': True, 'message': 'The episode has been marked as a repeat.', 'episode': self.to_dict()}
+        return {'status': True, 'message': f'{guide_show.channel} has been added to the channel list.', 'episode': self.to_dict()}
 
     # def update_JSON_file(self, show_title: str, season_number: str, field: str, new_data):
     #     if field == '' and (new_data == '' or new_data is None or len(new_data) == 0):
@@ -262,6 +262,12 @@ class RecordedShow:
     def add_episode_to_document(self, guide_show: 'GuideShow') -> bool:
         new_episode = Episode(show=guide_show)
         season_number = 'Unknown' if guide_show.season_number == '' else guide_show.season_number
+        
+        if 'ABC1' in guide_show.channel:
+            new_episode.channels.append('ABCHD')
+        if '10' in guide_show.channel or 'TEN' in guide_show.channel:
+            new_episode.channels.append('TENHD')
+        
         self.find_season(season_number).add_episode(new_episode)
         update_file_result = self.update_JSON_file()
         
