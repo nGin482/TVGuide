@@ -230,6 +230,9 @@ class GuideShow:
     def __repr__(self) -> str:
         return self.message_string()
 
+    def __eq__(self, other: 'GuideShow') -> bool:
+        return self.title == other.title and self.channel == other.channel and self.time == self.time
+
 
 class SpecialCases(ABC):
 
