@@ -17,43 +17,47 @@ class Episode:
     latest_air_date: datetime
     repeat: bool
 
-    def __init__(self, episode_subdocument: dict = {}, show: 'GuideShow' = None) -> None:
-        if (len(episode_subdocument.keys()) != 0 or episode_subdocument) and show is None:
-            if 'episode number' in episode_subdocument.keys():
-                episode_number = episode_subdocument['episode number']
-            else:
-                episode_number = episode_subdocument['episode_number']
-            if 'episode number' in episode_subdocument.keys():
-                episode_title = episode_subdocument['episode title']
-            else:
-                episode_title = episode_subdocument['episode_title']
-            if 'first air date' in episode_subdocument.keys():
-                first_air_date = episode_subdocument['first air date']
-            else:
-                first_air_date = episode_subdocument['first_air_date']
-            if 'latest air date' in episode_subdocument.keys():
-                latest_air_date = episode_subdocument['latest air date']
-            elif 'latest_air_date' in episode_subdocument.keys():
-                latest_air_date = episode_subdocument['latest_air_date']
-            else:
-                latest_air_date = datetime.today().strftime('%d/%m/%Y')
-            
-            
-            self.episode_number = episode_number
-            self.episode_title = episode_title
-            self.channels = episode_subdocument['channels']
-            self.first_air_date = first_air_date
-            self.latest_air_date = latest_air_date
-            self.repeat = episode_subdocument['repeat']
-        elif len(episode_subdocument.keys()) == 0 and show is not None:
-            self.episode_number = show.episode_number
-            self.episode_title = show.episode_title
-            self.channels = [show.channel]
-            self.first_air_date = datetime.today().strftime('%d/%m/%Y')
-            self.latest_air_date = datetime.today().strftime('%d/%m/%Y')
-            self.repeat = show.repeat
+    def __init__(self, episode_number: int, episode_title: str, channels: list[str], first_air_date: datetime, latest_air_date: datetime, repeat: bool) -> None:
+        self.episode_number = episode_number
+        self.episode_title = episode_title
+        self.channels = channels
+        self.first_air_date = first_air_date
+        self.latest_air_date = latest_air_date
+        self.repeat = repeat
+
+    @classmethod
+    def from_guide_show(cls, guide_show: 'GuideShow'):
+        """
+        Used when creating a new `RecordedShow` object
+        """
+        return cls(guide_show.episode_number, guide_show.episode_title, [guide_show.channel], datetime.today().strftime('%d/%m/%Y'), datetime.today().strftime('%d/%m/%Y'), guide_show.repeat)
+
+    @classmethod
+    def from_database(cls, recorded_episode: dict):
+        """
+        Used when retrieving a `RecordedShow` document from the MongoDB collection
+        """
+        if 'episode number' in recorded_episode.keys():
+            episode_number = recorded_episode['episode number']
         else:
-            raise ValueError('Please provide details about the episode recorded')
+            episode_number = recorded_episode['episode_number']
+        if 'episode title' in recorded_episode.keys():
+            episode_title = recorded_episode['episode title']
+        else:
+            episode_title = recorded_episode['episode_title']
+        if 'first air date' in recorded_episode.keys():
+            first_air_date = recorded_episode['first air date']
+        else:
+            first_air_date = recorded_episode['first_air_date']
+        if 'latest air date' in recorded_episode.keys():
+            latest_air_date = recorded_episode['latest air date']
+        elif 'latest_air_date' in recorded_episode.keys():
+            latest_air_date = recorded_episode['latest_air_date']
+        else:
+            latest_air_date = datetime.today().strftime('%d/%m/%Y')
+        
+        return cls(episode_number, episode_title, recorded_episode['channels'], first_air_date, latest_air_date, recorded_episode['repeat'])
+
 
     def mark_as_repeat(self, guide_show: 'GuideShow') -> dict:
         self.repeat = True
@@ -75,15 +79,8 @@ class Episode:
             return_document = ReturnDocument.AFTER
         )
 
-        # update_file_result = self.update_JSON_file(guide_show.title, season_number, 'repeat', True)
-
-        # if len(updated_show.keys()) == 0 and not update_file_result:
-            # raise DatabaseError('The season was not inserted into the `RecordedShows` collection and the JSON file was not updated')
-        # elif len(updated_show.keys()) == 0 and update_file_result:
         if len(updated_show.keys()) == 0:
             raise DatabaseError('The episode in the `RecordedShows` collection was not updated')
-        # elif len(updated_show.keys()) > 0:
-        #     raise DatabaseError('The episode was not marked as a repeat in the JSON file')
         return {'status': True, 'message': 'The episode has been marked as a repeat.', 'episode': self.to_dict()}
     
     def update_latest_air_date(self):
@@ -113,26 +110,6 @@ class Episode:
             raise DatabaseError('The episode in the `RecordedShows` collection was not updated')
         return {'status': True, 'message': f'{guide_show.channel} has been added to the channel list.', 'episode': self.to_dict()}
 
-    # def update_JSON_file(self, show_title: str, season_number: str, field: str, new_data):
-    #     if field == '' and (new_data == '' or new_data is None or len(new_data) == 0):
-    #         raise ValueError('Please provide new information to update the file with')
-        
-    #     try:
-    #         with open(f'shows/{show_title}.json') as fd:
-    #             file_data: dict = json.load(fd)
-    #         seasons: list[dict] = file_data['seasons']
-    #         updated_season: dict = list(filter(lambda season: season['season number'] == season_number, seasons))[0]
-    #         updated_episode: dict = list(filter(lambda episode: episode['episode number'] == self.episode_number, updated_season['episodes']))[0]
-    #         if len(updated_episode.keys) == 0:
-    #             updated_episode: dict = list(filter(lambda episode: episode['episode title'] == self.episode_title, updated_season['episodes']))[0]
-    #         updated_episode[field] = new_data
-
-    #         with open(f'shows/{show_title}.json', 'w') as fd:
-    #             file_data: dict = json.dump({'show': file_data['show'], 'seasons': seasons}, fd)
-    #         return True
-    #     except FileNotFoundError:
-    #         return False
-    
     def to_dict(self):
         if type(self.first_air_date) is not str:
             first_air_date = self.first_air_date.strftime('%d/%m/%Y')
@@ -154,18 +131,30 @@ class Episode:
 
 
 class Season:
-    season_number: int
+    season_number: str
     episodes: list[Episode]
 
-    def __init__(self, season_subdocument: dict = {}, show: 'GuideShow' = None) -> None:
-        if len(season_subdocument.keys()) != 0 and show is None:
-            self.season_number = season_subdocument['season number']
-            self.episodes = [Episode(episode_subdocument=episode) for episode in season_subdocument['episodes']]
-        elif len(season_subdocument.keys()) == 0 and show is not None:
-            self.season_number = show.season_number
-            self.episodes = [Episode(show=show)]
-        else:
-            raise ValueError('Please provide information about the season')
+    def __init__(self, season_number: str, episodes: list['Episode']) -> None:
+        self.season_number = season_number
+        self.episodes = episodes
+
+    @classmethod
+    def from_guide_show(cls, guide_show: GuideShow):
+        """
+        Used when creating a new `Season` object from a `GuideShow` object
+        """
+        return cls(guide_show.season_number, [Episode.from_guide_show(guide_show)])
+
+    @classmethod
+    def from_database(cls, recorded_season: dict):
+        """
+        Used when creating a `Season` object from the existing values stored in a `RecordedShow`'s subdocument stored in the MongoDB collection
+        """
+        try:
+            season_number = recorded_season['season_number']
+        except KeyError:
+            season_number = recorded_season['season number']
+        return cls(season_number, [Episode.from_database(episode) for episode in recorded_season['episodes']])
 
     def find_episode(self, episode_number = 0, episode_title = '') -> Episode:
         if episode_number != 0:
@@ -200,18 +189,28 @@ class RecordedShow:
     seasons: list[Season]
     imdb_id: str
 
-    def __init__(self, recorded_show_details: dict = {}, guide_show: 'GuideShow' = None) -> None:
+    def __init__(self, show_title: str, seasons: list[Season]) -> None:
         # self._id = recorded_show_details['_id']
-        if guide_show is None and len(recorded_show_details.keys()) != 0:
-            self.title = recorded_show_details['show']
-            self.seasons = [Season(season) for season in recorded_show_details['seasons']]
-            self.imdb_id = recorded_show_details['imdb_id'] if 'imdb_id' in recorded_show_details.keys() else ''
-        elif guide_show and len(recorded_show_details.keys()) == 0:
-            self.title = guide_show.title
-            self.seasons = [Season(show=guide_show)]
-        else:
-            raise ValueError('Please provide details about the show recorded')
+        self.title = show_title
+        self.seasons = seasons
 
+    @classmethod
+    def from_guide_show(cls, guide_show: 'GuideShow'):
+        """
+        Used when creating a new `RecordedShow` object
+        """
+
+        return cls(guide_show.title, [Season.from_guide_show(guide_show)])
+
+    @classmethod
+    def from_database(cls, recorded_show_details: dict):
+        """
+        Used when creating a `RecordedShow` object from the existing document in the MongoDB collection
+        """
+        title: str = recorded_show_details['show']
+        seasons = [Season.from_database(season) for season in recorded_show_details['seasons']]
+        return cls(title, seasons)
+    
     @staticmethod
     def get_all_recorded_shows():
         try:

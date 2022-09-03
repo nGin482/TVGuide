@@ -60,8 +60,8 @@ class GuideShow:
     @staticmethod
     def read_show_data(title: str):
         try:
-            with open(f'shows/{title}.json') as filename:
-                show_data = RecordedShow(json.load(filename))
+            with open(f'shows/{title}.json') as fd:
+                show_data = RecordedShow.from_database(json.load(fd))
             return show_data
         except FileNotFoundError:
             return None
@@ -135,7 +135,7 @@ class GuideShow:
             print('happening on season')
             return {'show': self.to_dict(), 'result': insert_season}
         except ShowNotFoundError as err:
-            recorded_show = RecordedShow(guide_show=self)
+            recorded_show = RecordedShow.from_guide_show(self)
             recorded_show.create_JSON_file()
             try:
                 insert_show = recorded_show.insert_new_recorded_show_document()

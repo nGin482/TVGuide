@@ -37,7 +37,7 @@ class TestDatabase(unittest.TestCase):
         self.assertIsInstance(self.recorded_shows_collection, Collection)
 
     def test_create_recorded_show_from_guide_show(self):
-        recorded_show = RecordedShow(guide_show=self.guide_shows[0])
+        recorded_show = RecordedShow.from_guide_show(self.guide_shows[0])
         self.assertEqual(recorded_show.title, self.guide_shows[0].title)
         self.assertIsInstance(recorded_show.seasons[0].season_number, str)
         self.assertEqual(recorded_show.seasons[0].season_number, self.guide_shows[0].season_number)
@@ -50,7 +50,7 @@ class TestDatabase(unittest.TestCase):
 
     def test_create_recorded_show_from_db(self):
         mongodb_record:dict = RecordedShow.get_one_recorded_show(self.guide_shows[1].title)
-        recorded_show = RecordedShow(mongodb_record)
+        recorded_show = RecordedShow.from_database(mongodb_record)
         self.assertIsInstance(mongodb_record, dict)
         self.assertEqual(recorded_show.title, mongodb_record['show'])
         self.assertGreater(len(recorded_show.seasons), 0)
