@@ -147,9 +147,12 @@ class GuideShow:
             return {'show': self.to_dict(), 'message': 'Unable to process this episode.', 'error': err}
 
     def search_imdb_information(self):
-        imdb_api_key = os.getenv('IMDB_API')    
-        # get season number and episode number from episode title
+        if self.season_number != '' and self.episode_number != 0 and self.episode_title != '':
+            return self
+
+        imdb_api_key = os.getenv('IMDB_API')
         results = []
+        # get season number and episode number from episode title
         if (self.season_number == '' or self.season_number == 'Unknown') and self.episode_title != '':
             episode_title = self.episode_title.replace(' ', '%20') if ' ' in self.episode_title else self.episode_title
             
