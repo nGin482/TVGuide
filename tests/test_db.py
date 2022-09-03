@@ -8,6 +8,9 @@ import os
 
 from database.models.GuideShow import GuideShow
 from database.models.RecordedShow import RecordedShow
+from database.models.Reminders import Reminder
+from exceptions.DatabaseError import SeasonNotFoundError
+from repeat_handler import get_today_shows_data, tear_down
 
 
 class TestDatabase(unittest.TestCase):
@@ -18,10 +21,11 @@ class TestDatabase(unittest.TestCase):
         self.recorded_shows_collection = self.test_db.get_collection('RecordedShows')
         with open(f'tests/test_data.json') as fd:
             data = json.load(fd)
+        get_today_shows_data([show['title'] for show in data])
         self.guide_shows = [GuideShow(
             item['title'],
             item['channel'],
-            item['time'],
+            datetime.strptime(item['time'], '%H:%M'),
             item['episode_info'],
             item['season_number'],
             item['episode_number'],
@@ -42,7 +46,7 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(recorded_show.seasons[0].episodes[0].episode_title, self.guide_shows[0].episode_title)
         self.assertIn(self.guide_shows[0].channel, recorded_show.seasons[0].episodes[0].channels)
 
-        self.assertFalse(recorded_show.seasons[0].episodes[0].repeat)
+        self.assertTrue(recorded_show.seasons[0].episodes[0].repeat)
 
     def test_create_recorded_show_from_db(self):
         mongodb_record:dict = RecordedShow.get_one_recorded_show(self.guide_shows[1].title)
@@ -51,12 +55,45 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(recorded_show.title, mongodb_record['show'])
         self.assertGreater(len(recorded_show.seasons), 0)
         self.assertGreater(len(recorded_show.find_season(self.guide_shows[1].season_number).episodes), 0)
+        self.assertIsNotNone(self.guide_shows[1].recorded_show)
 
     def test_insert_recorded_show(self):
-        pass
+        new_show = GuideShow(
+            'Endeavour',
+            'ABC1',
+            datetime.now(),
+            True,
+            '10',
+            1,
+            'Test'
+        )
+
+        self.guide_shows.append(new_show)
+        with self.assertRaises(SeasonNotFoundError) as exception_context:
+            new_show.find_recorded_episode()
+
+
+    def test_create_reminder_from_values(self):
+        reminder = Reminder.from_values(self.guide_shows[0], 'Before', 3, 'All')
+        print(reminder.guide_show.recorded_show.find_latest_season())
+        self.assertEqual(reminder.show, self.guide_shows[0].title)
+        self.assertEqual(reminder.reminder_alert, 'Before')
+        self.assertEqual(reminder.warning_time, 3)
+        self.assertEqual(reminder.occassions, 'All')
+        self.assertEqual(reminder.guide_show, self.guide_shows[0])
+
+        reminder = Reminder.from_values(self.guide_shows[1], 'Before', 3, 'All')
+        print(reminder.guide_show.recorded_show.find_latest_season())
+        self.assertEqual(reminder.show, self.guide_shows[1].title)
+        self.assertEqual(reminder.reminder_alert, 'Before')
+        self.assertEqual(reminder.warning_time, 3)
+        self.assertEqual(reminder.occassions, 'All')
+        self.assertEqual(reminder.guide_show, self.guide_shows[1])
     
 
-
+    def tearDown(self) -> None:
+        tear_down()
+        return super().tearDown()
 
     # test:
         # creating RecordedShow
