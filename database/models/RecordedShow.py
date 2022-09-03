@@ -190,6 +190,8 @@ class Season:
         
         return season_dict
 
+    def __repr__(self) -> str:
+        return f'Season [Season Number: {self.season_number}, episodes: {len(self.episodes)}]'
 
 
 
@@ -227,6 +229,15 @@ class RecordedShow:
         if len(results) > 0:
             return results[0]
         return None
+    
+    def find_latest_season(self):
+        if 'Doctor Who' in self.title:
+            list_of_seasons = list(filter(lambda season: season.season_number != 'Tennant Specials' and season.season_number != 'Smith Specials', self.seasons))
+        else:
+            list_of_seasons = self.seasons
+        latest_season_number = max(int(season.season_number) for season in list_of_seasons)
+        return self.find_season(str(latest_season_number))
+
 
     def insert_new_recorded_show_document(self):
         document = self.to_dict()
