@@ -121,8 +121,8 @@ class Episode:
             latest_air_date = self.latest_air_date
         
         return {
-            'episode number': self.episode_number,
-            'episode title': self.episode_title,
+            'episode_number': self.episode_number,
+            'episode_title': self.episode_title,
             'channels': self.channels,
             'first_air_date': first_air_date,
             'latest_air_date': latest_air_date,
@@ -270,8 +270,11 @@ class RecordedShow:
         return 'The season was successfully inserted'
 
     def add_episode_to_document(self, guide_show: 'GuideShow') -> bool:
-        new_episode = Episode(show=guide_show)
-        season_number = 'Unknown' if guide_show.season_number == '' else guide_show.season_number
+        new_episode = Episode.from_guide_show(guide_show)
+        if guide_show.season_number == '':
+            season_number = 'Unknown'
+        else:
+            season_number = guide_show.season_number
         
         if 'ABC1' in guide_show.channel:
             new_episode.channels.append('ABCHD')
@@ -283,7 +286,10 @@ class RecordedShow:
         
         inserted_episode = recorded_shows_collection().find_one_and_update(
             {'show': self.title, 'seasons.season number': season_number},
-            {'$push': {'seasons.$.episodes': new_episode.to_dict()}},
+            {'$push': {'seasons.$[season].episodes': new_episode.to_dict()}},
+            array_filters = [
+                {'season.season number': season_number},
+            ],
             return_document=ReturnDocument.AFTER
         )
 
@@ -322,3 +328,6 @@ class RecordedShow:
             show_dict['seasons'].append(season.to_dict())
 
         return show_dict
+
+    def __eq__(self, other: RecordedShow) -> bool:
+        return self.title == other.title and len(self.seasons) == len(other.seasons)
