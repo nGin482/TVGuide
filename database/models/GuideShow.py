@@ -12,17 +12,7 @@ import os
 
 
 class GuideShow:
-    from .RecordedShow import RecordedShow
-    title: str
-    channel: str
-    time: datetime
-    episode_info: bool
-    season_number: str
-    episode_number: int
-    episode_title: str
-    repeat: bool
-    recorded_show: RecordedShow
-
+    
     def __init__(self, title: str, channel: str, time: datetime, episode_info: bool, season_number, episode_number, episode_title) -> None:
         title = Validation.check_show_titles(title)
         self.recorded_show = GuideShow.read_show_data(title)

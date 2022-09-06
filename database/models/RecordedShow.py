@@ -1,6 +1,7 @@
 from __future__ import annotations
 from datetime import datetime
 from pymongo import ReturnDocument
+from database.mongo import database
 from exceptions.DatabaseError import DatabaseError
 from ..recorded_shows_collection import recorded_shows_collection
 import json
@@ -10,13 +11,7 @@ if TYPE_CHECKING:
     from .GuideShow import GuideShow
 
 class Episode:
-    episode_number: int
-    episode_title: str
-    channels: list[str]
-    first_air_date: datetime
-    latest_air_date: datetime
-    repeat: bool
-
+    
     def __init__(self, episode_number: int, episode_title: str, channels: list[str], first_air_date: datetime, latest_air_date: datetime, repeat: bool) -> None:
         self.episode_number = episode_number
         self.episode_title = episode_title
@@ -131,9 +126,7 @@ class Episode:
 
 
 class Season:
-    season_number: str
-    episodes: list[Episode]
-
+    
     def __init__(self, season_number: str, episodes: list['Episode']) -> None:
         self.season_number = season_number
         self.episodes = episodes
@@ -185,10 +178,8 @@ class Season:
 
 
 class RecordedShow:
-    title: str
-    seasons: list[Season]
-    imdb_id: str
-
+    recorded_shows_collection = database().get_collection('RecordedShows')
+    
     def __init__(self, show_title: str, seasons: list[Season], imdb_id: str) -> None:
         # self._id = recorded_show_details['_id']
         self.title = show_title
