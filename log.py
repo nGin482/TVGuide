@@ -195,4 +195,13 @@ def clear_imdb_api_results():
 
 def logging_app(log_info: str, level = logging.DEBUG):
     logging.basicConfig(filename='tvguide.log', filemode='w', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-    logging.info(log_info)
+    if level == logging.DEBUG:
+        logging.debug(f"{log_info}\n\n")
+    elif level == logging.INFO:
+        logging.info(f"{log_info}\n\n")
+    elif level == logging.WARNING:
+        logging.warning(f"{log_info}\n\n")
+    elif level == logging.ERROR:
+        logging.error(f"{log_info}\n\n")
+    elif level == logging.CRITICAL:
+        logging.critical(f"{log_info}\n\n")
