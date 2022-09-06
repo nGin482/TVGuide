@@ -20,7 +20,7 @@ class TestDatabase(unittest.TestCase):
         self.test_db = MongoClient(os.getenv('TVGUIDE_DB')).get_database('test')
         self.recorded_shows_collection = self.test_db.get_collection('RecordedShows')
         with open(f'tests/test_data.json') as fd:
-            data = json.load(fd)
+            data: list[dict] = json.load(fd)
         get_today_shows_data([show['title'] for show in data])
         self.guide_shows = [GuideShow(
             item['title'],
@@ -31,6 +31,7 @@ class TestDatabase(unittest.TestCase):
             item['episode_number'],
             item['episode_title']
         ) for item in data]
+        self.reminders: list[Reminder] = []
 
     def test_connection(self):
         self.assertIsInstance(self.test_db, Database)
@@ -74,21 +75,31 @@ class TestDatabase(unittest.TestCase):
 
 
     def test_create_reminder_from_values(self):
-        reminder = Reminder.from_values(self.guide_shows[0], 'Before', 3, 'All')
-        print(reminder.guide_show.recorded_show.find_latest_season())
-        self.assertEqual(reminder.show, self.guide_shows[0].title)
-        self.assertEqual(reminder.reminder_alert, 'Before')
-        self.assertEqual(reminder.warning_time, 3)
-        self.assertEqual(reminder.occassions, 'All')
-        self.assertEqual(reminder.guide_show, self.guide_shows[0])
+        reminder_dw = Reminder.from_values(self.guide_shows[0], 'Before', 3, 'All')
+        print(reminder_dw.guide_show.recorded_show.find_latest_season())
+        self.assertEqual(reminder_dw.show, self.guide_shows[0].title)
+        self.assertEqual(reminder_dw.reminder_alert, 'Before')
+        self.assertEqual(reminder_dw.warning_time, 3)
+        self.assertEqual(reminder_dw.occassions, 'All')
+        self.assertEqual(reminder_dw.guide_show, self.guide_shows[0])
+        self.reminders.append(reminder_dw)
 
-        reminder = Reminder.from_values(self.guide_shows[1], 'Before', 3, 'All')
-        print(reminder.guide_show.recorded_show.find_latest_season())
-        self.assertEqual(reminder.show, self.guide_shows[1].title)
-        self.assertEqual(reminder.reminder_alert, 'Before')
-        self.assertEqual(reminder.warning_time, 3)
-        self.assertEqual(reminder.occassions, 'All')
-        self.assertEqual(reminder.guide_show, self.guide_shows[1])
+        reminder_endeavour = Reminder.from_values(self.guide_shows[1], 'Before', 3, 'All')
+        print(reminder_endeavour.guide_show.recorded_show.find_latest_season())
+        self.assertEqual(reminder_endeavour.show, self.guide_shows[1].title)
+        self.assertEqual(reminder_endeavour.reminder_alert, 'Before')
+        self.assertEqual(reminder_endeavour.warning_time, 3)
+        self.assertEqual(reminder_endeavour.occassions, 'All')
+        self.assertEqual(reminder_endeavour.guide_show, self.guide_shows[1])
+        self.reminders.append(reminder_endeavour)
+
+    def test_reminder_needed(self):
+        print(self.guide_shows)
+        reminders = Reminder.get_reminders_for_shows(self.guide_shows)
+        print(reminders)
+        self.assertTrue(reminders[0].compare_reminder_interval())
+        with self.assertRaises(IndexError) as exception_context:
+            reminders[1].compare_reminder_interval()
     
 
     def tearDown(self) -> None:

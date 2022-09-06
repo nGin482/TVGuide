@@ -127,7 +127,7 @@ class GuideShow:
             print('happening on episode')
             return {'show': self.to_dict(), 'result': add_episode_status}
         except SeasonNotFoundError as err:
-            new_season = Season(show=self)
+            new_season = Season.from_guide_show(self)
             try:
                 insert_season = self.recorded_show.add_season(new_season)
             except DatabaseError as err:

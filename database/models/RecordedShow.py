@@ -201,7 +201,7 @@ class RecordedShow:
         Used when creating a new `RecordedShow` object
         """
 
-        return cls(guide_show.title, [Season.from_guide_show(guide_show)])
+        return cls(guide_show.title, [Season.from_guide_show(guide_show)], '')
 
     @classmethod
     def from_database(cls, recorded_show_details: dict):
