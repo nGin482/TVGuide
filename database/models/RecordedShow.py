@@ -189,10 +189,11 @@ class RecordedShow:
     seasons: list[Season]
     imdb_id: str
 
-    def __init__(self, show_title: str, seasons: list[Season]) -> None:
+    def __init__(self, show_title: str, seasons: list[Season], imdb_id: str) -> None:
         # self._id = recorded_show_details['_id']
         self.title = show_title
         self.seasons = seasons
+        self.imdb_id = imdb_id
 
     @classmethod
     def from_guide_show(cls, guide_show: 'GuideShow'):
@@ -209,7 +210,8 @@ class RecordedShow:
         """
         title: str = recorded_show_details['show']
         seasons = [Season.from_database(season) for season in recorded_show_details['seasons']]
-        return cls(title, seasons)
+        imdb_id = recorded_show_details['imdb_id'] if 'imdb_id' in recorded_show_details.keys() else ''
+        return cls(title, seasons, imdb_id)
     
     @staticmethod
     def get_all_recorded_shows():
