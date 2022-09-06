@@ -286,8 +286,8 @@ class RecordedShow:
         self.find_season(season_number).add_episode(new_episode)
         update_file_result = self.update_JSON_file()
         
-        inserted_episode = recorded_shows_collection().find_one_and_update(
-            {'show': self.title, 'seasons.season number': season_number},
+        inserted_episode: dict = recorded_shows_collection().find_one_and_update(
+            {'show': self.title},
             {'$push': {'seasons.$[season].episodes': new_episode.to_dict()}},
             array_filters = [
                 {'season.season number': season_number},
