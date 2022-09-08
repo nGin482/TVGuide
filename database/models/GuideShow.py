@@ -23,6 +23,10 @@ class GuideShow:
             season_number = episode_data[2]
             episode_number = episode_data[3]
             episode_title = episode_data[4]
+
+        if season_number == '':
+            season_number = 'Unknown'
+            episode_number = self.recorded_show.find_number_of_unknown_episodes() + 1
         
         self.title = title
         self.channel = channel
@@ -82,7 +86,7 @@ class GuideShow:
                 season_number = 'Unknown'
             season = self.recorded_show.find_season(season_number)
             if season:
-                episode = season.find_episode(self.episode_number, self.episode_title)
+                episode = season.find_episode(episode_number=self.episode_number, episode_title=self.episode_title)
                 if episode:
                     # if show.season_number != '' and show.episode_number != 0 and season.season_number == 'Unknown':
                         # document_updated = update_recorded_episode(show)['status']
@@ -114,7 +118,7 @@ class GuideShow:
             try:
                 add_episode_status = self.recorded_show.add_episode_to_document(self)
             except DatabaseError as err:
-                add_episode_status =  err
+                add_episode_status = err
             print('happening on episode')
             return {'show': self.to_dict(), 'result': add_episode_status}
         except SeasonNotFoundError as err:
@@ -141,7 +145,7 @@ class GuideShow:
         if self.season_number != '' and self.episode_number != 0 and self.episode_title != '':
             return self
         if self.season_number == '':
-            print('Empty before searching IMDB API')
+            print(f"{self.title}'s season number empty before searching IMDB API")
 
         imdb_api_key = os.getenv('IMDB_API')
         results = []
@@ -165,12 +169,12 @@ class GuideShow:
                             self.episode_number = int(description[1])
                         if self.season_number == '':
                             self.season_number = "Unknown"
-                            print('Empty after searching IMDB API')
+                            print(f"{self.title}'s season number empty after searching IMDB API")
                 else:
                     print(f"IMDB API returned None when looking up {self.title}'s {self.episode_title} episode")
         
         # get episode title from season number and episode number
-        if self.episode_title == '' and self.season_number != '':
+        if self.episode_title == '' and self.season_number != '' and self.season_number != 'Unknown':
             log_message = f"Searching IMDB API with {self.title}'s season number ({self.season_number}) to retrieve episode title"
             logging_app(log_message, logging.INFO)
             show_id = self.recorded_show.imdb_id
