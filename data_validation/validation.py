@@ -36,7 +36,7 @@ class Validation:
         return time
 
     @staticmethod
-    def format_title(title):
+    def format_title(title: str):
         """
         Format a show's given title into a more reader-friendly appearance
         """
