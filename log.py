@@ -194,7 +194,7 @@ def clear_imdb_api_results():
         json.dump([], fd)
 
 def logging_app(log_info: str, level = logging.DEBUG):
-    logging.basicConfig(filename='tvguide.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename='tvguide.log', filemode='a', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     if level == logging.DEBUG:
         logging.debug(f"{log_info}\n")
     elif level == logging.INFO:
