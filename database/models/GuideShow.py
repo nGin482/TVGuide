@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Union
 from data_validation.validation import Validation
 from .RecordedShow import RecordedShow, Season
 from exceptions.DatabaseError import DatabaseError, EpisodeNotFoundError, SeasonNotFoundError, ShowNotFoundError
@@ -13,7 +12,7 @@ import os
 
 class GuideShow:
     
-    def __init__(self, title: str, channel: str, time: datetime, episode_info: bool, season_number, episode_number, episode_title) -> None:
+    def __init__(self, title: str, channel: str, time: datetime, episode_info: bool, season_number: str, episode_number: int, episode_title: str) -> None:
         title = Validation.check_show_titles(title)
         self.recorded_show = GuideShow.read_show_data(title)
         episode_data = GuideShow.get_show(title, season_number, episode_title)
@@ -107,12 +106,16 @@ class GuideShow:
             set_repeat = 'Repeat status is up to date'
             channel_add = 'Channel list is up to date'
             if self.channel not in episode.channels:
-                channel_add = episode.add_channel(self)
+                episode.channels.append(self.channel)
+                channel_add = f'{self.channel} has been added to the channel list.'
                 self.recorded_show.update_JSON_file()
             if not episode.repeat:
-                set_repeat = episode.mark_as_repeat(self)
+                episode.repeat = True
+                set_repeat = 'The episode has been marked as a repeat.'
                 self.recorded_show.update_JSON_file()
+            episode.latest_air_date = datetime.today()
             print('happening on channel/repeat')
+            episode.update_episode_in_database(self.title, self.season_number)
             return {'show': self.to_dict(), 'repeat': set_repeat, 'channel': channel_add}
         except EpisodeNotFoundError as err:
             try:
@@ -431,6 +434,10 @@ class SilentWitness(SpecialCases):
 
         if silent_witness_story:
             if 'Part' in episode_title:
+                if 'One' in episode_title:
+                    episode_title = episode_title.replace('One', '1')
+                if 'Two' in episode_title:
+                    episode_title = episode_title.replace('Two', '2')
                 episode_part_num = [char for char in episode_title if char.isdigit()][0]
                 episode_part_num = int(episode_part_num)
                 episode_number = (index * 2) + episode_part_num

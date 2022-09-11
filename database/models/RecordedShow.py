@@ -84,7 +84,12 @@ class Episode:
         self.latest_air_date = datetime.today().strftime('%d/%m/%Y')
 
     def add_channel(self, guide_show: GuideShow):
-        self.channels.append(guide_show.channel)
+        new_channels = [guide_show.channel]
+        if 'ABC1' in new_channels:
+            new_channels.append('ABCHD')
+        if 'TEN' in new_channels:
+            new_channels.append('TENHD')
+        self.channels.extend(new_channels)
 
         season_number = 'Unknown' if guide_show.season_number == '' else guide_show.season_number
         if 'Unknown' in season_number:
@@ -92,9 +97,9 @@ class Episode:
         else:
             episode_map = {'episode.episode number': guide_show.episode_number}
         
-        updated_show = recorded_shows_collection().find_one_and_update(
+        updated_show: dict = recorded_shows_collection().find_one_and_update(
             {'show': guide_show.title},
-            {'$push': {'seasons.$[season].episodes.$[episode].channels': guide_show.channel}},
+            {'$push': {'seasons.$[season].episodes.$[episode].channels': {'$each': new_channels}}},
             upsert = True,
             array_filters = [
                 {'season.season number': season_number},
@@ -106,6 +111,21 @@ class Episode:
         if len(updated_show.keys()) == 0:
             raise DatabaseError('The episode in the `RecordedShows` collection was not updated')
         return {'status': True, 'message': f'{guide_show.channel} has been added to the channel list.', 'episode': self.to_dict()}
+
+    def update_episode_in_database(self, show_title: str, season_number: str):
+        updated_show: dict = recorded_shows_collection().find_one_and_update(
+            {'show': show_title},
+            {'$push': {'seasons.$[season].episodes.$[episode]': self.to_dict()}},
+            upsert = True,
+            array_filters = [
+                {'season.season_number': season_number},
+                {'episode.episode_number': self.episode_number}
+            ],
+            return_document = ReturnDocument.AFTER
+        )
+        if len(updated_show.keys()) == 0:
+            return False
+        return True
 
     def to_dict(self):
         if type(self.first_air_date) is not str:
