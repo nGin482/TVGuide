@@ -121,7 +121,7 @@ class GuideShow:
             try:
                 add_episode_status = self.recorded_show.add_episode_to_document(self)
             except DatabaseError as err:
-                add_episode_status = err
+                add_episode_status = str(err)
             print('happening on episode')
             return {'show': self.to_dict(), 'result': add_episode_status}
         except SeasonNotFoundError as err:
@@ -129,7 +129,7 @@ class GuideShow:
             try:
                 insert_season = self.recorded_show.add_season(new_season)
             except DatabaseError as err:
-                insert_season = err
+                insert_season = str(err)
             print('happening on season')
             return {'show': self.to_dict(), 'result': insert_season}
         except ShowNotFoundError as err:
@@ -138,11 +138,11 @@ class GuideShow:
             try:
                 insert_show = recorded_show.insert_new_recorded_show_document()
             except DatabaseError as err:
-                insert_show = err
+                insert_show = str(err)
             print('happening on show')
             return {'show': self.to_dict(), 'result': insert_show}
         except Exception as err:
-            return {'show': self.to_dict(), 'message': 'Unable to process this episode.', 'error': err}
+            return {'show': self.to_dict(), 'message': 'Unable to process this episode.', 'error': str(err)}
 
     def search_imdb_information(self):
         if self.season_number != '' and self.episode_number != 0 and self.episode_title != '':
@@ -443,6 +443,6 @@ class SilentWitness(SpecialCases):
                 episode_number = (index * 2) + episode_part_num
                 return 'Silent Witness', True, '24', episode_number, episode_title
             else:
-                raise ValueError('Unable to process this episode')
+                raise ValueError('Unable to understand this Silent Witness episode')
         else:
             raise ValueError('This episode is not in Season 24')

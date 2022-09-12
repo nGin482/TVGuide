@@ -25,7 +25,12 @@ class Episode:
         """
         Used when creating a new `RecordedShow` object
         """
-        return cls(guide_show.episode_number, guide_show.episode_title, [guide_show.channel], datetime.today().strftime('%d/%m/%Y'), datetime.today().strftime('%d/%m/%Y'), guide_show.repeat)
+        channels = [guide_show.channel]
+        if 'ABC1' in channels:
+            channels.append('ABCHD')
+        if 'TEN' in channels:
+            channels.append('TENHD')
+        return cls(guide_show.episode_number, guide_show.episode_title, channels, datetime.today().strftime('%d/%m/%Y'), datetime.today().strftime('%d/%m/%Y'), guide_show.repeat)
 
     @classmethod
     def from_database(cls, recorded_episode: dict):
@@ -115,7 +120,7 @@ class Episode:
     def update_episode_in_database(self, show_title: str, season_number: str):
         updated_show: dict = recorded_shows_collection().find_one_and_update(
             {'show': show_title},
-            {'$push': {'seasons.$[season].episodes.$[episode]': self.to_dict()}},
+            {'$set': {'seasons.$[season].episodes.$[episode]': self.to_dict()}},
             upsert = True,
             array_filters = [
                 {'season.season_number': season_number},
@@ -191,7 +196,7 @@ class Season:
     
     def to_dict(self):
         season_dict = {
-            'season number': self.season_number,
+            'season_number': self.season_number,
             'episodes': []
         }
         for episode in self.episodes:
@@ -312,7 +317,7 @@ class RecordedShow:
             {'show': self.title},
             {'$push': {'seasons.$[season].episodes': new_episode.to_dict()}},
             array_filters = [
-                {'season.season number': season_number},
+                {'season.season_number': season_number},
             ],
             return_document=ReturnDocument.AFTER
         )
