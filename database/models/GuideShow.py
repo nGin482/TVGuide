@@ -12,9 +12,9 @@ import os
 
 class GuideShow:
     
-    def __init__(self, title: str, channel: str, time: datetime, episode_info: bool, season_number: str, episode_number: int, episode_title: str) -> None:
+    def __init__(self, title: str, channel: str, time: datetime, episode_info: bool, season_number: str, episode_number: int, episode_title: str, recorded_show: RecordedShow) -> None:
         title = Validation.check_show_titles(title)
-        self.recorded_show = GuideShow.read_show_data(title)
+        self.recorded_show = recorded_show
         episode_data = GuideShow.get_show(title, season_number, episode_title)
         if len(episode_data) > 0:
             title = episode_data[0]
@@ -25,7 +25,7 @@ class GuideShow:
 
         if season_number == '':
             season_number = 'Unknown'
-            episode_number = self.recorded_show.find_number_of_unknown_episodes() + 1
+            episode_number = recorded_show.find_number_of_unknown_episodes() + 1
         
         self.title = title
         self.channel = channel
@@ -145,7 +145,7 @@ class GuideShow:
             return {'show': self.to_dict(), 'message': 'Unable to process this episode.', 'error': str(err)}
 
     def search_imdb_information(self):
-        if self.season_number != '' and self.episode_number != 0 and self.episode_title != '':
+        if self.season_number != 'Unknown' and self.episode_number != 0 and self.episode_title != '':
             return self
         if self.season_number == '':
             print(f"{self.title}'s season number empty before searching IMDB API")
@@ -153,7 +153,7 @@ class GuideShow:
         imdb_api_key = os.getenv('IMDB_API')
         results = []
         # get season number and episode number from episode title
-        if (self.season_number == '' or self.season_number == 'Unknown') and self.episode_title != '':
+        if self.season_number == 'Unknown' and self.episode_title != '':
             log_message = f"Searching IMDB API with {self.title}'s episode title ({self.episode_title}) to retrieve season number and episode number"
             logging_app(log_message, logging.INFO)
             episode_title = self.episode_title.replace(' ', '%20') if ' ' in self.episode_title else self.episode_title
@@ -177,7 +177,7 @@ class GuideShow:
                     print(f"IMDB API returned None when looking up {self.title}'s {self.episode_title} episode")
         
         # get episode title from season number and episode number
-        if self.episode_title == '' and self.season_number != '' and self.season_number != 'Unknown':
+        if self.episode_title == '' and self.season_number != 'Unknown':
             log_message = f"Searching IMDB API with {self.title}'s season number ({self.season_number}) to retrieve episode title"
             logging_app(log_message, logging.INFO)
             show_id = self.recorded_show.imdb_id

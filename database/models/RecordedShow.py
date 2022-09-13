@@ -297,6 +297,12 @@ class RecordedShow:
             return len(unknown_season.episodes)
         return 0
     
+    def find_unknown_episode_by_episode_title(self, episode_title: str):
+        unknown_season = self.find_season('Unknown')
+        if unknown_season:
+            episode = next((unknown_episode for unknown_episode in unknown_season.episodes if unknown_episode.episode_title == episode_title), None)
+            return episode
+    
     def add_episode_to_document(self, guide_show: 'GuideShow') -> bool:
         new_episode = Episode.from_guide_show(guide_show)
         if guide_show.season_number == '':
@@ -363,3 +369,6 @@ class RecordedShow:
 
     def __eq__(self, other: RecordedShow) -> bool:
         return self.title == other.title and len(self.seasons) == len(other.seasons)
+
+    def __hash__(self) -> int:
+        return hash((self.title, len(self.seasons)))

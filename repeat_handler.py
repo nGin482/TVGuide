@@ -1,3 +1,4 @@
+from turtle import title
 from database.models.RecordedShow import RecordedShow
 from data_validation.validation import Validation
 import json
@@ -13,6 +14,10 @@ def get_today_shows_data(list_of_shows: list[str]):
         del show_data['_id']
         with open(f'shows/{show_data["show"]}.json', 'w+') as file:
             json.dump(show_data, file, indent='\t')
+
+    list_of_recorded_shows = [RecordedShow.from_database(show_data) for show_data in today_shows]
+    list_of_recorded_shows = list(set(list_of_recorded_shows))
+    return list_of_recorded_shows
 
 def tear_down():
     """
