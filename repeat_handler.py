@@ -1,6 +1,5 @@
 from database.models.RecordedShow import RecordedShow
 from data_validation.validation import Validation
-import os
 
 def get_today_shows_data(list_of_shows: list[str]):
     all_recorded_shows = RecordedShow.get_all_recorded_shows()
