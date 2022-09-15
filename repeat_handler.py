@@ -11,11 +11,3 @@ def get_today_shows_data(list_of_shows: list[str]):
     list_of_recorded_shows = [RecordedShow.from_database(show_data) for show_data in today_shows]
     list_of_recorded_shows = list(set(list_of_recorded_shows))
     return list_of_recorded_shows
-
-def tear_down():
-    """
-    Remove the JSON files created to read show data from the shows directory 
-    """
-
-    for show_file in os.listdir('shows'):
-        os.remove(f'shows/{show_file}')

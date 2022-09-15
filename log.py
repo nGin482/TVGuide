@@ -1,7 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
 from backups import write_to_backup_file
-from repeat_handler import tear_down
 from aux_methods.helper_methods import get_current_time, convert_date_string_to_object, get_today_date_for_logging
 from database.recorded_shows_collection import rollback_recorded_shows_collection
 import logging
@@ -143,7 +142,6 @@ def log_guide(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
     for show in bbc_shows:
         log_event = show.capture_db_event()
         status_setting_repeats(log_event)
-    tear_down()
 
 def revert_tvguide():
     """
