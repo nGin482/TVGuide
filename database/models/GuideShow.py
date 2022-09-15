@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 from data_validation.validation import Validation
-from .RecordedShow import RecordedShow, Season
+from database.models.RecordedShow import Episode, RecordedShow, Season
 from exceptions.DatabaseError import DatabaseError, EpisodeNotFoundError, SeasonNotFoundError, ShowNotFoundError
 from log import log_imdb_api_results, logging_app
 import requests
 import logging
-import json
 import os
 
 
@@ -111,7 +110,10 @@ class GuideShow:
             return {'show': self.to_dict(), 'repeat': set_repeat, 'channel': channel_add}
         except EpisodeNotFoundError as err:
             try:
-                add_episode_status = self.recorded_show.add_episode_to_document(self)
+                season = self.recorded_show.find_season(self.season_number)
+                new_episode = Episode.from_guide_show(self)
+                season.episodes.append(new_episode)
+                add_episode_status = season.add_episode_to_season(self.title, new_episode)
             except DatabaseError as err:
                 add_episode_status = str(err)
             print(f'{self.title} happening on episode')
@@ -126,7 +128,6 @@ class GuideShow:
             return {'show': self.to_dict(), 'result': insert_season}
         except ShowNotFoundError as err:
             recorded_show = RecordedShow.from_guide_show(self)
-            recorded_show.create_JSON_file()
             try:
                 insert_show = recorded_show.insert_new_recorded_show_document()
             except DatabaseError as err:

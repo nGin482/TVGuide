@@ -1,9 +1,8 @@
 from __future__ import annotations
 from datetime import datetime
 from pymongo import ReturnDocument
-from database.mongo import database
+from database.mongo import database, recorded_shows_collection
 from exceptions.DatabaseError import DatabaseError
-from ..recorded_shows_collection import recorded_shows_collection
 import json
 
 from typing import TYPE_CHECKING
@@ -191,8 +190,19 @@ class Season:
                 return results[0]
             return None
 
-    def add_episode(self, episode: Episode):
-        self.episodes.append(episode)
+    def add_episode_to_season(self, show_title: str, episode: Episode):
+        """Add the new given `Episode` to the document's collection"""
+        added_episode = recorded_shows_collection().find_one_and_update(
+            {'show': show_title},
+            {'$push': {'seasons.$[season_number].episodes': episode.to_dict()}},
+            array_filters=[
+                {'season_number': self.season_number}
+            ],
+            return_document=ReturnDocument.AFTER
+        )
+        if len(added_episode.keys()) == 0:
+            return False
+        return True
     
     def to_dict(self):
         season_dict = {
@@ -271,7 +281,7 @@ class RecordedShow:
     def add_season(self, season: Season):
         """
         Appends the given `Season` object to the list of seasons. Also inserts the `Season` document into the MongoDB collection.\n
-        Raises a `exceptions.DatabaseError` if inserting the document fails.
+        Raises an `exceptions.DatabaseError` if inserting the document fails.
         """
         self.seasons.append(season)
 
@@ -281,14 +291,8 @@ class RecordedShow:
             return_document=ReturnDocument.AFTER
         )
 
-        update_file_result = self.update_JSON_file()
-
-        if len(inserted_season.keys()) == 0 and not update_file_result:
-            raise DatabaseError('The season was not inserted into the `RecordedShows` collection and the JSON file was not updated')
-        elif len(inserted_season.keys()) == 0 and update_file_result:
+        if len(inserted_season.keys()) == 0:
             raise DatabaseError('The season was not inserted into the `RecordedShows` collection')
-        elif len(inserted_season.keys()) > 0 and not update_file_result:
-            raise DatabaseError('The JSON file was not updated with the given season')
         return 'The season was successfully inserted'
 
     def find_number_of_unknown_episodes(self):
@@ -297,60 +301,12 @@ class RecordedShow:
             return len(unknown_season.episodes)
         return 0
     
-    def find_unknown_episode_by_episode_title(self, episode_title: str):
-        unknown_season = self.find_season('Unknown')
-        if unknown_season:
-            episode = next((unknown_episode for unknown_episode in unknown_season.episodes if unknown_episode.episode_title == episode_title), None)
-            return episode
-    
-    def add_episode_to_document(self, guide_show: 'GuideShow') -> bool:
-        new_episode = Episode.from_guide_show(guide_show)
-        if guide_show.season_number == '':
-            season_number = 'Unknown'
-            new_episode.episode_number = self.find_number_of_unknown_episodes() + 1
-        else:
-            season_number = guide_show.season_number
-        
-        if 'ABC1' in guide_show.channel:
-            new_episode.channels.append('ABCHD')
-        if '10' in guide_show.channel or 'TEN' in guide_show.channel:
-            new_episode.channels.append('TENHD')
-        
-        self.find_season(season_number).add_episode(new_episode)
-        update_file_result = self.update_JSON_file()
-        
-        inserted_episode: dict = recorded_shows_collection().find_one_and_update(
-            {'show': self.title},
-            {'$push': {'seasons.$[season].episodes': new_episode.to_dict()}},
-            array_filters = [
-                {'season.season_number': season_number},
-            ],
-            return_document=ReturnDocument.AFTER
-        )
-
-        if len(inserted_episode.keys()) == 0 and not update_file_result:
-            raise DatabaseError('The season was not inserted into the `RecordedShows` collection and the JSON file was not updated')
-        elif len(inserted_episode.keys()) == 0 and update_file_result:
-            raise DatabaseError('The season was not inserted into the `RecordedShows` collection')
-        elif len(inserted_episode.keys()) > 0 and not update_file_result:
-            raise DatabaseError('The JSON file was not updated with the given season')
-        return 'The episode was successfully inserted'
-
-    def create_JSON_file(self):
-        try:
-            with open(f'shows/{self.title}.json', 'w+') as fd:
-                json.dump(self.to_dict(), fd, indent='\t')
-            return True
-        except FileExistsError:
-            return False
-
-    def update_JSON_file(self):
-        try:
-            with open(f'shows/{self.title}.json', 'w') as fd:
-                json.dump(self.to_dict(), fd, indent='\t')
-            return True
-        except FileNotFoundError:
-            return False
+    def find_episode_by_episode_title(self, episode_title: str):
+        for season in self.seasons:
+            for episode in season.episodes:
+                if episode.episode_title == episode_title:
+                    if season.season_number != "Unknown":
+                        return season.season_number, episode.episode_number
     
     def to_dict(self) -> dict:
         show_dict = {
