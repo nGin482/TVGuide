@@ -1,7 +1,5 @@
-from turtle import title
 from database.models.RecordedShow import RecordedShow
 from data_validation.validation import Validation
-import json
 import os
 
 def get_today_shows_data(list_of_shows: list[str]):
