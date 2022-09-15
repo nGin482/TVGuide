@@ -51,39 +51,23 @@ class Validation:
         return title
 
     @staticmethod
-    def check_show_titles(show):
-        if type(show) is str:
-            if 'Maigret' in show:
-                return 'Maigret'
-            if 'Death in Paradise' in show:
-                return 'Death In Paradise'
-            if 'Revenge Of The Fallen' in show or 'Dark Of The Moon' in show \
-                    or 'Age of Extinction' in show or 'The Last Knight' in show:
-                return 'Transformers'
-            elif show == 'Transformers':
-                return 'Transformers'
-            else:
-                title = show
-                if ':' in title:
-                    idx = title.rfind(':')
-                    title = title[:idx] + title[idx+1:]
-                return title
-        else:
-            if 'Maigret' in show['title']:
-                return 'Maigret'
-            if 'Death in Paradise' in show['title']:
-                return 'Death In Paradise'
-            if 'Revenge Of The Fallen' in show['title'] or 'Dark Of The Moon' in show['title'] \
-                    or 'Age of Extinction' in show['title'] or 'The Last Knight' in show['title']:
-                return 'Transformers'
-            elif show['title'] == 'Transformers':
-                return 'Transformers'
-            else:
-                title = show['title']
-                if ':' in title:
-                    idx = title.rfind(':')
-                    title = title[:idx] + title[idx+1:]
-                return title
+    def check_show_titles(show: str):
+        if 'Doctor Who: ' in show:
+            return 'Doctor Who'
+        elif 'Maigret' in show:
+            return 'Maigret'
+        elif 'Death in Paradise' in show:
+            return 'Death In Paradise'
+        elif 'Revenge Of The Fallen' in show or 'Dark Of The Moon' in show \
+                or 'Age of Extinction' in show or 'The Last Knight' in show:
+            return 'Transformers'
+        elif show == 'Transformers':
+            return 'Transformers'
+        title = show
+        if ':' in title:
+            idx = title.rfind(':')
+            title = title[:idx] + title[idx+1:]
+        return title
 
     @staticmethod
     def remove_unwanted_shows(guide_list: list[dict]):

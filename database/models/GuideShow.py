@@ -13,15 +13,16 @@ import os
 class GuideShow:
     
     def __init__(self, title: str, channel: str, time: datetime, episode_info: bool, season_number: str, episode_number: int, episode_title: str, recorded_show: RecordedShow) -> None:
-        title = Validation.check_show_titles(title)
         self.recorded_show = recorded_show
         episode_data = GuideShow.get_show(title, season_number, episode_title)
-        if len(episode_data) > 0:
+        if isinstance(episode_data, tuple):
             title = episode_data[0]
             episode_info = episode_data[1]
             season_number = episode_data[2]
             episode_number = episode_data[3]
             episode_title = episode_data[4]
+        else:
+            title = episode_data
 
         if season_number == '':
             season_number = 'Unknown'
@@ -49,16 +50,7 @@ class GuideShow:
         elif 'Silent Witness' in title:
             return SilentWitness.handle(season_number, '', episode_title)
         else:
-            return ()
-
-    @staticmethod
-    def read_show_data(title: str):
-        try:
-            with open(f'shows/{title}.json') as fd:
-                show_data = RecordedShow.from_database(json.load(fd))
-            return show_data
-        except FileNotFoundError:
-            return None
+            return Validation.check_show_titles(title)
 
     def search_for_repeats(self) -> bool:
 
@@ -114,7 +106,7 @@ class GuideShow:
                 set_repeat = 'The episode has been marked as a repeat.'
                 self.recorded_show.update_JSON_file()
             episode.latest_air_date = datetime.today()
-            print('happening on channel/repeat')
+            print(f'{self.title} happening on channel/repeat')
             episode.update_episode_in_database(self.title, self.season_number)
             return {'show': self.to_dict(), 'repeat': set_repeat, 'channel': channel_add}
         except EpisodeNotFoundError as err:
@@ -122,7 +114,7 @@ class GuideShow:
                 add_episode_status = self.recorded_show.add_episode_to_document(self)
             except DatabaseError as err:
                 add_episode_status = str(err)
-            print('happening on episode')
+            print(f'{self.title} happening on episode')
             return {'show': self.to_dict(), 'result': add_episode_status}
         except SeasonNotFoundError as err:
             new_season = Season.from_guide_show(self)
@@ -130,7 +122,7 @@ class GuideShow:
                 insert_season = self.recorded_show.add_season(new_season)
             except DatabaseError as err:
                 insert_season = str(err)
-            print('happening on season')
+            print(f'{self.title} happening on season')
             return {'show': self.to_dict(), 'result': insert_season}
         except ShowNotFoundError as err:
             recorded_show = RecordedShow.from_guide_show(self)
@@ -139,7 +131,7 @@ class GuideShow:
                 insert_show = recorded_show.insert_new_recorded_show_document()
             except DatabaseError as err:
                 insert_show = str(err)
-            print('happening on show')
+            print(f'{self.title} happening on show')
             return {'show': self.to_dict(), 'result': insert_show}
         except Exception as err:
             return {'show': self.to_dict(), 'message': 'Unable to process this episode.', 'error': str(err)}
