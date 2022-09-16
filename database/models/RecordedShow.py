@@ -116,6 +116,20 @@ class Episode:
             return False
         return True
 
+    def remove_unknown_episode(self, show_title: str):
+        """
+        Rollback the `RecordedShows` collection to a point before the TVGuide has interacted with the DB for the current day
+        """
+        
+        recorded_shows_collection().find_one_and_update(
+            {'show': show_title},
+            {'$pull': {'seasons.$[season].episodes': {'episode_title': self.episode_title}}},
+            array_filters = [
+                {'season.season_number': 'Unknown'}
+            ],
+            return_document=ReturnDocument.AFTER
+        )
+
     def to_dict(self):
         if type(self.first_air_date) is not str:
             first_air_date = self.first_air_date.strftime('%d/%m/%Y')
