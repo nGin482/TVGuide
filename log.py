@@ -1,7 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
 from backups import write_to_backup_file
-from aux_methods.helper_methods import get_current_time, convert_date_string_to_object, get_today_date_for_logging
 from database.recorded_shows_collection import rollback_recorded_shows_collection
 import logging
 import json
@@ -14,7 +13,7 @@ if TYPE_CHECKING:
 
 def get_date_from_latest_email():
 
-    arr = []
+    arr: list[str] = []
     
     with open('log/emails.txt') as f:
         for line in f:
@@ -28,7 +27,7 @@ def get_date_from_latest_email():
     idx_back = latest_email.find(' at ')
     date = latest_email[idx_front+3:idx_back]
     time = latest_email[idx_back+4:].split(':')
-    date_parsed = convert_date_string_to_object(date)
+    date_parsed = datetime.strptime(date, '%d-%m-%y')
     new_date_parsed = date_parsed.replace(hour=int(time[0]), minute=int(time[1]))
 
     print(new_date_parsed)
@@ -69,7 +68,7 @@ def log_message_sent():
     contents = read_file().splitlines(True)
     if len(contents) > 1:
         new_log = [contents[1]]
-    new_log.append('\nTVGuide was sent on ' + get_today_date_for_logging() + ' at ' + get_current_time('string'))
+    new_log.append(f"\nTVGuide was sent on {datetime.today().strftime('%d-%m-%y')} at {datetime.now().strftime('%H:%M')}")
     
     with open('log/emails.txt', 'w') as fd:
         for line in new_log:
@@ -143,7 +142,7 @@ def log_guide(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
         log_event = show.capture_db_event()
         status_setting_repeats(log_event)
 
-def revert_tvguide():
+def remove_changes():
     """
     Revert TVGuide to a state before the current day's message was sent
     """
