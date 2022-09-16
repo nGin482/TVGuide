@@ -58,8 +58,7 @@ class Validation:
             return 'Transformers'
         title = show
         if ':' in title:
-            idx = title.rfind(':')
-            title = title[:idx] + title[idx+1:]
+            title = title.replace(':', '')
         return title
 
     @staticmethod
