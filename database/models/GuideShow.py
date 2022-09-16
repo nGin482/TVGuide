@@ -14,12 +14,14 @@ class GuideShow:
     def __init__(self, title: str, channel: str, time: datetime, episode_info: bool, season_number: str, episode_number: int, episode_title: str, recorded_show: RecordedShow) -> None:
         self.recorded_show = recorded_show
         episode_data = GuideShow.get_show(title, season_number, episode_title)
-        if isinstance(episode_data, tuple):
+        if isinstance(episode_data, tuple) and len(episode_data) > 1:
             title = episode_data[0]
             episode_info = episode_data[1]
             season_number = episode_data[2]
             episode_number = episode_data[3]
             episode_title = episode_data[4]
+        elif len(episode_data) == 0:
+            title = title
         else:
             title = episode_data
 
@@ -34,7 +36,7 @@ class GuideShow:
         self.season_number = season_number
         self.episode_number = episode_number
         self.episode_title = Validation.format_title(episode_title)
-        self.repeat = self.search_for_repeats()
+        self.repeat = False
 
     @staticmethod
     def get_show(title: str, season_number, episode_title) -> tuple:
@@ -97,13 +99,10 @@ class GuideShow:
             set_repeat = 'Repeat status is up to date'
             channel_add = 'Channel list is up to date'
             if self.channel not in episode.channels:
-                episode.channels.append(self.channel)
-                channel_add = f'{self.channel} has been added to the channel list.'
-                self.recorded_show.update_JSON_file()
+                channel_add = episode.add_channel(self.channel)
             if not episode.repeat:
                 episode.repeat = True
                 set_repeat = 'The episode has been marked as a repeat.'
-                self.recorded_show.update_JSON_file()
             episode.latest_air_date = datetime.today()
             print(f'{self.title} happening on channel/repeat')
             episode.update_episode_in_database(self.title, self.season_number)
@@ -113,7 +112,8 @@ class GuideShow:
                 season = self.recorded_show.find_season(self.season_number)
                 new_episode = Episode.from_guide_show(self)
                 season.episodes.append(new_episode)
-                add_episode_status = season.add_episode_to_season(self.title, new_episode)
+                season.add_episode_to_season(self.title, new_episode)
+                add_episode_status = f'{new_episode} has been added to {season.season_number}'
             except DatabaseError as err:
                 add_episode_status = str(err)
             print(f'{self.title} happening on episode')
@@ -183,7 +183,6 @@ class GuideShow:
                         if episode['episodeNumber'] == str(self.episode_number):
                             self.episode_title = episode['title']
         log_imdb_api_results(self.to_dict(), results)
-        return self
 
     @staticmethod
     def _extract_information(description: str) -> tuple:

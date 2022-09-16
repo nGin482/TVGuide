@@ -87,40 +87,24 @@ class Episode:
     def update_latest_air_date(self):
         self.latest_air_date = datetime.today().strftime('%d/%m/%Y')
 
-    def add_channel(self, guide_show: GuideShow):
-        new_channels = [guide_show.channel]
-        if 'ABC1' in new_channels:
-            new_channels.append('ABCHD')
-        if 'TEN' in new_channels:
-            new_channels.append('TENHD')
-        self.channels.extend(new_channels)
-
-        season_number = 'Unknown' if guide_show.season_number == '' else guide_show.season_number
-        if 'Unknown' in season_number:
-            episode_map = {'episode.episode title': guide_show.episode_title}
+    def add_channel(self, channel: str):
+        """Add the given channel to the episode's channel list.\n
+        If the channel is `ABC1`, `ABCHD` will also be added.\n
+        If the channel is `TEN`, `TENHD` will also be added."""
+        self.channels.append(channel)
+        if 'ABC1' in channel:
+            self.channels.append('ABCHD')
+            return f'{channel} and ABCHD have been added to the channel list.'
+        elif 'TEN' in channel:
+            self.channels.append('TENHD')
+            return f'{channel} and TENHD have been added to the channel list.'
         else:
-            episode_map = {'episode.episode number': guide_show.episode_number}
+            return f'{channel} has been added to the channel list.'
         
-        updated_show: dict = recorded_shows_collection().find_one_and_update(
-            {'show': guide_show.title},
-            {'$push': {'seasons.$[season].episodes.$[episode].channels': {'$each': new_channels}}},
-            upsert = True,
-            array_filters = [
-                {'season.season number': season_number},
-                episode_map
-            ],
-            return_document = ReturnDocument.AFTER
-        )
-
-        if len(updated_show.keys()) == 0:
-            raise DatabaseError('The episode in the `RecordedShows` collection was not updated')
-        return {'status': True, 'message': f'{guide_show.channel} has been added to the channel list.', 'episode': self.to_dict()}
-
     def update_episode_in_database(self, show_title: str, season_number: str):
         updated_show: dict = recorded_shows_collection().find_one_and_update(
             {'show': show_title},
             {'$set': {'seasons.$[season].episodes.$[episode]': self.to_dict()}},
-            upsert = True,
             array_filters = [
                 {'season.season_number': season_number},
                 {'episode.episode_number': self.episode_number}
@@ -192,17 +176,14 @@ class Season:
 
     def add_episode_to_season(self, show_title: str, episode: Episode):
         """Add the new given `Episode` to the document's collection"""
-        added_episode = recorded_shows_collection().find_one_and_update(
+        recorded_shows_collection().find_one_and_update(
             {'show': show_title},
-            {'$push': {'seasons.$[season_number].episodes': episode.to_dict()}},
+            {'$push': {'seasons.$[season].episodes': episode.to_dict()}},
             array_filters=[
-                {'season_number': self.season_number}
+                {'season.season_number': self.season_number}
             ],
             return_document=ReturnDocument.AFTER
         )
-        if len(added_episode.keys()) == 0:
-            return False
-        return True
     
     def to_dict(self):
         season_dict = {
