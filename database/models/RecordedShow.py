@@ -4,6 +4,7 @@ from pymongo import ReturnDocument
 from database.mongo import database, recorded_shows_collection
 from exceptions.DatabaseError import DatabaseError
 import json
+import os
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -288,6 +289,44 @@ class RecordedShow:
                 if episode.episode_title == episode_title:
                     if season.season_number != "Unknown":
                         return season.season_number, episode.episode_number
+    
+    @staticmethod
+    def backup_recorded_shows():
+        """
+        Create a local backup of the `RecordedShows` collection by storing data locally in JSON files
+        """
+        
+        all_recorded_shows = RecordedShow.get_all_recorded_shows()
+
+        for recorded_show in all_recorded_shows:
+            del recorded_show['_id']
+            show_name: str = recorded_show['show']
+            if os.path.isdir('database/backups/recorded_shows'):
+                with open(f'database/backups/recorded_shows/{show_name}.json', 'w+') as fd:
+                    json.dump(recorded_show, fd, indent='\t')
+            else:
+                os.mkdir('database/backups/recorded_shows')
+                with open(f'database/backups/recorded_shows/{show_name}.json', 'w+') as fd:
+                    json.dump(recorded_show, fd, indent='\t')
+    
+    @staticmethod
+    def rollback_recorded_shows_collection():
+        """
+        Rollback the `RecordedShows` collection to a point before the TVGuide has interacted with the DB for the current day
+        """
+        
+        for recorded_show in os.listdir('database/backups/recorded_shows'):
+            print(recorded_show)
+            with open(f'database/backups/recorded_shows/{recorded_show}') as fd:
+                show_data = json.load(fd)
+            show_name: str = show_data['show']
+            recorded_shows_collection().find_one_and_update(
+                {'show': show_name},
+                {'$set': {'seasons': show_data['seasons']}},
+                return_document=ReturnDocument.AFTER
+            )
+            # how to notify that this is done
+        pass
     
     def to_dict(self) -> dict:
         show_dict = {
