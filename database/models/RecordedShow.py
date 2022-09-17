@@ -96,7 +96,7 @@ class Episode:
         if 'ABC1' in channel:
             self.channels.append('ABCHD')
             return f'{channel} and ABCHD have been added to the channel list.'
-        elif 'TEN' in channel:
+        elif 'TEN' in channel or '10' in channel:
             self.channels.append('TENHD')
             return f'{channel} and TENHD have been added to the channel list.'
         else:
