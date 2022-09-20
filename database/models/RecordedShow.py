@@ -1,6 +1,7 @@
 from __future__ import annotations
 from datetime import datetime
 from pymongo import ReturnDocument
+from pymongo.errors import OperationFailure
 from database.mongo import database, recorded_shows_collection
 from exceptions.DatabaseError import DatabaseError
 import json
@@ -103,7 +104,8 @@ class Episode:
             return f'{channel} has been added to the channel list.'
         
     def update_episode_in_database(self, show_title: str, season_number: str):
-        updated_show: dict = recorded_shows_collection().find_one_and_update(
+        try:
+            recorded_shows_collection().find_one_and_update(
             {'show': show_title},
             {'$set': {'seasons.$[season].episodes.$[episode]': self.to_dict()}},
             array_filters = [
@@ -112,8 +114,8 @@ class Episode:
             ],
             return_document = ReturnDocument.AFTER
         )
-        if len(updated_show.keys()) == 0:
-            return False
+        except OperationFailure as err:
+            raise DatabaseError(f"An error occurred when trying to update this episode of {show_title}. Error: {str(err)}")
         return True
 
     def remove_unknown_episode(self, show_title: str):
@@ -150,7 +152,7 @@ class Episode:
         }
 
     def __repr__(self) -> str:
-        return f"Episode [Episode Number: {self.episode_number}, Episode Title: {self.episode_title}, Channels: {self.channels}, Repeat: {self.repeat}"
+        return f"Episode [Episode Number: {self.episode_number}, Episode Title: {self.episode_title}, Channels: {self.channels}, Repeat: {self.repeat}]"
 
 
 class Season:
