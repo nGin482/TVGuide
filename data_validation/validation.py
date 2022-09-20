@@ -7,7 +7,7 @@ class Validation:
         :param time: show start_time to format that will be passed as string
         :return: the formatted time string
 
-        May become deprecated
+        May become deprecated - only used by `search_BBC_channels()`
         """
 
         idx = time.find(':')
@@ -29,7 +29,7 @@ class Validation:
         return time
 
     @staticmethod
-    def format_title(title: str):
+    def format_episode_title(title: str):
         """
         Format a show's given title into a more reader-friendly appearance
         """
@@ -51,10 +51,7 @@ class Validation:
             return 'Maigret'
         elif 'Death in Paradise' in show:
             return 'Death In Paradise'
-        elif 'Revenge Of The Fallen' in show or 'Dark Of The Moon' in show \
-                or 'Age of Extinction' in show or 'The Last Knight' in show:
-            return 'Transformers'
-        elif show == 'Transformers':
+        elif 'Revenge Of The Fallen' in show or 'Dark Of The Moon' in show or 'Age of Extinction' in show or 'The Last Knight' in show or show == 'Transformers':
             return 'Transformers'
         title = show
         if ':' in title:
