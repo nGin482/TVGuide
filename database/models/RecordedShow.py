@@ -38,28 +38,24 @@ class Episode:
         """
         Used when retrieving a `RecordedShow` document from the MongoDB collection
         """
-        if 'episode number' in recorded_episode.keys():
-            episode_number = recorded_episode['episode number']
+        episode_number = int(recorded_episode['episode_number'])
+        episode_title: str = recorded_episode['episode_title']
+        channels: list[str] = recorded_episode['channels']
+        first_air_date: str = recorded_episode['first_air_date']
+        if 'latest_air_date' in recorded_episode.keys():
+            latest_air_date = str(recorded_episode['latest_air_date'])
+            if '-' in latest_air_date:
+                latest_air_date = latest_air_date.replace('-', '/')
+            latest_air_date = datetime.strptime(latest_air_date, '%d/%m/%Y')
         else:
-            episode_number = recorded_episode['episode_number']
-        if 'episode title' in recorded_episode.keys():
-            episode_title = recorded_episode['episode title']
-        else:
-            episode_title = recorded_episode['episode_title']
-        if 'first air date' in recorded_episode.keys():
-            first_air_date = recorded_episode['first air date']
-        else:
-            first_air_date = recorded_episode['first_air_date']
-        if 'latest air date' in recorded_episode.keys():
-            latest_air_date = recorded_episode['latest air date']
-        elif 'latest_air_date' in recorded_episode.keys():
-            latest_air_date = recorded_episode['latest_air_date']
-        else:
-            latest_air_date = datetime.today().strftime('%d/%m/%Y')
-        
-        if episode_number == '':
-            episode_number = 0
-        return cls(int(episode_number), episode_title, recorded_episode['channels'], first_air_date, latest_air_date, recorded_episode['repeat'])
+            latest_air_date = datetime.today()
+        repeat: bool = recorded_episode['repeat']
+
+        if '-' in first_air_date:
+            first_air_date = first_air_date.replace('-', '/')
+        first_air_date: datetime = datetime.strptime(first_air_date, '%d/%m/%Y')
+
+        return cls(episode_number, episode_title, channels, first_air_date, latest_air_date, repeat)
 
 
     def mark_as_repeat(self, guide_show: 'GuideShow') -> dict:
@@ -133,21 +129,12 @@ class Episode:
         )
 
     def to_dict(self):
-        if type(self.first_air_date) is not str:
-            first_air_date = self.first_air_date.strftime('%d/%m/%Y')
-        else:
-            first_air_date = self.first_air_date
-        if type(self.latest_air_date) is not str:
-            latest_air_date = self.latest_air_date.strftime('%d/%m/%Y')
-        else:
-            latest_air_date = self.latest_air_date
-        
         return {
             'episode_number': self.episode_number,
             'episode_title': self.episode_title,
             'channels': self.channels,
-            'first_air_date': first_air_date,
-            'latest_air_date': latest_air_date,
+            'first_air_date': self.first_air_date.strftime('%d/%m/%Y'),
+            'latest_air_date': self.latest_air_date.strftime('%d/%m/%Y'),
             'repeat': self.repeat
         }
 
