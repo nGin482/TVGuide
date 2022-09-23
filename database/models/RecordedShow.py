@@ -24,14 +24,14 @@ class Episode:
     @classmethod
     def from_guide_show(cls, guide_show: 'GuideShow'):
         """
-        Used when creating a new `RecordedShow` object
+        Used when adding a new `Episode` to a `Season`
         """
         channels = [guide_show.channel]
         if 'ABC1' in channels:
             channels.append('ABCHD')
         if 'TEN' in channels:
             channels.append('TENHD')
-        return cls(guide_show.episode_number, guide_show.episode_title, channels, datetime.today().strftime('%d/%m/%Y'), datetime.today().strftime('%d/%m/%Y'), guide_show.repeat)
+        return cls(guide_show.episode_number, guide_show.episode_title, channels, datetime.today(), datetime.today(), False)
 
     @classmethod
     def from_database(cls, recorded_episode: dict):
