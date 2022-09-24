@@ -10,8 +10,11 @@ import os
 
 
 class GuideShow:
+    shows_with_unknown_season: dict = {}
     
     def __init__(self, title: str, channel: str, time: datetime, episode_info: bool, season_number: str, episode_number: int, episode_title: str, recorded_show: RecordedShow) -> None:
+        self._episode_number_updated = False
+        
         self.recorded_show = recorded_show
         episode_data = GuideShow.get_show(title, season_number, episode_title)
         if isinstance(episode_data, tuple) and len(episode_data) > 1:
@@ -19,28 +22,24 @@ class GuideShow:
             episode_info = episode_data[1]
             season_number = episode_data[2]
             episode_number = episode_data[3]
-            episode_title = episode_data[4]
-        elif len(episode_data) == 0:
-            title = title
-        else:
-            title = episode_data
+            episode_title = episode_data[4]        
+        
 
         if season_number == '':
             season_number = 'Unknown'
-            episode_number = recorded_show.find_number_of_unknown_episodes() + 1
         
-        self.title = title
+        self.title = Validation.check_show_titles(title)
         self.channel = channel
         self.time = time
         self.episode_info = episode_info
         self.season_number = season_number
         self.episode_number = episode_number
-        self.episode_title = Validation.format_title(episode_title)
+        self.episode_title = Validation.format_episode_title(episode_title)
         self.repeat = False
 
     @staticmethod
     def get_show(title: str, season_number, episode_title) -> tuple:
-        if 'Transformers' in title:
+        if 'Transformers' in title or 'Bumblebee' in title:
             return TransformersGuideShow.handle(title)
         elif 'Doctor Who' in title:
             return DoctorWho.handle(title)
@@ -52,6 +51,20 @@ class GuideShow:
             return SilentWitness.handle(season_number, '', episode_title)
         else:
             return Validation.check_show_titles(title)
+
+    def update_show_details(self):
+        if self.season_number == 'Unknown' and self.episode_title != '':
+            check_existing_episode = self.recorded_show.find_episode_by_episode_title(self.episode_title)
+            if check_existing_episode:
+                self.season_number = check_existing_episode[0]
+                self.episode_number = check_existing_episode[1]
+                unknown_season = self.recorded_show.find_season('Unknown')
+                if unknown_season:
+                    episode_in_unknown_season = unknown_season.find_episode(episode_title=self.episode_title)
+                    if episode_in_unknown_season:
+                        episode_in_unknown_season.remove_unknown_episode(self.title)
+                        unknown_season.episodes.remove(episode_in_unknown_season)
+
 
     def search_for_repeats(self) -> bool:
 
@@ -73,17 +86,10 @@ class GuideShow:
         """
         # check_show = get_one_recorded_show(show['title'])
         if self.recorded_show:
-            season_number = self.season_number
-            if season_number == '':
-                season_number = 'Unknown'
-            season = self.recorded_show.find_season(season_number)
+            season = self.recorded_show.find_season(self.season_number)
             if season:
                 episode = season.find_episode(episode_number=self.episode_number, episode_title=self.episode_title)
                 if episode:
-                    # if show.season_number != '' and show.episode_number != 0 and season.season_number == 'Unknown':
-                        # document_updated = update_recorded_episode(show)['status']
-                        # if document_updated:
-                        #     print(f"The document for {show['title']} was updated") # TODO: most likely will log this
                     return episode
                 else:
                     raise EpisodeNotFoundError
@@ -138,10 +144,8 @@ class GuideShow:
             return {'show': self.to_dict(), 'message': 'Unable to process this episode.', 'error': str(err)}
 
     def search_imdb_information(self):
-        if self.season_number != 'Unknown' and self.episode_number != 0 and self.episode_title != '':
+        if (self.season_number != 'Unknown' and self.episode_number != 0 and self.episode_title != '') or 'HD' in self.channel:
             return self
-        if self.season_number == '':
-            print(f"{self.title}'s season number empty before searching IMDB API")
 
         imdb_api_key = os.getenv('IMDB_API')
         results = []
@@ -163,9 +167,6 @@ class GuideShow:
                             description = GuideShow._extract_information(result['description'])
                             self.season_number = description[0]
                             self.episode_number = int(description[1])
-                        if self.season_number == '':
-                            self.season_number = "Unknown"
-                            print(f"{self.title}'s season number empty after searching IMDB API")
                 else:
                     print(f"IMDB API returned None when looking up {self.title}'s {self.episode_title} episode")
         
@@ -230,10 +231,13 @@ class GuideShow:
         }
 
     def __repr__(self) -> str:
-        return self.message_string()
+        return self.message_string()[:-1]
 
     def __eq__(self, other: 'GuideShow') -> bool:
         return self.title == other.title and self.channel == other.channel and self.time == self.time
+
+    def __hash__(self) -> int:
+        return hash((self.title, self.channel, self.time))
 
 
 class SpecialCases(ABC):
@@ -256,17 +260,17 @@ class TransformersGuideShow(SpecialCases):
     @staticmethod
     def transformers_shows(transformers: str) -> tuple:
         if 'Fallen' in transformers:
-            return 1, 2, 'Revenge of the Fallen'
+            return '1', 2, 'Revenge of the Fallen'
         elif 'Dark' in transformers:
-            return 1, 3, 'Dark of the Moon'
+            return '1', 3, 'Dark of the Moon'
         elif 'Extinction' in transformers:
-            return 1, 4, 'Age of Extinction'
+            return '1', 4, 'Age of Extinction'
         elif 'Knight' in transformers:
-            return 1, 5, 'The Last Knight'
+            return '1', 5, 'The Last Knight'
         elif 'Bumblebee' in transformers:
-            return 1, 6, 'Bumblebee'
+            return '1', 6, 'Bumblebee'
         elif transformers == 'Transformers':
-            return 1, 1, 'Transformers'
+            return '1', 1, 'Transformers'
         else:
             return transformers
 
@@ -300,29 +304,29 @@ class DoctorWho(SpecialCases):
                 return 'Smith Specials', idx+1, smith_special
         
         if 'Christmas Invasion' in title:
-            return 2, 0, 'The Christmas Invasion'
+            return '2', 0, 'The Christmas Invasion'
         elif 'Runaway Bride' in title:
-            return 3, 0, 'The Runaway Bride'
+            return '3', 0, 'The Runaway Bride'
         elif 'Voyage Of The Damned' in title:
-            return 4, 0, 'Voyage of the Damned'
+            return '4', 0, 'Voyage of the Damned'
         elif 'Christmas Carol' in title:
-            return 6, 0, 'A Christmas Carol'
+            return '6', 0, 'A Christmas Carol'
         elif 'Wardrobe' in title:
-            return 7, 0, 'The Doctor, the Widow and the Wardrobe'
+            return '7', 0, 'The Doctor, the Widow and the Wardrobe'
         elif 'Last Christmas' in title:
-            return 9, 0, 'Last Christmas'
+            return '9', 0, 'Last Christmas'
         elif 'Husbands Of River Song' in title:
-            return 9, 13, 'The Husbands of River Song'
+            return '9', 13, 'The Husbands of River Song'
         elif 'Return Of Doctor Mysterio' in title:
-            return 10, 0, 'The Return of Doctor Mysterio'
+            return '10', 0, 'The Return of Doctor Mysterio'
         elif 'Twice Upon A Time' in title:
-            return 10, 13, 'Twice Upon a Time'
+            return '10', 13, 'Twice Upon a Time'
         elif 'Resolution' in title:
-            return 11, 11, 'Resolution'
+            return '11', 11, 'Resolution'
         elif 'Revolution Of The Daleks' in title:
-            return 12, 11, 'Revolution of the Daleks'
+            return '12', 11, 'Revolution of the Daleks'
         elif 'Eve of the Daleks' in title or 'Eve Of The Daleks' in title:
-            return 13, 7, 'Eve of the Daleks'
+            return '13', 7, 'Eve of the Daleks'
         else:
             return title
 
@@ -357,20 +361,20 @@ class MorseGuideShow(SpecialCases):
                         'The Wench Is Dead', 'The Remorseful Day']}]
 
         if 'Service Of All' in guide_title:
-            return 1, 3, 'Service Of All The Dead'
+            return '1', 3, 'Service Of All The Dead'
         if 'Infernal Spirit' in guide_title:
-            return 4, 1, 'The Infernal Serpent'
+            return '4', 1, 'The Infernal Serpent'
         if 'In Australia' in guide_title:
-            return 5, 4, 'Promised Land'
+            return '5', 4, 'Promised Land'
         if 'Death Is' in guide_title:
-            return 8, 3, 'Death Is Now My Neighbour'
+            return '8', 3, 'Death Is Now My Neighbour'
         else:
             for season_idx, season in enumerate(morse_titles):
                 for episode_idx, title in enumerate(season['Episodes']):
                     if 'The' in guide_title and 'The' not in title:
                         title = 'The ' + title
                     if guide_title in title:
-                        return season_idx+1, episode_idx+1, title
+                        return str(season_idx+1), episode_idx+1, title
 
 class RedElection(SpecialCases):
 
@@ -393,18 +397,11 @@ class SilentWitness(SpecialCases):
     @staticmethod
     def silent_witness(season_number: str, episode_number: int, episode_title: str):
         check_episode = SilentWitness.check_silent_witness(episode_title)
-        from log import logging_app
-        logging_app(f'Logging Silent Witness Episode\nSeason Number: {season_number}\nEpisode Number: {episode_number}\nEpisode Title: {episode_number}\nResult: {str(check_episode)}')
         
-        if season_number == '24':
-            return 'Silent Witness', True, season_number, episode_number, episode_title
-        else:
-            print(f'Episode title: {episode_title}')
-
-        if check_episode:
-            return check_episode
-        else:
-            return False
+        from log import logging_app
+        logging_app(f'Logging Silent Witness Episode\nSeason Number: {season_number}, Episode Title: {episode_title}\nResult: {str(check_episode)}')
+        
+        return check_episode
 
     def check_silent_witness(episode_title: str):
         season_24_episodes = {
