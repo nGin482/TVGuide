@@ -9,7 +9,7 @@ import os
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from .GuideShow import GuideShow
+    from database.models.GuideShow import GuideShow
 
 class Episode:
     
