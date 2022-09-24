@@ -116,7 +116,7 @@ class Episode:
 
     def remove_unknown_episode(self, show_title: str):
         """
-        Rollback the `RecordedShows` collection to a point before the TVGuide has interacted with the DB for the current day
+        Remove this show from the Unknown season in the collection
         """
         
         recorded_shows_collection().find_one_and_update(
