@@ -142,10 +142,10 @@ class RedElection(SpecialCases):
         from log import logging_app
         logging_app(f'Logging Red Election Episode\nSeason Number: {season_number}\nEpisode title: {episode_title}')
         
-        episode_details = title[title.find('Series'):]
+        episode_details = episode_title[episode_title.find('Series'):]
         
         episode_detail_values = episode_details.split(' ')
-        return 'Red Election', True, episode_detail_values[1], episode_detail_values[3], ''
+        return 'Red Election', True, episode_detail_values[1], int(episode_detail_values[3]), ''
 
 class SilentWitness(SpecialCases):
     
