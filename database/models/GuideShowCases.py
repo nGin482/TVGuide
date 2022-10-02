@@ -4,7 +4,7 @@ class SpecialCases(ABC):
 
     @abstractmethod
     def handle():
-        pass
+        raise NotImplementedError
 
 class TransformersGuideShow(SpecialCases):
 
