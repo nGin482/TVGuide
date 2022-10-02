@@ -1,7 +1,6 @@
 from datetime import datetime
 from pymongo import MongoClient
-from pymongo.database import Database
-from pymongo.collection import Collection
+from mongomock import MongoClient as Client, Database, Collection
 import unittest
 import json
 import os
@@ -10,55 +9,82 @@ from database.models.GuideShow import GuideShow
 from database.models.RecordedShow import RecordedShow
 from database.models.Reminders import Reminder
 from exceptions.DatabaseError import SeasonNotFoundError
-from repeat_handler import get_today_shows_data, tear_down
+from repeat_handler import get_today_shows_data
 
 
 class TestDatabase(unittest.TestCase):
 
     def setUp(self) -> None:
         super().setUp()
-        self.test_db = MongoClient(os.getenv('TVGUIDE_DB')).get_database('test')
+        self.client = Client()
+        self.test_db = self.client.get_database('TVGUIDE_DB')
         self.recorded_shows_collection = self.test_db.get_collection('RecordedShows')
-        with open(f'tests/test_data.json') as fd:
-            data: list[dict] = json.load(fd)
-        get_today_shows_data([show['title'] for show in data])
-        self.guide_shows = [GuideShow(
-            item['title'],
-            item['channel'],
-            datetime.strptime(item['time'], '%H:%M'),
-            item['episode_info'],
-            item['season_number'],
-            item['episode_number'],
-            item['episode_title']
-        ) for item in data]
-        self.reminders: list[Reminder] = []
+        # self.test_db = MongoClient(os.getenv('TVGUIDE_DB')).get_database('test')
+        # self.recorded_shows_collection = self.test_db.get_collection('RecordedShows')
 
+        with open('tests/test_data/recorded_shows.json') as fd:
+            self.recorded_shows: list[dict] = json.load(fd)
+
+        
+        with open(f"today_guide/{os.listdir('today_guide')[0]}") as fd:
+            today_shows = json.load(fd)
+        
+        with open(f'tests/test_guide_list.json') as fd:
+            data: list[dict] = json.load(fd)
+        data.extend(today_shows['FTA'])
+        
     def test_connection(self):
         self.assertIsInstance(self.test_db, Database)
         self.assertIsInstance(self.recorded_shows_collection, Collection)
 
-    def test_create_recorded_show_from_guide_show(self):
-        recorded_show = RecordedShow.from_guide_show(self.guide_shows[0])
-        self.assertEqual(recorded_show.title, self.guide_shows[0].title)
-        self.assertIsInstance(recorded_show.seasons[0].season_number, str)
-        self.assertEqual(recorded_show.seasons[0].season_number, self.guide_shows[0].season_number)
-        self.assertIsInstance(recorded_show.seasons[0].episodes[0].episode_number, int)
-        self.assertEqual(recorded_show.seasons[0].episodes[0].episode_number, self.guide_shows[0].episode_number)
-        self.assertEqual(recorded_show.seasons[0].episodes[0].episode_title, self.guide_shows[0].episode_title)
-        self.assertIn(self.guide_shows[0].channel, recorded_show.seasons[0].episodes[0].channels)
-
-        self.assertTrue(recorded_show.seasons[0].episodes[0].repeat)
-
     def test_create_recorded_show_from_db(self):
-        mongodb_record:dict = RecordedShow.get_one_recorded_show(self.guide_shows[1].title)
-        recorded_show = RecordedShow.from_database(mongodb_record)
-        self.assertIsInstance(mongodb_record, dict)
-        self.assertEqual(recorded_show.title, mongodb_record['show'])
+        recorded_show = RecordedShow.from_database(self.recorded_shows[0])
+        self.assertEqual(recorded_show.title, self.recorded_shows[0]['show'])
         self.assertGreater(len(recorded_show.seasons), 0)
-        self.assertGreater(len(recorded_show.find_season(self.guide_shows[1].season_number).episodes), 0)
-        self.assertIsNotNone(self.guide_shows[1].recorded_show)
+        episode_count = 0
+        for season in recorded_show.seasons:
+            for episode in season.episodes:
+                episode_count += 1
+        self.assertGreater(episode_count, 0)
 
-    def test_insert_recorded_show(self):
+    def test_create_recorded_show_from_guide_show(self):
+        new_show = GuideShow(
+            'Endeavour',
+            'ABC1',
+            datetime(2022, 8, 26),
+            True,
+            '6',
+            1,
+            'Pylon',
+            RecordedShow.from_database(RecordedShow.get_one_recorded_show('Endeavour'))
+        )
+        recorded_show = RecordedShow.from_guide_show(new_show)
+        self.assertEqual(recorded_show.title, new_show.title)
+        self.assertIsInstance(recorded_show.seasons[0].season_number, str)
+        self.assertEqual(recorded_show.seasons[0].season_number, new_show.season_number)
+        self.assertIsInstance(recorded_show.seasons[0].episodes[0].episode_number, int)
+        self.assertEqual(recorded_show.seasons[0].episodes[0].episode_number, new_show.episode_number)
+        self.assertEqual(recorded_show.seasons[0].episodes[0].episode_title, new_show.episode_title)
+        self.assertIn(new_show.channel, recorded_show.seasons[0].episodes[0].channels)
+        print(recorded_show)
+        self.assertFalse(recorded_show.seasons[0].episodes[0].repeat)
+
+    def test_insert_new_show(self):
+        new_unforgotten_episode = GuideShow(
+            'Unforgotten',
+            'SBS',
+            datetime(2022, 8, 10, 20, 30),
+            True,
+            '4',
+            1,
+            'Episode 1',
+            None
+        )
+        print(len(RecordedShow.get_all_recorded_shows()))
+        new_unforgotten_episode.capture_db_event()
+        print(len(RecordedShow.get_all_recorded_shows()))
+    
+    def test_insert_new_season(self):
         new_show = GuideShow(
             'Endeavour',
             'ABC1',
@@ -66,12 +92,25 @@ class TestDatabase(unittest.TestCase):
             True,
             '10',
             1,
-            'Test'
+            'Test',
+            self.recorded_shows_collection.find_one({'show': 'Endeavour'})
         )
 
-        self.guide_shows.append(new_show)
-        with self.assertRaises(SeasonNotFoundError) as exception_context:
-            new_show.find_recorded_episode()
+        new_show.capture_db_event()
+
+    def test_insert_new_episode(self):
+        new_show = GuideShow(
+            'Endeavour',
+            'ABC1',
+            datetime.now(),
+            True,
+            '10',
+            1,
+            'Test',
+            self.recorded_shows_collection.find_one({'show': 'Endeavour'})
+        )
+
+        new_show.capture_db_event()
 
 
     def test_create_reminder_from_values(self):
@@ -103,7 +142,6 @@ class TestDatabase(unittest.TestCase):
     
 
     def tearDown(self) -> None:
-        tear_down()
         return super().tearDown()
 
     # test:
@@ -118,6 +156,5 @@ class TestDatabase(unittest.TestCase):
             # make sure the repeat status is false on insert
         # adding channel
         # marking as repeat
-        # JSON file updates as well
         # guideShow_object.capture_db_event()
             # guideShow_object.repeat and channel updating during capture_db_event()
