@@ -81,6 +81,26 @@ class Validation:
 
         return guide_list
 
+    @staticmethod
+    def extract_information(description: str) -> tuple:
+        """
+        Given a description from an IMDB API result, search this string for information regarding season number and episode number
+        """
+        import re
+
+        try:
+            desc_break = description.split('|')
+        
+            season_index = desc_break[0].index('Season ')+7
+            season = desc_break[0][season_index:len(desc_break[0])-1]
+            episode:str = desc_break[1][9:desc_break[1].index('-')-1]
+        except ValueError:
+            numbers = re.findall(r'\d+', description)
+            season = numbers[1]
+            episode = numbers[2]
+        
+        return season, int(episode)
+
 
     @staticmethod
     def valid_reminder_fields():

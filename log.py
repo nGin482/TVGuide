@@ -130,6 +130,7 @@ def log_guide_information(fta_shows: list['GuideShow'], bbc_shows: list['GuideSh
     write_to_backup_file(today_guide)
 
 def log_guide(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
+    """Log the database event to the events.json file"""
 
     log_guide_information(fta_shows, bbc_shows)
     
@@ -141,6 +142,10 @@ def log_guide(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
     for show in bbc_shows:
         log_event = show.capture_db_event()
         status_setting_repeats(log_event)
+
+def log_guide_db_service(event: dict):
+    "Log the database event to the events.json file"
+    status_setting_repeats(event)
 
 def remove_changes():
     """
