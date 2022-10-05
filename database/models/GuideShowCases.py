@@ -156,12 +156,19 @@ class SilentWitness(SpecialCases):
 
     @staticmethod
     def silent_witness(season_number: str, episode_title: str):
-        check_episode = SilentWitness.check_silent_witness(episode_title)
         
-        from log import logging_app
-        logging_app(f'Logging Silent Witness Episode\nSeason Number: {season_number}, Episode Title: {episode_title}\nResult: {str(check_episode)}')
+        try:
+            check_episode = SilentWitness.check_silent_witness(episode_title)
+            return check_episode
+        except ValueError:
+            return None
+        finally:
+            from log import logging_app
+            if check_episode:
+                logging_app(f'Logging Silent Witness Episode\nSeason Number: {season_number}, Episode Title: {episode_title} Result: {check_episode}')
+            else:
+                logging_app(f'Logging Silent Witness Episode\nSeason Number: {season_number}, Episode Title: {episode_title}')
         
-        return check_episode
 
     def check_silent_witness(episode_title: str):
         season_24_episodes = {
