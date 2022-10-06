@@ -27,3 +27,15 @@ class ReminderNotFoundError(Exception):
     Raised when the reminder document for the given show could not be found in the Database
     """
     pass
+
+class SearchItemNotFoundError(Exception):
+    """
+    Raised when the given show could not be found when searching the `SearchList` collection
+    """
+    pass
+
+class SearchItemAlreadyExistsError(Exception):
+    """
+    Raised when the given show could not be found when searching the `SearchList` collection
+    """
+    pass
