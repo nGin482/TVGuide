@@ -36,6 +36,6 @@ class SearchItemNotFoundError(Exception):
 
 class SearchItemAlreadyExistsError(Exception):
     """
-    Raised when the given show could not be found when searching the `SearchList` collection
+    Raised when the given show already exists in the `SearchList` collection
     """
     pass
