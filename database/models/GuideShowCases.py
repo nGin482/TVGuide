@@ -14,7 +14,7 @@ class TransformersGuideShow(SpecialCases):
         if isinstance(check_transformers, tuple):
             if 'Bumblebee' in title:
                 title = 'Transformers'
-            return 'Transformers', True, str(check_transformers[0]), check_transformers[1], check_transformers[2]
+            return 'Transformers', str(check_transformers[0]), check_transformers[1], check_transformers[2]
         return ()
 
     @staticmethod
@@ -42,7 +42,7 @@ class DoctorWho(SpecialCases):
             logging_app(title)
             
             check_dw_title: tuple = DoctorWho.doctor_who_episodes(title)
-            return 'Doctor Who', True, str(check_dw_title[0]), check_dw_title[1], check_dw_title[2]
+            return 'Doctor Who', str(check_dw_title[0]), check_dw_title[1], check_dw_title[2]
         return ()
     
     @staticmethod
@@ -97,7 +97,7 @@ class MorseGuideShow(SpecialCases):
         titles = title.split(': ')
         episode = MorseGuideShow.morse_episodes(titles[1])
         
-        return 'Inspector Morse', True, str(episode[0]), episode[1], episode[2]
+        return 'Inspector Morse', str(episode[0]), episode[1], episode[2]
 
     @staticmethod
     def morse_episodes(guide_title: str) -> tuple:
@@ -145,7 +145,7 @@ class RedElection(SpecialCases):
         episode_details = episode_title[episode_title.find('Series'):]
         
         episode_detail_values = episode_details.split(' ')
-        return 'Red Election', True, episode_detail_values[1], int(episode_detail_values[3]), ''
+        return 'Red Election', episode_detail_values[1], int(episode_detail_values[3]), ''
 
 class SilentWitness(SpecialCases):
     
@@ -194,7 +194,7 @@ class SilentWitness(SpecialCases):
                 episode_part_num = [char for char in episode_title if char.isdigit()][0]
                 episode_part_num = int(episode_part_num)
                 episode_number = (index * 2) + episode_part_num
-                return 'Silent Witness', True, '24', episode_number, episode_title
+                return 'Silent Witness', '24', episode_number, episode_title
             else:
                 raise ValueError('Unable to understand this Silent Witness episode')
         else:
