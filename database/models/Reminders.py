@@ -16,19 +16,19 @@ class Reminder:
         self.reminder_alert = reminder_alert
         self.warning_time = warning_time
         self.occassions = occassions
-        self.guide_show = guide_show
-        self.notify_time = self.calculate_notification_time()
+        if guide_show is not None:
+            self.guide_show = guide_show
+            self.notify_time = self.calculate_notification_time()
 
     @classmethod
     def from_values(cls, show: 'GuideShow', reminder_alert: str, warning_time: int, occassions: str):
         return cls(show.title, reminder_alert, warning_time, occassions, show)
 
     @classmethod
-    def from_database(cls, show: 'GuideShow'):
+    def from_database(cls, reminder_data: dict, show: 'GuideShow' = None):
         """
         Raises `ReminderNotFoundError` if the reminder document for the given show could not be found.
         """
-        reminder_data = Reminder._get_database_data(show.title)
         show_title: str = reminder_data['show']
         reminder_alert: str = reminder_data['reminder_alert']
         warning_time: int = reminder_data['warning_time']
