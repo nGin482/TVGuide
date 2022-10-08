@@ -129,31 +129,9 @@ def log_guide_information(fta_shows: list['GuideShow'], bbc_shows: list['GuideSh
     # guide = organise_guide(fta_shows, bbc_shows)
     write_to_backup_file(today_guide)
 
-def log_guide(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
-    """Log the database event to the events.json file"""
-
-    log_guide_information(fta_shows, bbc_shows)
-    
-    clear_events_log()
-    for show in fta_shows:
-        if 'HD' not in show.channel and show.episode_info:
-            log_event = show.capture_db_event()
-            status_setting_repeats(log_event)
-    for show in bbc_shows:
-        log_event = show.capture_db_event()
-        status_setting_repeats(log_event)
-
-def log_guide_db_service(event: dict):
+def log_database_event(event: dict):
     "Log the database event to the events.json file"
     status_setting_repeats(event)
-
-def remove_changes():
-    """
-    Revert TVGuide to a state before the current day's message was sent
-    """
-
-    delete_latest_entry()
-    rollback_recorded_shows_collection()
 
 def log_discord_message_too_long(message_length, fta_length):
 

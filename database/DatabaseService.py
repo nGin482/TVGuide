@@ -5,11 +5,11 @@ from datetime import datetime
 import json
 import os
 
-from log import log_guide_db_service
 from database.models.GuideShow import GuideShow
 from database.models.RecordedShow import RecordedShow, Season, Episode
 from database.models.Reminders import Reminder
 from exceptions.DatabaseError import DatabaseError, EpisodeNotFoundError, ReminderNotFoundError, SearchItemAlreadyExistsError, SearchItemNotFoundError, SeasonNotFoundError, ShowNotFoundError
+from log import log_database_event
 
 class DatabaseService:
 
@@ -176,7 +176,7 @@ class DatabaseService:
         except Exception as err:
             event = {'show': guide_show.to_dict(), 'message': 'Unable to process this episode.', 'error': str(err)}
 
-        log_guide_db_service(event)
+        log_database_event(event)
         return event
 
 # SEARCH LIST
