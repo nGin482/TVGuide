@@ -1,7 +1,6 @@
 from __future__ import annotations
-from datetime import datetime, timedelta
-from pymongo import ReturnDocument
-from exceptions.DatabaseError import DatabaseError, ReminderNotFoundError
+from datetime import timedelta
+from exceptions.DatabaseError import ReminderNotFoundError
 from database.mongo import database
 
 from typing import TYPE_CHECKING
@@ -80,22 +79,6 @@ class Reminder:
                 pass
         return reminder_list
 
-    def insert_reminder_document(self):
-        inserted_document = Reminder.reminders_collection.insert_one(self.to_dict())
-        if not inserted_document.inserted_id:
-            raise DatabaseError(f'The Reminder document for {self.show} was not inserted into the Reminders collection')
-        return True
-
-    def delete_reminder(self):
-        """Delete a `Reminder` from the MongoDB collection.\n
-        Raises an `exceptions.DatabaseError` if the reminder document could not be found."""
-        reminder_deleted: dict = Reminder.reminders_collection.find_one_and_delete(
-            {'show': self.show}
-        )
-        if len(reminder_deleted.keys()) == 0 or not reminder_deleted:
-            raise DatabaseError(f'The reminder for {self.show} could not be found')
-        return True
-    
     def to_dict(self):
         return {
             'show': self.show,

@@ -228,6 +228,8 @@ class DatabaseService:
 
     def get_reminders_for_shows(self, guide_list: list['GuideShow']):
         """
+        Given a list of `GuideShow` objects, filter the list of `Reminders` based on whether there is a match.\n
+        If there is a match, assign the `GuideShow` to the reminder.
         """
         all_reminders = self.get_all_reminders()
         guide_reminders: list[Reminder] = []
@@ -249,4 +251,12 @@ class DatabaseService:
             raise DatabaseError(f'The Reminder document for {reminder.show} was not inserted into the Reminders collection')
         return True
 
-
+    def delete_reminder(self, show: str):
+        """Delete a `Reminder` from the MongoDB collection.\n
+        Raises an `exceptions.DatabaseError` if the reminder document could not be found."""
+        reminder_deleted: dict = self.reminders_collection.find_one_and_delete(
+            {'show': show}
+        )
+        if reminder_deleted is None:
+            raise DatabaseError(f'The reminder for {show} could not be found')
+        return True
