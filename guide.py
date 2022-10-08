@@ -1,5 +1,6 @@
 from datetime import datetime
 from requests import get
+from aux_methods.helper_methods import remove_doubles
 
 from database.models.GuideShow import GuideShow
 from database.models.RecordedShow import RecordedShow
@@ -25,7 +26,7 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
     """
 
     current_date = datetime.today().date()
-    new_url = 'https://epg.abctv.net.au/processed/Sydney_' + str(current_date) + ".json"
+    new_url = f'https://epg.abctv.net.au/processed/Sydney_{str(current_date)}.json'
     shows_on: list[GuideShow] = []
     shows_data: list[dict] = []
 
@@ -83,6 +84,7 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
                 matching_shows = list(filter(lambda guide_show: guide_show.title == show.title and guide_show.season_number == 'Unknown', shows_on))
                 show.update_episode_number_with_guide_list(matching_shows)
 
+    remove_doubles(shows_on)
     return shows_on
 
 def compose_message(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):

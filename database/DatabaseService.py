@@ -197,7 +197,7 @@ class DatabaseService:
                 self.search_list_collection.insert_one({"show": show})
                 return True
             except OperationFailure as err:
-                raise DatabaseError(f'There was a problem adding {show} to the search list. Error: {str(err)}')
+                raise DatabaseError(f'There was a problem adding {show} to the Search List. Error: {str(err)}')
 
     def remove_show_from_list(self, show_to_remove: str):
         """Remove the given show from the SearchList collection.\n
@@ -205,12 +205,12 @@ class DatabaseService:
         or `DatabaseError` if there is a problem removing the show."""
         show_exists = self.search_list_collection.find_one({'show': show_to_remove})
         if show_exists:
-            raise SearchItemNotFoundError(f'The show {show_to_remove} is already being searched for')
+            raise SearchItemNotFoundError(f'The show {show_to_remove} could not be found in the SearchList.')
         try:
             self.search_list_collection.delete_one({'show': show_to_remove})
             return True
         except OperationFailure as err:
-            raise DatabaseError(f'There was a problem removing {show_to_remove} from the show list. Error: {str(err)}')
+            raise DatabaseError(f'There was a problem removing {show_to_remove} from the Search List. Error: {str(err)}')
 
 # REMINDERS
     def get_all_reminders(self):
