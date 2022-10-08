@@ -1,164 +1,155 @@
-from aux_methods.helper_methods import get_today_date
-import json
+from datetime import datetime
+from requests import get
 
-def sort_shows_by_title(fta_shows, bbc_shows):
+from database.models.GuideShow import GuideShow
+from database.models.RecordedShow import RecordedShow
+from data_validation.validation import Validation
+from database.DatabaseService import DatabaseService
+from log import clear_events_log, clear_imdb_api_results, compare_dates
+
+def get_today_shows_data(list_of_shows: list[str], database_service: DatabaseService):
+    all_recorded_shows = database_service.get_all_recorded_shows()
+
+    return [recorded_show for recorded_show in all_recorded_shows if recorded_show.title in list_of_shows]
+
+
+def find_json(url):
+    data = get(url).json()
+
+    return data
+
+def search_free_to_air(search_list: list[str], database_service: DatabaseService):
     """
-    Bundles the episodes together according to their show title
+
+    :return:
     """
-    all_shows = []
 
-    all_shows.extend(fta_shows)
-    all_shows.extend(bbc_shows)
+    current_date = datetime.today().date()
+    new_url = 'https://epg.abctv.net.au/processed/Sydney_' + str(current_date) + ".json"
+    shows_on: list[GuideShow] = []
+    shows_data: list[dict] = []
 
-    list_sorted_shows = []
-    new_list = []
-    for show in all_shows:
-        if show['title'] not in list_sorted_shows:
-            temp_filter = list(filter(lambda shows_discovered: shows_discovered['title'] == show['title'], all_shows))
-            new_list.append(temp_filter)
-            list_sorted_shows.append(show['title'])
+    data = find_json(new_url)['schedule']
 
-    return new_list
+    for item in data:
+        listing = item['listing']
 
-def organise_guide(fta_shows, bbc_shows):
-    sorted_shows = sort_shows_by_title(fta_shows, bbc_shows)
+        # print("Listing: " + str(listing))
+        for guide_show in listing:
+            title = guide_show['title']
+            for show in search_list:
+                if show in title:
+                    show_date = guide_show['start_time'][:-9]
+                    if int(show_date[-2:]) == int(datetime.today().day):
+                        season_number = ''
+                        episode_number = 0
+                        episode_title = ''
+                        if 'series_num' in guide_show.keys() and 'episode_num' in guide_show.keys():
+                            season_number = str(guide_show['series_num'])
+                            episode_number = int(guide_show['episode_num'])
+                        if 'episode_title' in guide_show.keys():
+                            episode_title = guide_show['episode_title']
+                        shows_data.append({
+                            'title': Validation.check_show_titles(guide_show['title']),
+                            'channel': item['channel'],
+                            'time': datetime.strptime(guide_show['start_time'][-8:-3], '%H:%M'),
+                            'season_number': season_number,
+                            'episode_number': episode_number,
+                            'episode_title': episode_title
+                        })
 
-    guide = []
-    for show in sorted_shows:
-        # organise_seasons(show)
-        show_object = {
-            'title': show[0]['title'],
-            'seasons': []
-        }
-        for episode in show:
-            if 'series_num' not in episode.keys():
-                episode['series_num'] = 'Unknown'
-            if 'episode_num' not in episode.keys():
-                episode['episode_num'] = ''
-            if 'episode_title' not in episode.keys():
-                episode['episode_title'] = ''
-                    
-            season_idx = find_season(show_object['seasons'], episode['series_num'])
-            if season_idx == -1:
-                season_object = {
-                    'season num': episode['series_num'],
-                    'episodes': [{
-                        'episode num': episode['episode_num'],
-                        'episode title': episode['episode_title'],
-                        'time': episode['time'],
-                        'channels': [episode['channel']],
-                        'first air date': get_today_date('string'),
-                        'repeat': episode['repeat']
-                    }]
-                }
-                show_object['seasons'].append(season_object)
-            else:
-                episode_idx = find_episode(show_object['seasons'][season_idx]['episodes'], episode['episode_num'], episode['episode_title'])
-                if episode_idx == -1:
-                    episode_object = {
-                        'episode num': episode['episode_num'],
-                        'episode title': episode['episode_title'],
-                        'time': episode['time'],
-                        'channels': [episode['channel']],
-                        'first air date': get_today_date('string'),
-                        'repeat': episode['repeat']
-                    }
-                    show_object['seasons'][season_idx]['episodes'].append(episode_object)
-                else:
-                    channels = show_object['seasons'][season_idx]['episodes'][episode_idx]['channels']
-                    if not check_channel(channels, episode['channel']):
-                        show_object['seasons'][season_idx]['episodes'][episode_idx]['channels'].append(episode['channel'])
-                    show_object['seasons'][season_idx]['episodes'][episode_idx]['repeat'] = True
-            check_unknown_season(show_object['seasons'], episode)
-        cleanup_unknown_season(show_object['seasons'])
-        guide.append(show_object)
+    shows_data = Validation.remove_unwanted_shows(shows_data)
+    show_titles = [show['title'] for show in shows_data]
+    recorded_shows: list['RecordedShow'] = get_today_shows_data(show_titles, database_service)
+    shows_on = [
+        GuideShow(
+            data['title'],
+            data['channel'],
+            data['time'],
+            data['season_number'],
+            data['episode_number'],
+            data['episode_title'],
+            next((recorded_show for recorded_show in recorded_shows if data['title'] == recorded_show.title), None)
+        ) for data in shows_data
+    ]
+    shows_on = list(set(shows_on))
+    shows_on.sort(key=lambda show_obj: show_obj.time)
+    
+    for show in shows_on:
+        # show.update_show_details()
+        if show.recorded_show is not None:
+            show.search_imdb_information()
+            if show.season_number == 'Unknown':
+                matching_shows = list(filter(lambda guide_show: guide_show.title == show.title and guide_show.season_number == 'Unknown', shows_on))
+                show.update_episode_number_with_guide_list(matching_shows)
 
-    return guide
+    return shows_on
 
-def find_season(seasons, season_number):
-    for idx, season in enumerate(seasons):
-        if season_number in season['season num']:
-            return idx
-    return -1
+def compose_message(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
+    """
+    toString function that writes the shows, times, channels and episode information (if available) via natural language
+    :return: the to-string message
+    """
+    weekdays = [
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+        'Sunday',
+    ]
 
-def find_episode(episodes, episode_number, episode_title):
-    if episode_title == '':
-        for idx, episode in enumerate(episodes):
-            if episode_number in episode['episode num']:
-                return idx
-        return -1
-    elif episode_number == '':
-        for idx, episode in enumerate(episodes):
-            if episode_title in episode['episode title']:
-                return idx
-        return -1
+    message_date = datetime.today().date()
+    message = weekdays[message_date.weekday()] + " " + str(message_date.strftime('%d-%m-%Y')) + " TVGuide\n"
+
+    # Free to Air
+    message = message + "\nFree to Air:\n"
+    if len(fta_shows) == 0:
+        message = message + "Nothing on Free to Air today\n"
     else:
-        return False
+        for show in fta_shows:
+            message += show.message_string()
 
-def check_channel(channels, episode_channel):
-    for channel in channels:
-        if episode_channel in channel:
-            return True
-    return False
+    # BBC
+    message = message + "\nBBC:\n"
+    if len(bbc_shows) == 0 or bbc_shows[0] is []:
+        message = message + "Nothing on BBC today\n"
+    else:
+        for show in bbc_shows:
+            message += show.message_string()
 
-def check_unknown_season(seasons, ep):
-    if len(seasons) > 1:
-        find_unknown_season = list(filter(lambda season: season['season num'] == 'Unknown', seasons))
-        if len(find_unknown_season) > 0:
-            unknown_season = find_unknown_season[0]
-            for idx, unknown_episode in enumerate(unknown_season['episodes']):
-                for season in seasons:
-                    does_episode_exist = find_episode(season['episodes'], unknown_episode['episode num'], unknown_episode['episode title'])
-                    if does_episode_exist != -1:
-                        if check_channel(season['episodes'][does_episode_exist]['channels'], unknown_episode['channels'][0]):
-                            ep['repeat'] = True
-                        else:
-                            season['episodes'][does_episode_exist]['channels'].append(ep['channel'])
-                        unknown_episode['copy exists'] = True
+    return message
 
-def cleanup_unknown_season(seasons):
-    copy_count = 0
-    unknown_idx = -1
-    find_unknown_season = None
-    for idx, season in enumerate(seasons):
-        if season['season num'] == 'Unknown':
-            unknown_idx = idx
-            find_unknown_season = season
-            for episode in season['episodes']:
-                if 'copy exists' in episode.keys():
-                    copy_count += 1
-    if unknown_idx != -1 and copy_count == len(find_unknown_season['episodes']):
-        seasons.pop(unknown_idx)
+def reminders(guide_list: list['GuideShow'], database_service: DatabaseService):
+    print('===================================================================================')
+    print('Reminders:')
+    reminders = database_service.get_reminders_for_shows(guide_list)
+    if len(reminders) > 0:
+        for reminder in reminders:
+            if reminder.compare_reminder_interval():
+                print(f'REMINDER: {reminder.show} is on {reminder.guide_show.channel} at {reminder.guide_show.time.strftime("%H:%M")}')
+                print(f'You will be reminded at {reminder.calculate_notification_time().strftime("%H:%M")}')
+    else:
+        print('There are no reminders scheduled for today')
+    print('===================================================================================')
 
+def run_guide(database_service: DatabaseService):
 
-# possible alternative to organise seasons
-# all episodes are listed with their respective seasons
-# the same episodes are listed multiple times if episode is shown more than once
-def organise_seasons(episodes):
-    show_seasons = []
-    available_seasons = []
-    for episode in episodes:
-        season = episode['series_num']
-        if season not in available_seasons:
-            available_seasons.append(season)
-    print(available_seasons)
-    for season in available_seasons:
-        season_list = list(filter(lambda episode: episode['series_num'] == season, episodes)) 
-        # print(season_list)
-        season_object = {
-            'season number': season_list[0]['series_num'],
-            'episodes': []
-        }
-        for episode in season_list:
-            episode_object = {
-                'episode number': episode['episode_num'],
-                'episode title': episode['episode_title'],
-                'time': episode['time'],
-                'channels': [episode['channel']],
-                'first air date': get_today_date('string'),
-                'repeat': False
-            }
-            season_object['episodes'].append(episode_object)
-        print(season_object)
-        print()
-    # seasons = list(filter(lambda episode: episode['series_num'] == show['title'], episodes))
+    update_db_flag = compare_dates()
+    print(update_db_flag)
+    
+    fta_shows = search_free_to_air(database_service.get_search_list(), database_service)
+    guide_message = compose_message(fta_shows, [])
+    if update_db_flag:
+        clear_events_log()
+        clear_imdb_api_results()
+        database_service.backup_recorded_shows()
+        
+        for guide_show in fta_shows:
+            if 'HD' not in guide_show.channel:
+                database_service.capture_db_event(guide_show)
+
+    print(guide_message)
+    reminders(fta_shows, database_service)
+    return guide_message
