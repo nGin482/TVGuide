@@ -6,7 +6,7 @@ from database.models.GuideShow import GuideShow
 from database.models.RecordedShow import RecordedShow
 from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
-from log import clear_events_log, clear_imdb_api_results, compare_dates
+from log import clear_events_log, clear_imdb_api_results, compare_dates, delete_latest_entry, log_guide_information
 
 def get_today_shows_data(list_of_shows: list[str], database_service: DatabaseService):
     all_recorded_shows = database_service.get_all_recorded_shows()
@@ -151,7 +151,13 @@ def run_guide(database_service: DatabaseService):
         for guide_show in fta_shows:
             if 'HD' not in guide_show.channel:
                 database_service.capture_db_event(guide_show)
+        log_guide_information(fta_shows, [])
 
     print(guide_message)
     reminders(fta_shows, database_service)
     return guide_message
+
+def revert_tvguide(database_service: DatabaseService):
+    "Forget sending a message and rollback the database to its previous state"
+    delete_latest_entry()
+    database_service.rollback_recorded_shows()
