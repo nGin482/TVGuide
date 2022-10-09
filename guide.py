@@ -153,7 +153,6 @@ def run_guide(database_service: DatabaseService):
                 database_service.capture_db_event(guide_show)
         log_guide_information(fta_shows, [])
 
-    print(guide_message)
     reminders(fta_shows, database_service)
     return guide_message
 
