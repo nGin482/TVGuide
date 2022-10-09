@@ -1,14 +1,12 @@
 from __future__ import annotations
 from datetime import timedelta
 from exceptions.DatabaseError import ReminderNotFoundError
-from database.mongo import database
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from database.models.GuideShow import GuideShow
 
 class Reminder:
-    reminders_collection = database().get_collection('Reminders')
 
     def __init__(self, show: str, reminder_alert: str, warning_time: int, occassions: str, guide_show: 'GuideShow') -> None:
         self.show = show
@@ -33,14 +31,6 @@ class Reminder:
         warning_time: int = reminder_data['warning_time']
         occassions: str = reminder_data['occassions']
         return cls(show_title, reminder_alert, warning_time, occassions, show)
-
-    @staticmethod
-    def _get_database_data(show_name: str):
-        reminders_collection = database().get_collection('Reminders')
-        reminder: dict = reminders_collection.find_one({'show': show_name})
-        if not reminder:
-            raise ReminderNotFoundError(f'The reminder document for {show_name} could not be found in the Database')
-        return reminder
 
     def compare_reminder_interval(self):
         if self.occassions == 'All':
