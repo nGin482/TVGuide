@@ -141,12 +141,12 @@ def run_guide(database_service: DatabaseService):
     update_db_flag = compare_dates()
     print(update_db_flag)
     
+    clear_imdb_api_results()
     fta_shows = search_free_to_air(database_service.get_search_list(), database_service)
     guide_message = compose_message(fta_shows, [])
     print(guide_message)
     if update_db_flag:
         clear_events_log()
-        clear_imdb_api_results()
         database_service.backup_recorded_shows()
         
         for guide_show in fta_shows:
