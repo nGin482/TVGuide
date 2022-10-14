@@ -27,7 +27,9 @@ class DatabaseService:
 
     def get_one_recorded_show(self, show_title: str):
         search = self.recorded_shows_collection.find_one({'show': show_title})
-        return RecordedShow.from_database(search)
+        if search is None:
+            raise ShowNotFoundError(f'{show_title} could not be found in the database')
+        return RecordedShow.from_database(dict(search))
 
     def insert_recorded_show_document(self, recorded_show: RecordedShow):
         insert_result = self.recorded_shows_collection.insert_one(recorded_show.to_dict())
