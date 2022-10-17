@@ -70,16 +70,14 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
             data['season_number'],
             data['episode_number'],
             data['episode_title'],
-            next((recorded_show for recorded_show in recorded_shows if data['title'] == recorded_show.title), None)
+            next((recorded_show for recorded_show in recorded_shows if Validation.check_show_titles(data['title']) == recorded_show.title), None)
         ) for data in shows_data
     ]
     shows_on = list(set(shows_on))
     shows_on.sort(key=lambda show_obj: show_obj.time)
     
     for show in shows_on:
-        # show.update_show_details()
         if show.recorded_show is not None:
-            show.search_imdb_information()
             if show.season_number == 'Unknown':
                 matching_shows = list(filter(lambda guide_show: guide_show.title == show.title and guide_show.season_number == 'Unknown', shows_on))
                 show.update_episode_number_with_guide_list(matching_shows)
@@ -152,6 +150,7 @@ def run_guide(database_service: DatabaseService):
         for guide_show in fta_shows:
             if 'HD' not in guide_show.channel:
                 database_service.capture_db_event(guide_show)
+        database_service.add_guide_data(fta_shows, [])
         log_guide_information(fta_shows, [])
 
     reminders(fta_shows, database_service)

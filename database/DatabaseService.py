@@ -19,6 +19,7 @@ class DatabaseService:
         self.recorded_shows_collection = self.database.get_collection('RecordedShows')
         self.reminders_collection = self.database.get_collection('Reminders')
         self.search_list_collection = self.database.get_collection('ShowList')
+        self.guide_collection = self.database.get_collection('Guide')
     
 # RECORDED SHOWS
     def get_all_recorded_shows(self):
@@ -262,3 +263,46 @@ class DatabaseService:
         if reminder_deleted is None:
             raise DatabaseError(f'The reminder for {show} could not be found')
         return True
+
+# GUIDE
+    def get_all_guides(self):
+        return list(self.guide_collection.find({}))
+
+    def get_guide_date(self, date: str):
+        """Get the Guide data for the date provided. Date should be provided in the format `dd/mm/YYYY`"""
+        guide_date = self.guide_collection.find_one({'date': date})
+        if guide_date is None:
+            return None
+        return dict(guide_date)
+
+    def get_guide_month(self, month: str):
+        """
+        Search for all Guide data recorded in the provided month.\n
+        Supports the month as a zero-padded decimal number, the month's full name (January) and the abbreviated name (Jan)"""
+        if not month.isnumeric():
+            if len(month) == 3:
+                month = str(datetime.strptime(month, '%b').month)
+            else:
+                month = str(datetime.strptime(month, '%B').month)
+        guide_search = self.guide_collection.find({'date': f"/{month}/"})
+        return [dict(document) for document in guide_search]
+
+    def add_guide_data(self, fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
+        """Add the Guide data to the database.\n
+        Raises `exceptions.DatabaseError` if the Guide data for the current day already exists or 
+        was not able to be inserted."""
+
+        today_guide = {
+            'date': datetime.today().strftime('%d/%m/%Y'),
+            'FTA': [show.to_dict() for show in fta_shows],
+            'BBC': [show.to_dict() for show in bbc_shows]
+        }
+
+        today_date = datetime.today().strftime('%d/%m/%Y')
+        
+        check_guide_exists = self.get_guide_date(today_date)
+        if check_guide_exists is not None:
+            raise DatabaseError(f"A Guide for today's date ({today_date}) already exists")
+        guide_inserted = self.guide_collection.insert_one(today_guide)
+        if not guide_inserted.inserted_id:
+            raise DatabaseError(f"The Guide was not able to be inserted")
