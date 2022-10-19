@@ -160,3 +160,4 @@ def revert_tvguide(database_service: DatabaseService):
     "Forget sending a message and rollback the database to its previous state"
     delete_latest_entry()
     database_service.rollback_recorded_shows()
+    database_service.remove_guide_data(datetime.today().strftime('%d/%m/%Y'))

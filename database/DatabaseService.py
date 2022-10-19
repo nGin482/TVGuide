@@ -163,7 +163,7 @@ class DatabaseService:
         except SeasonNotFoundError as err:
             new_season = Season.from_guide_show(guide_show)
             try:
-                insert_season = self.add_new_season(new_season)
+                insert_season = self.add_new_season(recorded_show, new_season)
             except DatabaseError as err:
                 insert_season = str(err)
             print(f'{guide_show.title} happening on season')
@@ -306,3 +306,14 @@ class DatabaseService:
         guide_inserted = self.guide_collection.insert_one(today_guide)
         if not guide_inserted.inserted_id:
             raise DatabaseError(f"The Guide was not able to be inserted")
+
+    def remove_guide_data(self, date: str):
+        """Remove the Guide data for the given date from the database.\n
+        Raises `exceptions.DatabaseError` if the given date could not be found."""
+
+        delete_result = self.guide_collection.find_one_and_delete({
+            'date': date
+        })
+        if delete_result is None:
+            raise DatabaseError(f"The Guide data for {date} could not be found")
+
