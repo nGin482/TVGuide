@@ -48,6 +48,8 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
                         if 'series_num' in guide_show.keys() and 'episode_num' in guide_show.keys():
                             season_number = str(guide_show['series_num'])
                             episode_number = int(guide_show['episode_num'])
+                        else:
+                            season_number = 'Unknown'
                         if 'episode_title' in guide_show.keys():
                             episode_title = guide_show['episode_title']
                         shows_data.append({
