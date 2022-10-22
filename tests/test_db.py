@@ -1,41 +1,35 @@
 from datetime import datetime
 from pymongo import MongoClient
-from mongomock import MongoClient as Client, Database, Collection
 import unittest
 import json
 import os
 
+from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
 from database.models.RecordedShow import RecordedShow
 from database.models.Reminders import Reminder
-from exceptions.DatabaseError import SeasonNotFoundError
-from repeat_handler import get_today_shows_data
 
 
 class TestDatabase(unittest.TestCase):
 
     def setUp(self) -> None:
         super().setUp()
-        self.client = Client()
-        self.test_db = self.client.get_database('TVGUIDE_DB')
-        self.recorded_shows_collection = self.test_db.get_collection('RecordedShows')
-        # self.test_db = MongoClient(os.getenv('TVGUIDE_DB')).get_database('test')
-        # self.recorded_shows_collection = self.test_db.get_collection('RecordedShows')
+        self.client = MongoClient(os.getenv('TVGUIDE_DB'))
+        self.prod_db = self.client.get_database('tvguide')
+        self.test_db = DatabaseService(self.client.get_database('test'))
+        self.recorded_shows_collection = self.test_db.recorded_shows_collection
 
         with open('tests/test_data/recorded_shows.json') as fd:
             self.recorded_shows: list[dict] = json.load(fd)
-
-        
         with open(f"today_guide/{os.listdir('today_guide')[0]}") as fd:
             today_shows = json.load(fd)
-        
-        with open(f'tests/test_guide_list.json') as fd:
+        with open(f'tests/test_data/test_guide_list.json') as fd:
             data: list[dict] = json.load(fd)
         data.extend(today_shows['FTA'])
+        self.guide_list = data
         
     def test_connection(self):
-        self.assertIsInstance(self.test_db, Database)
-        self.assertIsInstance(self.recorded_shows_collection, Collection)
+        self.assertEqual(self.test_db.database.name, 'test')
 
     def test_create_recorded_show_from_db(self):
         recorded_show = RecordedShow.from_database(self.recorded_shows[0])
@@ -43,8 +37,7 @@ class TestDatabase(unittest.TestCase):
         self.assertGreater(len(recorded_show.seasons), 0)
         episode_count = 0
         for season in recorded_show.seasons:
-            for episode in season.episodes:
-                episode_count += 1
+            episode_count += len(season.episodes)
         self.assertGreater(episode_count, 0)
 
     def test_create_recorded_show_from_guide_show(self):
@@ -52,11 +45,10 @@ class TestDatabase(unittest.TestCase):
             'Endeavour',
             'ABC1',
             datetime(2022, 8, 26),
-            True,
             '6',
             1,
             'Pylon',
-            RecordedShow.from_database(RecordedShow.get_one_recorded_show('Endeavour'))
+            None
         )
         recorded_show = RecordedShow.from_guide_show(new_show)
         self.assertEqual(recorded_show.title, new_show.title)
@@ -69,48 +61,55 @@ class TestDatabase(unittest.TestCase):
         print(recorded_show)
         self.assertFalse(recorded_show.seasons[0].episodes[0].repeat)
 
-    def test_insert_new_show(self):
+    def test_01_insert_new_show(self):
         new_unforgotten_episode = GuideShow(
             'Unforgotten',
             'SBS',
             datetime(2022, 8, 10, 20, 30),
-            True,
             '4',
             1,
             'Episode 1',
             None
         )
-        print(len(RecordedShow.get_all_recorded_shows()))
-        new_unforgotten_episode.capture_db_event()
-        print(len(RecordedShow.get_all_recorded_shows()))
+        original_length = len(self.test_db.get_all_recorded_shows())
+        self.test_db.capture_db_event(new_unforgotten_episode)
+        new_length = len(self.test_db.get_all_recorded_shows())
+
+        self.assertGreater(new_length, original_length)
     
-    def test_insert_new_season(self):
+    def test_02_insert_new_season(self):
         new_show = GuideShow(
-            'Endeavour',
+            'Unforgotten',
             'ABC1',
             datetime.now(),
-            True,
             '10',
             1,
             'Test',
-            self.recorded_shows_collection.find_one({'show': 'Endeavour'})
+            self.test_db.get_one_recorded_show('Unforgotten')
         )
+        self.assertIsNotNone(new_show.recorded_show)
+        original_length = len(new_show.recorded_show.seasons)
+        self.test_db.capture_db_event(new_show)
+        new_length = len(new_show.recorded_show.seasons)
+        self.assertGreater(new_length, original_length)
 
-        new_show.capture_db_event()
 
-    def test_insert_new_episode(self):
+    def test_03_insert_new_episode(self):
         new_show = GuideShow(
-            'Endeavour',
+            'Unforgotten',
             'ABC1',
             datetime.now(),
-            True,
             '10',
-            1,
-            'Test',
-            self.recorded_shows_collection.find_one({'show': 'Endeavour'})
+            2,
+            'Test-2',
+            self.test_db.get_one_recorded_show('Unforgotten')
         )
 
-        new_show.capture_db_event()
+        self.assertIsNone(new_show.recorded_show)
+        original_length = len(new_show.recorded_show.find_season(new_show.season_number).episodes)
+        self.test_db.capture_db_event(new_show)
+        new_length = len(new_show.recorded_show.find_season(new_show.season_number).episodes)
+        self.assertGreater(new_length, original_length)
 
 
     def test_create_reminder_from_values(self):
@@ -142,6 +141,7 @@ class TestDatabase(unittest.TestCase):
     
 
     def tearDown(self) -> None:
+        self.test_db.recorded_shows_collection.delete_many({})
         return super().tearDown()
 
     # test:
