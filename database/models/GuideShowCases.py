@@ -36,7 +36,7 @@ class TransformersGuideShow(SpecialCases):
 
 class DoctorWho(SpecialCases):
     @staticmethod
-    def handle(title: str) -> tuple[str, bool, str, int, str] | tuple:
+    def handle(title: str) -> tuple[str, str, int, str] | tuple:
         if title != 'Doctor Who':
             from log import logging_app
             logging_app(title)
@@ -100,7 +100,7 @@ class MorseGuideShow(SpecialCases):
         return 'Inspector Morse', str(episode[0]), episode[1], episode[2]
 
     @staticmethod
-    def morse_episodes(guide_title: str) -> tuple:
+    def morse_episodes(guide_title: str):
         """
         Given an episode's title, return the `season number`, `episode number` and correct `episode title` of an Inspector Morse episode
         """
