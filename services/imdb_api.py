@@ -51,4 +51,4 @@ def search_for_episode_title(show_title: str, season_number: str, episode_number
             if episode['episodeNumber'] == str(episode_number):
                 episode_title = str(episode['title'])
                 return episode_title
-        return ''
+    return ''
