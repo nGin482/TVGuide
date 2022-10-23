@@ -26,7 +26,7 @@ def search_for_season_number(show_title: str, episode_title: str):
         if results:
             if len(results) > 0:
                 title = 'Death in Paradise' if 'Death In Paradise' in show_title else show_title
-                log_imdb_api_results({'title': show_title, 'episode_title': episode_title}, results)
+                log_imdb_api_results({'title': show_title, 'episode_title': episode_title, 'search': 'Season Number and Episode Number'}, results)
                 for result in results:
                     if title in result['description'] and episode_title.lower() == result['title'].lower():
                         print(result['description'])
@@ -51,4 +51,8 @@ def search_for_episode_title(show_title: str, season_number: str, episode_number
             if episode['episodeNumber'] == str(episode_number):
                 episode_title = str(episode['title'])
                 return episode_title
+        log_imdb_api_results(
+            {'title': show_title, 'season_number': season_number, 'episode_number': episode_number, 'search': 'Episode Title'},
+            request['episodes']
+        )
     return ''
