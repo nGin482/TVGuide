@@ -56,7 +56,7 @@ class Episode:
     def add_channel(self, channel: str):
         """Add the given channel to the episode's channel list.\n
         If the channel is `ABC1`, `ABCHD` will also be added.\n
-        If the channel is `TEN`, `TENHD` will also be added.
+        If the channel is `TEN`, `TENHD` will also be added.\n
         If the channel is `SBS`, `SBSHD` will also be added.\n"""
         self.channels.append(channel)
         if 'ABC1' in channel:
