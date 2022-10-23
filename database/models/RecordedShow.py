@@ -221,7 +221,7 @@ class RecordedShow:
             return len(unknown_season.episodes)
         return 0
 
-    def find_episode_instances(self, episode_title: str):
+    def find_episode_instances(self, episode_title: str) -> list[tuple[str, int]]:
         """Search all seasons and return all instances where the given `episode_title` has been stored.\n
         Return as a list of tuples containing the `season_number` and `episode_number`
         """
