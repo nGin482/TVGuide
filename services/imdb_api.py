@@ -1,10 +1,9 @@
 import requests
-import logging
 import os
 
 from data_validation.validation import Validation
 from exceptions.service_error import IMDBAPIRequestFailedError
-from log import log_imdb_api_results, logging_app
+from log import log_imdb_api_results
 
 
 def imdb_api(path: str):
@@ -44,9 +43,6 @@ def search_for_episode_title(show_title: str, season_number: str, episode_number
     request = imdb_api(f'SeasonEpisodes/{os.getenv("IMDB_API")}/{imdb_id}/{season_number}')
 
     if request is not None:
-        log_message = f"Searching IMDB API with {show_title}'s season number ({season_number}) to retrieve episode title"
-        logging_app(log_message, logging.INFO)
-        
         for episode in request['episodes']:
             if episode['episodeNumber'] == str(episode_number):
                 episode_title = str(episode['title'])
