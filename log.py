@@ -1,10 +1,10 @@
 from __future__ import annotations
 from datetime import datetime
 from backups import write_to_backup_file
-from database.recorded_shows_collection import rollback_recorded_shows_collection
 import logging
 import json
 import os
+import re
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -13,25 +13,16 @@ if TYPE_CHECKING:
 
 def get_date_from_latest_email():
 
-    arr: list[str] = []
-    
-    with open('log/emails.txt') as f:
-        for line in f:
-            if '\n' in line:
-                arr.append(line[:-1])
-            else:
-                arr.append(line)
+    with open('log/emails.txt') as fd:
+        all_messages = fd.read().splitlines()
 
-    latest_email = arr[-1]
-    idx_front = latest_email.find('on ')
-    idx_back = latest_email.find(' at ')
-    date = latest_email[idx_front+3:idx_back]
-    time = latest_email[idx_back+4:].split(':')
-    date_parsed = datetime.strptime(date, '%d-%m-%y')
-    new_date_parsed = date_parsed.replace(hour=int(time[0]), minute=int(time[1]))
+    latest_message = all_messages[-1]
+    datetime_values = re.findall(r'\d+', latest_message)
+    datetime_values = [int(value) for value in datetime_values]
+    date_of_latest_message = datetime(datetime_values[2], datetime_values[1], datetime_values[0], datetime_values[3], datetime_values[4])
 
-    print(new_date_parsed)
-    return new_date_parsed
+    print(date_of_latest_message)
+    return date_of_latest_message
 
 
 def compare_dates():
