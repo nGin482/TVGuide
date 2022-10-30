@@ -15,7 +15,7 @@ class TransformersGuideShow(SpecialCases):
             if 'Bumblebee' in title:
                 title = 'Transformers'
             return 'Transformers', str(check_transformers[0]), check_transformers[1], check_transformers[2]
-        return ()
+        return title
 
     @staticmethod
     def transformers_shows(transformers: str) -> tuple:
@@ -36,14 +36,14 @@ class TransformersGuideShow(SpecialCases):
 
 class DoctorWho(SpecialCases):
     @staticmethod
-    def handle(title: str) -> tuple[str, str, int, str] | tuple:
+    def handle(title: str):
         if title != 'Doctor Who':
             from log import logging_app
             logging_app(title)
             
             check_dw_title: tuple = DoctorWho.doctor_who_episodes(title)
-            return 'Doctor Who', str(check_dw_title[0]), check_dw_title[1], check_dw_title[2]
-        return ()
+            return 'Doctor Who', str(check_dw_title[0]), int(check_dw_title[1]), str(check_dw_title[2])
+        return title
     
     @staticmethod
     def doctor_who_episodes(title: str) -> tuple:
