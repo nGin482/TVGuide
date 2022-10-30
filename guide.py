@@ -1,15 +1,15 @@
 from datetime import datetime
 from requests import get
-from aux_methods.helper_methods import remove_doubles
 
-from database.models.GuideShow import GuideShow
-from database.models.RecordedShow import RecordedShow
+from aux_methods.helper_methods import remove_doubles
 from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
+from database.models.GuideShow import GuideShow
 from log import clear_events_log, clear_imdb_api_results, compare_dates, delete_latest_entry, log_guide_information
 
 def get_today_shows_data(list_of_shows: list[str], database_service: DatabaseService):
     all_recorded_shows = database_service.get_all_recorded_shows()
+    list_of_shows = [Validation.check_show_titles(title) for title in list_of_shows]
 
     return [recorded_show for recorded_show in all_recorded_shows if recorded_show.title in list_of_shows]
 
@@ -25,64 +25,69 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
     :return:
     """
 
-    current_date = datetime.today().date()
-    new_url = f'https://epg.abctv.net.au/processed/Sydney_{str(current_date)}.json'
+    new_url = f'https://epg.abctv.net.au/processed/Sydney_{str(datetime.today().date())}.json'
     shows_on: list[GuideShow] = []
     shows_data: list[dict] = []
 
     data = find_json(new_url)['schedule']
 
-    for item in data:
-        listing = item['listing']
-
-        # print("Listing: " + str(listing))
-        for guide_show in listing:
+    for channel_data in data:
+        for guide_show in channel_data['listing']:
             title = guide_show['title']
             for show in search_list:
                 if show in title:
                     show_date = guide_show['start_time'][:-9]
-                    if int(show_date[-2:]) == int(datetime.today().day):
-                        season_number = ''
+                    if int(show_date[-2:]) == datetime.today().day:
+                        season_number = 'Unknown'
                         episode_number = 0
                         episode_title = ''
                         if 'series_num' in guide_show.keys() and 'episode_num' in guide_show.keys():
                             season_number = str(guide_show['series_num'])
                             episode_number = int(guide_show['episode_num'])
-                        else:
-                            season_number = 'Unknown'
                         if 'episode_title' in guide_show.keys():
                             episode_title = guide_show['episode_title']
                         shows_data.append({
                             'title': Validation.check_show_titles(guide_show['title']),
-                            'channel': item['channel'],
+                            'channel': channel_data['channel'],
                             'time': datetime.strptime(guide_show['start_time'][-8:-3], '%H:%M'),
                             'season_number': season_number,
                             'episode_number': episode_number,
-                            'episode_title': episode_title
+                            'episode_title': Validation.format_episode_title(episode_title)
                         })
 
     shows_data = Validation.remove_unwanted_shows(shows_data)
     show_titles = [show['title'] for show in shows_data]
-    recorded_shows: list['RecordedShow'] = get_today_shows_data(show_titles, database_service)
-    shows_on = [
-        GuideShow(
-            data['title'],
-            data['channel'],
-            data['time'],
-            data['season_number'],
-            data['episode_number'],
-            data['episode_title'],
-            next((recorded_show for recorded_show in recorded_shows if Validation.check_show_titles(data['title']) == recorded_show.title), None)
-        ) for data in shows_data
-    ]
+    recorded_shows = get_today_shows_data(show_titles, database_service)
+
+    for show in shows_data:
+        episode_data = GuideShow.get_show(show['title'], show['season_number'], show['episode_number'], show['episode_title'])
+        title, season_number, episode_number, episode_title = episode_data
+        recorded_show = next((recorded_show for recorded_show in recorded_shows if title == recorded_show.title), None)
+
+        if show['season_number'] != 'Unknown':
+            guide_show = GuideShow.known_season(
+                title,
+                (show['channel'], show['time']),
+                (season_number, episode_number, episode_title),
+                recorded_show
+            )
+        else:
+            guide_show = GuideShow.unknown_season(
+                title,
+                (show['channel'], show['time']),
+                season_number,
+                episode_title,
+                recorded_show
+            )
+        shows_on.append(guide_show)
+
     shows_on = list(set(shows_on))
-    shows_on.sort(key=lambda show_obj: show_obj.time)
+    shows_on.sort(key=lambda show_obj: (show_obj.time, show_obj.channel))
     
     for show in shows_on:
-        if show.recorded_show is not None:
-            if show.season_number == 'Unknown':
-                matching_shows = list(filter(lambda guide_show: guide_show.title == show.title and guide_show.season_number == 'Unknown', shows_on))
-                show.update_episode_number_with_guide_list(matching_shows)
+        if show.season_number == 'Unknown':
+            matching_shows = list(filter(lambda guide_show: guide_show.title == show.title and guide_show.season_number == 'Unknown', shows_on))
+            show.update_episode_number_with_guide_list(matching_shows)
 
     remove_doubles(shows_on)
     return shows_on
@@ -92,26 +97,16 @@ def compose_message(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
     toString function that writes the shows, times, channels and episode information (if available) via natural language
     :return: the to-string message
     """
-    weekdays = [
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday',
-        'Sunday',
-    ]
-
-    message_date = datetime.today().date()
-    message = weekdays[message_date.weekday()] + " " + str(message_date.strftime('%d-%m-%Y')) + " TVGuide\n"
+    
+    message = f"{datetime.today().date().strftime('%A %d-%m-%Y')} TVGuide\n"
 
     # Free to Air
-    message = message + "\nFree to Air:\n"
+    message += "\nFree to Air:\n"
     if len(fta_shows) == 0:
-        message = message + "Nothing on Free to Air today\n"
+        message += "Nothing on Free to Air today\n"
     else:
         for show in fta_shows:
-            message += show.message_string()
+            message += f'{show.message_string()}\n'
 
     # BBC
     message = message + "\nBBC:\n"
