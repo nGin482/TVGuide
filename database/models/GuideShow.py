@@ -22,6 +22,7 @@ class GuideShow:
         self.episode_title = episode_title
         self.repeat = repeat
         self.recorded_show = recorded_show
+        self.db_event = 'No DB event was performed on this show.'
 
     @classmethod
     def known_season(cls, title: str, airing_details: tuple[str, datetime], episode_details: tuple[str, int, str], recorded_show: RecordedShow):

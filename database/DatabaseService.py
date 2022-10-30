@@ -140,18 +140,20 @@ class DatabaseService:
         
         try:
             episode = guide_show.find_recorded_episode()
-            set_repeat = 'Repeat status is up to date'
-            channel_add = 'Channel list is up to date'
-            episode.channels = list(set(episode.channels))
-            if not episode.channel_check(guide_show.channel):
-                channel_add = episode.add_channel(guide_show.channel)
-            if not episode.repeat:
-                episode.repeat = True
-                set_repeat = 'The episode has been marked as a repeat.'
-            episode.latest_air_date = datetime.today()
             print(f'{guide_show.title} happening on channel/repeat')
+            episode.latest_air_date = datetime.today()
+            episode.channels = list(set(episode.channels))
+            if episode.channel_check(guide_show.channel) is False and episode.repeat is False:
+                channel_add = episode.add_channel(guide_show.channel)
+                episode.repeat = True
+                result = f"{channel_add} and the episode has been marked as a repeat."
+            elif episode.channel_check(guide_show.channel) is False:
+                result = episode.add_channel(guide_show.channel)
+            else:
+                episode.repeat = True
+                result = 'The episode has been marked as a repeat.'
             self.update_episode_in_database(guide_show.title, guide_show.season_number, episode)
-            event = {'show': guide_show.to_dict(), 'repeat': set_repeat, 'channel': channel_add}
+            event = {'show': guide_show.to_dict(), 'result': result}
         except EpisodeNotFoundError as err:
             try:
                 new_episode = Episode.from_guide_show(guide_show)

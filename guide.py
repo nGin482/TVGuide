@@ -145,7 +145,7 @@ def run_guide(database_service: DatabaseService):
         
         for guide_show in fta_shows:
             if 'HD' not in guide_show.channel:
-                database_service.capture_db_event(guide_show)
+                guide_show.db_event = str(database_service.capture_db_event(guide_show)['result'])
         database_service.add_guide_data(fta_shows, [])
         log_guide_information(fta_shows, [])
 
