@@ -5,6 +5,7 @@ from datetime import datetime
 import json
 import os
 
+from database.models.Guide import Guide
 from database.models.GuideShow import GuideShow
 from database.models.RecordedShow import RecordedShow, Season, Episode
 from database.models.Reminders import Reminder
@@ -273,7 +274,7 @@ class DatabaseService:
         guide_date = self.guide_collection.find_one({'date': date})
         if guide_date is None:
             return None
-        return dict(guide_date)
+        return Guide.from_database(dict(guide_date))
 
     def get_guide_month(self, month: str):
         """
@@ -285,25 +286,24 @@ class DatabaseService:
             else:
                 month = str(datetime.strptime(month, '%B').month)
         guide_search = self.guide_collection.find({'date': f"/{month}/"})
-        return [dict(document) for document in guide_search]
+        return [Guide.from_database(dict(document)) for document in guide_search]
+
+    def search_guides_for_show(self, show_title: str):
+        """Search all guide data for when the given show_title has been aired"""
+        guides = [Guide.from_database(details) for details in self.get_all_guides()]
+        return [{'date': guide.date, 'show': show} for guide in guides for show in guide.search_for_show(show_title)]
 
     def add_guide_data(self, fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
         """Add the Guide data to the database.\n
         Raises `exceptions.DatabaseError` if the Guide data for the current day already exists or 
         was not able to be inserted."""
 
-        today_guide = {
-            'date': datetime.today().strftime('%d/%m/%Y'),
-            'FTA': [show.to_dict() for show in fta_shows],
-            'BBC': [show.to_dict() for show in bbc_shows]
-        }
+        new_guide = Guide.from_runtime(fta_shows, bbc_shows)
 
-        today_date = datetime.today().strftime('%d/%m/%Y')
-        
-        check_guide_exists = self.get_guide_date(today_date)
+        check_guide_exists = self.get_guide_date(new_guide.date)
         if check_guide_exists is not None:
-            raise DatabaseError(f"A Guide for today's date ({today_date}) already exists")
-        guide_inserted = self.guide_collection.insert_one(today_guide)
+            raise DatabaseError(f"A Guide for today's date ({new_guide.date}) already exists")
+        guide_inserted = self.guide_collection.insert_one(new_guide.to_dict())
         if not guide_inserted.inserted_id:
             raise DatabaseError(f"The Guide was not able to be inserted")
 
