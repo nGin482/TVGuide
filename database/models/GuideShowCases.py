@@ -87,6 +87,8 @@ class DoctorWho(SpecialCases):
             return '12', 11, 'Revolution of the Daleks'
         elif 'Eve of the Daleks' in title or 'Eve Of The Daleks' in title:
             return '13', 7, 'Eve of the Daleks'
+        elif 'The Power Of The Doctor' in title:
+            return '13', 9, 'Power of the Doctor'
         else:
             return title
 
@@ -129,12 +131,18 @@ class MorseGuideShow(SpecialCases):
         if 'Death Is' in guide_title:
             return '8', 3, 'Death Is Now My Neighbour'
         else:
+            season_number = ''
+            episode_number = 0
+            title = guide_title
             for season_idx, season in enumerate(morse_titles):
                 for episode_idx, title in enumerate(season['Episodes']):
                     if 'The' in guide_title and 'The' not in title:
                         title = 'The ' + title
                     if guide_title in title:
-                        return str(season_idx+1), episode_idx+1, title
+                        season_number = str(season_idx+1)
+                        episode_number = episode_idx+1
+                        title = guide_title
+            return season_number, episode_number, title
 
 class RedElection(SpecialCases):
 
