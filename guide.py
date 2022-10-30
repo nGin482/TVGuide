@@ -75,7 +75,6 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
             guide_show = GuideShow.unknown_season(
                 title,
                 (show['channel'], show['time']),
-                season_number,
                 episode_title,
                 recorded_show
             )

@@ -8,11 +8,11 @@ from services.imdb_api import search_for_episode_title, search_for_season_number
 
 class GuideShow:
     
-    def __init__(self, title: str, channel: str, time: datetime, season_number: str, episode_number: int, episode_title: str, repeat: bool, recorded_show: RecordedShow) -> None:
+    def __init__(self, title: str, airing_details: tuple[str, datetime], episode_details: tuple[str, int, str, bool], recorded_show: RecordedShow, episode_checked: bool) -> None:
         title = Validation.check_show_titles(title)
-        self._episode_checked = False
-        
-        self.recorded_show = recorded_show
+        channel, time = airing_details
+        season_number, episode_number, episode_title, repeat = episode_details
+        self._episode_checked = episode_checked
         
         self.title = title
         self.channel = channel
@@ -21,6 +21,7 @@ class GuideShow:
         self.episode_number = episode_number
         self.episode_title = episode_title
         self.repeat = repeat
+        self.recorded_show = recorded_show
 
     @classmethod
     def known_season(cls, title: str, airing_details: tuple[str, datetime], episode_details: tuple[str, int, str], recorded_show: RecordedShow):
@@ -37,36 +38,40 @@ class GuideShow:
         if episode_title == '' and recorded_show.imdb_id != '':
             episode_title = search_for_episode_title(title, season_number, episode_number, recorded_show.imdb_id)
         
-        return cls(title, channel, time, season_number, episode_number, episode_title, repeat, recorded_show)
+        return cls(title, (channel, time), (season_number, episode_number, episode_title, repeat), recorded_show, True)
 
     @classmethod
-    def unknown_season(cls, title: str, airing_details: tuple[str, datetime], season_number: str, episode_title: str, recorded_show: RecordedShow):
+    def unknown_season(cls, title: str, airing_details: tuple[str, datetime], episode_title: str, recorded_show: RecordedShow):
         channel, time = airing_details
         repeat = False
+        episode_checked = False
 
         if episode_title == '':
             if recorded_show is not None and recorded_show.find_season('Unknown') is not None:
                 episode_number = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes) + 1
+                episode_checked = True
             else:
                 episode_number = 1
-            return cls(title, channel, time, season_number, episode_number, episode_title, repeat, recorded_show)
+            return cls(title, (channel, time), (season_number, episode_number, episode_title, repeat), recorded_show, episode_checked)
         
         episode_title_search = GuideShow.check_database_for_episode(episode_title, recorded_show)
         if episode_title_search is not None:
             season_number, episode_number = episode_title_search
             repeat = True
+            episode_checked = True
         else:
             season_number_search = search_for_season_number(title, episode_title)
             if season_number_search is not None:
                 season_number, episode_number = season_number_search
-                
+                episode_checked = True
             else:
                 if recorded_show is not None and recorded_show.find_season('Unknown') is not None:
                     episode_number = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes) + 1
+                    episode_checked = True
                 else:
                     episode_number = 1
         
-        return cls(title, channel, time, season_number, episode_number, episode_title, repeat, recorded_show)
+        return cls(title, (channel, time), ('Unknown', episode_number, episode_title, repeat), recorded_show, episode_checked)
 
     @staticmethod
     def get_show(title: str, season_number: str, episode_number: int, episode_title: str):
