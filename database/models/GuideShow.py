@@ -48,6 +48,7 @@ class GuideShow:
         episode_checked = False
 
         if episode_title == '':
+            season_number = 'Unknown'
             if recorded_show is not None and recorded_show.find_season('Unknown') is not None:
                 episode_number = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes) + 1
                 episode_checked = True
@@ -66,13 +67,14 @@ class GuideShow:
                 season_number, episode_number = season_number_search
                 episode_checked = True
             else:
+                season_number = 'Unknown'
                 if recorded_show is not None and recorded_show.find_season('Unknown') is not None:
                     episode_number = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes) + 1
                     episode_checked = True
                 else:
                     episode_number = 1
         
-        return cls(title, (channel, time), ('Unknown', episode_number, episode_title, repeat), recorded_show, episode_checked)
+        return cls(title, (channel, time), (season_number, episode_number, episode_title, repeat), recorded_show, episode_checked)
 
     @staticmethod
     def get_show(title: str, season_number: str, episode_number: int, episode_title: str):
@@ -184,7 +186,8 @@ class GuideShow:
             'season_number': self.season_number,
             'episode_number': self.episode_number,
             'episode_title': self.episode_title,
-            'repeat': self.repeat
+            'repeat': self.repeat,
+            'event': self.db_event
         }
 
     def __repr__(self) -> str:
