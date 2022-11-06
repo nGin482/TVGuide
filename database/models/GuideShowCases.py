@@ -188,7 +188,7 @@ class SilentWitness(SpecialCases):
         index = -1
 
         for idx, key in enumerate(season_24_episodes.keys()):
-            if key in episode_title:
+            if key.lower() in episode_title.lower():
                 silent_witness_story = season_24_episodes[key]
                 index = idx
                 break
