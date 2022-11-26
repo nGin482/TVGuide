@@ -36,17 +36,17 @@ class TransformersGuideShow(SpecialCases):
 
 class DoctorWho(SpecialCases):
     @staticmethod
-    def handle(title: str):
+    def handle(title: str, episode_title: str):
         if title != 'Doctor Who':
             from log import logging_app
             logging_app(title)
             
-            check_dw_title: tuple = DoctorWho.doctor_who_episodes(title)
+            check_dw_title: tuple = DoctorWho.doctor_who_episodes(title, episode_title)
             return 'Doctor Who', str(check_dw_title[0]), int(check_dw_title[1]), str(check_dw_title[2])
         return title
     
     @staticmethod
-    def doctor_who_episodes(title: str) -> tuple:
+    def doctor_who_episodes(title: str, episode_title: str) -> tuple:
         """
         Given an episode's title, return the `season number`, `episode number` and correct `episode title` of a Doctor Who episode
         """
@@ -56,9 +56,10 @@ class DoctorWho(SpecialCases):
         if 'Doctor Who: ' in title:
             title = title.split(': ')[1]
         
+        if 'end of time' in title.lower() and 'Part 2' in episode_title:
+            return 'Tennant Specials', 5,  'The End of Time - Part 2'
         for idx, tennant_special in enumerate(tennant_specials):
-            if title.lower() in tennant_special.lower():
-                return 'Tennant Specials', idx+1, tennant_special
+            return 'Tennant Specials', idx+1, tennant_special
         for idx, smith_special in enumerate(smith_specials):
             if title.lower() in smith_special.lower():
                 return 'Smith Specials', idx+1, smith_special

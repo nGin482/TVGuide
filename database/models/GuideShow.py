@@ -84,7 +84,7 @@ class GuideShow:
                 return handle_result, season_number, episode_number, episode_title
             return handle_result
         elif 'Doctor Who' in title:
-            handle_result = DoctorWho.handle(title)
+            handle_result = DoctorWho.handle(title, episode_title)
             if isinstance(handle_result, str):
                 return handle_result, season_number, episode_number, episode_title
             return handle_result
@@ -94,6 +94,8 @@ class GuideShow:
             return RedElection.handle(title, season_number, episode_title)
         elif 'Silent Witness' in title:
             return SilentWitness.handle(season_number, episode_title)
+        elif 'NCIS Encore' in title:
+            return 'NCIS', season_number, episode_number, episode_title
         else:
             return Validation.check_show_titles(title), season_number, episode_number, episode_title
 
