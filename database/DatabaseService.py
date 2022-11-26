@@ -108,12 +108,13 @@ class DatabaseService:
         """
         
         for recorded_show in self.get_all_recorded_shows():
+            recorded_show_title = recorded_show.title.replace(':', '') if ':' in recorded_show.title else recorded_show.title
             if os.path.isdir('database/backups/recorded_shows'):
-                with open(f'database/backups/recorded_shows/{recorded_show.title}.json', 'w+') as fd:
+                with open(f'database/backups/recorded_shows/{recorded_show_title}.json', 'w+') as fd:
                     json.dump(recorded_show.to_dict(), fd, indent='\t')
             else:
                 os.mkdir('database/backups/recorded_shows')
-                with open(f'database/backups/recorded_shows/{recorded_show.title}.json', 'w+') as fd:
+                with open(f'database/backups/recorded_shows/{recorded_show_title}.json', 'w+') as fd:
                     json.dump(recorded_show.to_dict(), fd, indent='\t')
 
     def rollback_recorded_shows(self):
@@ -122,9 +123,10 @@ class DatabaseService:
         """
         
         for recorded_show_file_name in os.listdir('database/backups/recorded_shows'):
-            print(recorded_show_file_name)
-            with open(f'database/backups/recorded_shows/{recorded_show_file_name}') as fd:
-                show_data = json.load(fd)
+            recorded_show_title = recorded_show_file_name.replace(':', '') if ':' in recorded_show_file_name else recorded_show_file_name
+            print(recorded_show_title)
+            with open(f'database/backups/recorded_shows/{recorded_show_title}') as fd:
+                show_data = dict(json.load(fd))
             show_name: str = show_data['show']
             self.recorded_shows_collection.find_one_and_update(
                 {'show': show_name},
