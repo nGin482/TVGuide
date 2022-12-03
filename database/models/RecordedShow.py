@@ -58,14 +58,15 @@ class Episode:
         If the channel is `ABC1`, `ABCHD` will also be added.\n
         If the channel is `TEN`, `TENHD` will also be added.\n
         If the channel is `SBS`, `SBSHD` will also be added.\n"""
-        self.channels.append(channel)
-        if 'ABC1' in channel:
+        if channel not in self.channels:
+            self.channels.append(channel)
+        if 'ABC1' in channel or ('ABC1' in self.channels and 'ABCHD' not in self.channels):
             self.channels.append('ABCHD')
             return f'{channel} and ABCHD have been added to the channel list.'
-        elif 'TEN' in channel or '10' in channel:
+        elif ('TEN' in channel or '10' in channel) or ('10' in self.channels and 'TENHD' not in self.channels):
             self.channels.append('TENHD')
             return f'{channel} and TENHD have been added to the channel list.'
-        elif 'SBS' in channel:
+        elif 'SBS' in channel or ('SBS' in self.channels and 'SBSHD' not in self.channels):
             self.channels.append('SBSHD')
             return f'{channel} and SBSHD have been added to the channel list.'
         else:
