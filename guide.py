@@ -7,17 +7,8 @@ from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
 from log import clear_events_log, clear_imdb_api_results, compare_dates, delete_latest_entry, log_guide_information
 
-def get_today_shows_data(list_of_shows: list[str], database_service: DatabaseService):
-    all_recorded_shows = database_service.get_all_recorded_shows()
-    list_of_shows = [Validation.check_show_titles(title) for title in list_of_shows]
-
-    return [recorded_show for recorded_show in all_recorded_shows if recorded_show.title in list_of_shows]
-
-
 def find_json(url):
-    data = get(url).json()
-
-    return data
+    return dict(get(url).json())
 
 def search_free_to_air(search_list: list[str], database_service: DatabaseService):
     """
@@ -36,8 +27,8 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
             title = guide_show['title']
             for show in search_list:
                 if show in title:
-                    show_date = guide_show['start_time'][:-9]
-                    if int(show_date[-2:]) == datetime.today().day:
+                    show_date = datetime.strptime(guide_show['start_time'], '%Y-%m-%dT%H:%M:%S')
+                    if show_date.day == datetime.today().day:
                         season_number = 'Unknown'
                         episode_number = 0
                         episode_title = ''
@@ -47,22 +38,20 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
                         if 'episode_title' in guide_show.keys():
                             episode_title = guide_show['episode_title']
                         shows_data.append({
-                            'title': Validation.check_show_titles(guide_show['title']),
+                            'title': guide_show['title'],
                             'channel': channel_data['channel'],
-                            'time': datetime.strptime(guide_show['start_time'][-8:-3], '%H:%M'),
+                            'time': show_date,
                             'season_number': season_number,
                             'episode_number': episode_number,
                             'episode_title': Validation.format_episode_title(episode_title)
                         })
 
     shows_data = Validation.remove_unwanted_shows(shows_data)
-    show_titles = [show['title'] for show in shows_data]
-    recorded_shows = get_today_shows_data(show_titles, database_service)
 
     for show in shows_data:
         episode_data = GuideShow.get_show(show['title'], show['season_number'], show['episode_number'], show['episode_title'])
         title, season_number, episode_number, episode_title = episode_data
-        recorded_show = next((recorded_show for recorded_show in recorded_shows if title == recorded_show.title), None)
+        recorded_show = database_service.get_one_recorded_show(title)
 
         if show['season_number'] != 'Unknown':
             guide_show = GuideShow.known_season(
