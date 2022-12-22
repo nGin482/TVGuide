@@ -27,7 +27,7 @@ class TransformersGuideShow(SpecialCases):
             return '1', 4, 'Age of Extinction'
         elif 'Knight' in transformers:
             return '1', 5, 'The Last Knight'
-        elif 'Bumblebee' in transformers:
+        elif 'Bumblebee' in transformers and 'Cyberverse' not in transformers:
             return '1', 6, 'Bumblebee'
         elif transformers == 'Transformers':
             return '1', 1, 'Transformers'
