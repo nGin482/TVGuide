@@ -216,12 +216,6 @@ class RecordedShow:
         latest_season_number = max(int(season.season_number) for season in list_of_seasons)
         return self.find_season(str(latest_season_number))
 
-    def find_number_of_unknown_episodes(self):
-        unknown_season = self.find_season('Unknown')
-        if unknown_season:
-            return len(unknown_season.episodes)
-        return 0
-
     def find_episode_instances(self, episode_title: str) -> list[tuple[str, int]]:
         """Search all seasons and return all instances where the given `episode_title` has been stored.\n
         Return as a list of tuples containing the `season_number` and `episode_number`

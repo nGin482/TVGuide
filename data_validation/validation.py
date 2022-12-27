@@ -53,6 +53,8 @@ class Validation:
             return 'Death In Paradise'
         elif 'Revenge Of The Fallen' in show or 'Dark Of The Moon' in show or 'Age of Extinction' in show or 'The Last Knight' in show or show == 'Transformers':
             return 'Transformers'
+        elif 'Grantchester Christmas Special' in show:
+            return 'Grantchester'
         title = show
         if ':' in title:
             title = title.replace(':', '')
@@ -108,3 +110,20 @@ class Validation:
         Returns the fields only valid for a reminder document
         """
         return ['show', 'reminder time', 'interval']
+
+    @staticmethod
+    def unknown_episodes_check(show_list: list[dict]):
+        shows_with_unknown_episodes = {}
+        show_titles_with_unknown_episodes = [show for show in show_list if show['season_number'] == 'Unknown']
+        for show in show_titles_with_unknown_episodes:
+            if show['title'] in shows_with_unknown_episodes.keys():
+                shows_with_unknown_episodes[show['title']].append(show['episode_title'])
+            else:
+                shows_with_unknown_episodes[show['title']] = [show['episode_title']]
+        return shows_with_unknown_episodes
+    
+    @staticmethod
+    def get_unknown_episode_number(show_list: list[dict], show_title: str, episode_title: str):
+        unknown_episodes_map = Validation.unknown_episodes_check(show_list)
+        show = list(unknown_episodes_map[show_title])
+        return show.index(episode_title)

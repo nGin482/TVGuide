@@ -50,6 +50,9 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
 
     for show in shows_data:
         episode_data = GuideShow.get_show(show['title'], show['season_number'], show['episode_number'], show['episode_title'])
+        if episode_data is None:
+            print(f'{show["title"]} return NoneType')
+            continue
         title, season_number, episode_number, episode_title = episode_data
         recorded_show = database_service.get_one_recorded_show(title)
 
@@ -65,18 +68,14 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
                 title,
                 (show['channel'], show['time']),
                 episode_title,
-                recorded_show
+                recorded_show,
+                Validation.get_unknown_episode_number(shows_data, title, episode_title)
             )
         shows_on.append(guide_show)
 
     shows_on = list(set(shows_on))
     shows_on.sort(key=lambda show_obj: (show_obj.time, show_obj.channel))
     
-    for show in shows_on:
-        if show.season_number == 'Unknown':
-            matching_shows = list(filter(lambda guide_show: guide_show.title == show.title and guide_show.season_number == 'Unknown', shows_on))
-            show.update_episode_number_with_guide_list(matching_shows)
-
     remove_doubles(shows_on)
     return shows_on
 
