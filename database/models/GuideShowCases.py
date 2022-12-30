@@ -59,7 +59,8 @@ class DoctorWho(SpecialCases):
         if 'end of time' in title.lower() and 'Part 2' in episode_title:
             return 'Tennant Specials', 5,  'The End of Time - Part 2'
         for idx, tennant_special in enumerate(tennant_specials):
-            return 'Tennant Specials', idx+1, tennant_special
+            if title.lower() in tennant_special.lower():
+                return 'Tennant Specials', idx+1, tennant_special
         for idx, smith_special in enumerate(smith_specials):
             if title.lower() in smith_special.lower():
                 return 'Smith Specials', idx+1, smith_special
