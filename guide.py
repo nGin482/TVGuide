@@ -56,7 +56,7 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
         title, season_number, episode_number, episode_title = episode_data
         recorded_show = database_service.get_one_recorded_show(title)
 
-        if show['season_number'] != 'Unknown':
+        if season_number != 'Unknown':
             guide_show = GuideShow.known_season(
                 title,
                 (show['channel'], show['time']),
