@@ -45,14 +45,10 @@ class Validation:
 
     @staticmethod
     def check_show_titles(show: str):
-        if 'Doctor Who: ' in show:
-            return 'Doctor Who'
-        elif 'Maigret' in show:
+        if 'Maigret' in show:
             return 'Maigret'
         elif 'Death in Paradise' in show:
             return 'Death In Paradise'
-        elif 'Revenge Of The Fallen' in show or 'Dark Of The Moon' in show or 'Age of Extinction' in show or 'The Last Knight' in show or show == 'Transformers':
-            return 'Transformers'
         elif 'Grantchester Christmas Special' in show:
             return 'Grantchester'
         title = show
@@ -112,18 +108,22 @@ class Validation:
         return ['show', 'reminder time', 'interval']
 
     @staticmethod
-    def unknown_episodes_check(show_list: list[dict]):
+    def unknown_episodes_check(show_list: list):
         shows_with_unknown_episodes = {}
-        show_titles_with_unknown_episodes = [show for show in show_list if show['season_number'] == 'Unknown']
+        show_titles_with_unknown_episodes = [show for show in show_list if show.season_number == 'Unknown']
         for show in show_titles_with_unknown_episodes:
-            if show['title'] in shows_with_unknown_episodes.keys():
-                shows_with_unknown_episodes[show['title']].append(show['episode_title'])
+            if show.title in shows_with_unknown_episodes.keys():
+                shows_with_unknown_episodes[show.title].append(show.episode_title)
             else:
-                shows_with_unknown_episodes[show['title']] = [show['episode_title']]
+                shows_with_unknown_episodes[show.title] = [show.episode_title]
         return shows_with_unknown_episodes
     
     @staticmethod
-    def get_unknown_episode_number(show_list: list[dict], show_title: str, episode_title: str):
+    def get_unknown_episode_number(show_list: list, show_title: str, episode_title: str):
         unknown_episodes_map = Validation.unknown_episodes_check(show_list)
-        show = list(unknown_episodes_map[show_title])
-        return show.index(episode_title)
+        if show_title in unknown_episodes_map.keys():
+            try:
+                show = list(unknown_episodes_map[show_title])
+                return show.index(episode_title) + 1
+            except ValueError:
+                pass

@@ -69,7 +69,7 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
                 (show['channel'], show['time']),
                 episode_title,
                 recorded_show,
-                Validation.get_unknown_episode_number(shows_data, title, episode_title)
+                Validation.get_unknown_episode_number(shows_on, title, episode_title)
             )
         shows_on.append(guide_show)
 
