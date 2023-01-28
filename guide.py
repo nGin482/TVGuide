@@ -1,7 +1,6 @@
 from datetime import datetime
 from requests import get
 
-from aux_methods.helper_methods import remove_doubles
 from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
@@ -64,19 +63,21 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
                 recorded_show
             )
         else:
+            episode_number = Validation.get_unknown_episode_number(shows_on, title, episode_title)
+            if episode_number is None:
+                episode_number = 0
             guide_show = GuideShow.unknown_season(
                 title,
                 (show['channel'], show['time']),
                 episode_title,
                 recorded_show,
-                Validation.get_unknown_episode_number(shows_on, title, episode_title)
+                episode_number
             )
         shows_on.append(guide_show)
 
     shows_on = list(set(shows_on))
     shows_on.sort(key=lambda show_obj: (show_obj.time, show_obj.channel))
     
-    remove_doubles(shows_on)
     return shows_on
 
 def compose_message(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):

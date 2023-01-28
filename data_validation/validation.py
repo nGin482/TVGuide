@@ -120,6 +120,9 @@ class Validation:
     
     @staticmethod
     def get_unknown_episode_number(show_list: list, show_title: str, episode_title: str):
+        if episode_title == '':
+            return None
+        
         unknown_episodes_map = Validation.unknown_episodes_check(show_list)
         if show_title in unknown_episodes_map.keys():
             try:
