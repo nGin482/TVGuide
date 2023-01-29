@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from database.models.GuideShow import GuideShow
 
 
-def get_date_from_latest_email():
+def get_date_of_latest_message():
 
     with open('log/emails.txt') as fd:
         all_messages = fd.read().splitlines()
@@ -27,7 +27,7 @@ def get_date_from_latest_email():
 
 def compare_dates():
 
-    date = get_date_from_latest_email()
+    date = get_date_of_latest_message()
     if date.day != datetime.today().day:
         return True
     else:
@@ -81,15 +81,6 @@ def read_events():
     except FileNotFoundError:
         return []
 
-def status_setting_repeats(result: dict):
-    events = read_events()
-    
-    events.append(result)
-
-    with open('log/events.json', 'w+') as fd:
-        json.dump(events, fd, indent='\t')
-
-
 def clear_events_log():
     try:
         with open('log/events.json', 'w') as fd:
@@ -122,7 +113,12 @@ def log_guide_information(fta_shows: list['GuideShow'], bbc_shows: list['GuideSh
 
 def log_database_event(event: dict):
     "Log the database event to the events.json file"
-    status_setting_repeats(event)
+    events = read_events()
+    
+    events.append(event)
+
+    with open('log/events.json', 'w+') as fd:
+        json.dump(events, fd, indent='\t')
 
 def log_discord_message_too_long(message_length, fta_length):
 
