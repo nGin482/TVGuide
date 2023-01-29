@@ -1,18 +1,18 @@
 # directories
 /.idea
 /venv
+/.vscode
 /__pycache__
+*/__pycache__
+*/*/__pycache__
 /Project-BackUp
 /BackUps
 /shows
-/tests/__pycache__
 /tests/misc
 /txt
 /log
 /today_guide
-/database/__pycache__
 /episode_search_results
-/aux_methods/__pycache__
 /misc_working
 /database/backups
 
@@ -25,3 +25,4 @@
 .env
 aux_methods/imdb_api_results.json
 update_showlist.py
+*.log

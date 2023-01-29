@@ -1,10 +1,13 @@
-from datetime import datetime
-from log import log_silent_witness_episode
+from __future__ import annotations
 import requests
 import json
 import os
 
-def search_episode_information(show: dict) -> dict:
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from database.models.GuideShow import GuideShow
+
+def search_episode_information(show: GuideShow) -> dict:
     """
     Consult with IMDB API to gather more information about each episode, using any existing information
     """
@@ -13,42 +16,41 @@ def search_episode_information(show: dict) -> dict:
 
     imdb_api_key = os.getenv('IMDB_API')    
     # get season number and episode number from episode title
-    if 'series_num' not in show.keys() and 'episode_title' in show.keys():
-        episode_title: str = show['episode_title']
+    if (show.season_number == '' or show.season_number == 'Unknown') and show.episode_title != '':
+        episode_title = show.episode_title
         if ' ' in episode_title:
-            episode_title = episode_title.replace(' ', '%20')
+            episode_title = show.episode_title.replace(' ', '%20')
         
         episode_req = requests.get(f'https://imdb-api.com/en/API/SearchEpisode/{imdb_api_key}/{episode_title}')
         
         if episode_req.status_code == 200:
-            results = episode_req.json()['results']
-            title = show['title']
-            if 'Death In Paradise' in show['title']:
+            results: list[dict] = episode_req.json()['results']
+            title = show.title
+            if 'Death In Paradise' in show.title:
                 title = 'Death in Paradise'
             view_imdb_api_results(show, results)
             if results:
                 for result in results:
-                    if title in result['description'] and show['episode_title'].lower() == result['title'].lower():
+                    if title in result['description'] and show.episode_title.lower() == result['title'].lower():
                         print(result['description'])
                         description = extract_information(result['description'])
-                        show['series_num'] = description[0]
-                        show['episode_num'] = description[1]
+                        show.season_number = description[0]
+                        show.episode_number = description[1]
             else:
-                print(f"IMDB API returned None when looking up {show['title']}'s {show['episode_title']} episode")
+                print(f"IMDB API returned None when looking up {show.title}'s {show.episode_title} episode")
                 return show
     
     # get episode title from season number and episode number
-    if ('episode_title' not in show.keys() or show['episode_title'] == '') and 'series_num' in show.keys():
-        show_id:str = get_show_id(show['title'])
+    if show.episode_title == '' and show.season_number != '':
+        show_id:str = get_show_id(show.title)
         if show_id:
-            series_num = show['series_num']
-            season_req = requests.get(f'https://imdb-api.com/en/API/SeasonEpisodes/{imdb_api_key}/{show_id}/{series_num}')
+            season_req = requests.get(f'https://imdb-api.com/en/API/SeasonEpisodes/{imdb_api_key}/{show_id}/{show.season_number}')
             if season_req.status_code == 200:
                 episodes = season_req.json()['episodes']
                 view_imdb_api_results(show, episodes)
                 for episode in episodes:
-                    if episode['episodeNumber'] == show['episode_num']:
-                        show['episode_title'] = episode['title']
+                    if episode['episodeNumber'] == str(show.episode_number):
+                        show.episode_title = episode['title']
            
     return show
 
@@ -78,7 +80,7 @@ def get_show_id(show_title: str) -> str:
     if 'imdb_id' in show_data.keys():
         return show_data['imdb_id']
 
-def view_imdb_api_results(show: dict, imdb_results: dict):
+def view_imdb_api_results(show: GuideShow, imdb_results: dict):
     """
     Write the results from the IMDB API request to a JSON file
     """
@@ -86,13 +88,10 @@ def view_imdb_api_results(show: dict, imdb_results: dict):
     with open('aux_methods/imdb_api_results.json') as fd:
         results:list = json.load(fd)
 
-    if type(show['time']) is not str:
-        show['time'] = show['time'].strftime('%H:%M')
-    results.append({'show': show, 'api_results': imdb_results})
+    results.append({'show': show.to_dict(), 'api_results': imdb_results})
 
     with open('aux_methods/imdb_api_results.json', 'w+') as fd:
         json.dump(results, fd, indent='\t')
-    show['time'] = datetime.strptime(show['time'], '%H:%M')
 
 def clear_imdb_api_results():
     """
@@ -212,51 +211,3 @@ def red_election(show: dict):
         show['episode_num'] = episode_details[3]
     
     return show
-
-def check_silent_witness(episode_title: str):
-
-    """
-    213	"Redemption - Part 1"
-    214	"Redemption - Part 2"
-    215	"Bad Love - Part 1"
-    216	"Bad Love - Part 2"
-    217	"Reputations - Part 1"
-    218	"Reputations - Part 2"
-    219	"Brother's Keeper - Part 1"
-    220	"Brother's Keeper - Part 2"
-    221	"Matters of Life and Death - Part 1"
-    222	"Matters of Life and Death - Part 2"
-    """
-
-    season_24_episodes = ["Redemption - Part 1", "Redemption - Part 2", "Bad Love - Part 1", "Bad Love - Part 2", 
-        "Reputations - Part 1", "Reputations - Part 2", "Brother's Keeper - Part 1", "Brother's Keeper - Part 2",
-        "Matters of Life and Death - Part 1", "Matters of Life and Death - Part 2"]
-
-    for idx, episode in enumerate(season_24_episodes):
-        if episode_title == episode:
-            return True, idx
-    return False, -1
-
-
-# above method may not be working for all cases ie. would return false here --> "One Of Our Own Part 2"
-# https://www.w3schools.com/python/python_regex.asp
-def silent_witness_episode(show: dict):
-    """
-    Confirm that the given Silent Witness episode is from Season 24
-    """
-
-    if 'series_num' in show.keys():
-        if show['series_num'] == '24':
-            return {'status': True, 'show': show}
-    else:
-        print('Episode title: {episode_title}'.format(**show))
-
-    check_episode = check_silent_witness(show['episode_title'])
-        
-    log_silent_witness_episode(show)
-    if check_episode[0]:
-        show['series_num'] = 24
-        show['episode_num'] = check_episode[1] + 1
-        return {'status': True, 'show': show}
-    else:
-        return {'status': False}

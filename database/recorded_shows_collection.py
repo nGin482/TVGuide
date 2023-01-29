@@ -1,6 +1,6 @@
+from datetime import date
 from pymongo import errors, ReturnDocument
 from database.mongo import database
-from aux_methods.helper_methods import get_today_date
 import json
 import os
 
@@ -50,7 +50,7 @@ def insert_new_recorded_show(new_show):
                     'episode number': '',
                     'episode title': '',
                     'channels': [new_show['channel']],
-                    'first air date': get_today_date('string'),
+                    'first air date': date.today().strftime('%d-%m-%Y'),
                     'repeat': False
                 }
             ]
@@ -82,7 +82,7 @@ def insert_new_season(show):
                     'episode number': '',
                     'episode title': '',
                     'channels': [show['channel']],
-                    'first air date': get_today_date('string'),
+                    'first air date': date.today().strftime('%d-%m-%Y'),
                     'repeat': False
                 }
             ]
@@ -118,7 +118,7 @@ def insert_new_episode(show):
             'episode number': '',
             'episode title': '',
             'channels': [show['channel']],
-            'first air date': get_today_date('string'),
+            'first air date': date.today().strftime('%d-%m-%Y'),
             'repeat': False
         }
 
@@ -571,15 +571,19 @@ def update_recorded_episode(guide_show: dict):
     # add new episode to season
     # then remove episode from 'Unknown' season
 
+    insert_status = insert_new_episode(guide_show)['status']
     try:
-        removed_episode = recorded_shows_collection().find_one_and_update(
-            {'show': guide_show['title']},
-            {'$pull': {'seasons.$[season].episodes': {'episode title': guide_show['episode_title']}}},
-            array_filters = [
-                {'season.season number': 'Unknown'}
-            ],
-            return_document = ReturnDocument.AFTER
-        )
-        return {'status': True}
+        if insert_status:
+            removed_episode = recorded_shows_collection().find_one_and_update(
+                {'show': guide_show['title']},
+                {'$set': {'seasons.$[season].episodes': {'episode title': guide_show['episode_title']}}},
+                array_filters = [
+                    {'season.season number': 'Unknown'}
+                ],
+                return_document = ReturnDocument.AFTER
+            )
+            return {'status': True, 'removed_episode': removed_episode}
+        else:
+            return {'status': False, 'message': 'An error occurred when trying to remove this episode.', 'error': err}
     except errors.OperationFailure as err:
         return {'status': False, 'message': 'An error occurred when trying to remove this episode.', 'error': err}

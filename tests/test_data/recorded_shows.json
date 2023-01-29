@@ -1,0 +1,65 @@
+[
+    {
+        "show": "Endeavour",
+        "seasons": [
+            {
+                "season_number": "7",
+                "episodes": [
+                    {
+                        "episode_number": 1,
+                        "episode_title": "Oracle",
+                        "channels": [
+                            "ABC1",
+                            "ABCHD"
+                        ],
+                        "first_air_date": "01-04-2020",
+                        "latest_air_date": "23-09-2022",
+                        "repeat": true
+                    },
+                    {
+                        "episode_number": 2,
+                        "episode_title": "Raga",
+                        "channels": [
+                            "ABC1",
+                            "ABCHD"
+                        ],
+                        "first_air_date": "08-04-2020",
+                        "latest_air_date": "30-09-2022",
+                        "repeat": true
+                    },
+                    {
+                        "episode_number": 3,
+                        "episode_title": "Zenana",
+                        "channels": [
+                            "ABC1",
+                            "ABCHD"
+                        ],
+                        "first_air_date": "15-04-2020",
+                        "latest_air_date": "15-04-2020",
+                        "repeat": false
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "show": "Person of Interest",
+        "seasons": [
+            {
+                "season_number": "1",
+                "episodes": [
+                    {
+                        "episode_number": 1,
+                        "episode_title": "Pilot",
+                        "channels": [
+                            "GEM"
+                        ],
+                        "first_air_date": "15-04-2020",
+                        "latest_air_date": "15-04-2020",
+                        "repeat": false
+                    }
+                ]
+            }
+        ]
+    }
+]
