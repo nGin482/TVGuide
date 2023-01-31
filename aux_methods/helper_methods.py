@@ -47,25 +47,23 @@ def remove_doubles(shows_list: list[GuideShow]):
             idx_1 += 1
 
 
-def format_title(title):
+def format_title(title: str):
     """
     Format a show's given title into a more reader-friendly appearance
     """
 
     if ', The' in title:
         idx_the = title.find(', The')
-        title = 'The ' + title[0:idx_the]
+        title = f'The {title[0:idx_the]}'
     if ', A' in title:
         idx_a = title.find(', A')
-        title = 'A ' + title[0:idx_a]
+        title = f'A {title[0:idx_a]}'
 
     return title
 
-def show_list_for_message(shows_list):
-    show_list = ''
-    for show in shows_list:
-        show_list = show_list + show + '\n'
-    return show_list
+def show_list_message(shows_list: list[str]):
+    """Return a message-friendly version of the shows being searched for"""
+    return '\n'.join(shows_list)
 
 def check_show_titles(show):
     if type(show) is str:
@@ -95,7 +93,7 @@ def check_show_titles(show):
         elif show['title'] == 'Transformers':
             return 'Transformers'
         else:
-            title = show['title']
+            title: str = show['title']
             if ':' in title:
                 idx = title.rfind(':')
                 title = title[:idx] + title[idx+1:]

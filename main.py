@@ -6,7 +6,7 @@ from requests import get
 import os
 import re
 
-from aux_methods.helper_methods import format_time, show_list_for_message, check_show_titles
+from aux_methods.helper_methods import format_time, show_list_message, check_show_titles
 from aux_methods.episode_info import search_episode_information
 from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
@@ -253,12 +253,12 @@ async def on_message(message: Message):
         return
     if 'tv-guide' in str(message.channel):
         if '$show-list' in message.content:
-            await message.channel.send(show_list_for_message(database_service.get_search_list()))
+            await message.channel.send(show_list_message(database_service.get_search_list()))
         if '$add-show' in message.content:
             new_show = message.content.split(' ')[1]
             try:
                 database_service.insert_into_showlist_collection(new_show)
-                reply = f'{new_show} has been added to the list. The list now includes:\n{show_list_for_message(database_service.get_search_list())}'
+                reply = f'{new_show} has been added to the list. The list now includes:\n{show_list_message(database_service.get_search_list())}'
             except SearchItemAlreadyExistsError | DatabaseError as err:
                 reply = f'Error: {str(err)}. The List has not been modified.'
             await message.channel.send(reply)
@@ -266,9 +266,9 @@ async def on_message(message: Message):
             show_to_remove = message.content[message.content.index('-show')+6:]
             try:
                 database_service.remove_show_from_list(show_to_remove)
-                reply = f'{show_to_remove} has been removed from the SearchList. The list now includes:\n' + show_list_for_message(database_service.get_search_list())
+                reply = f'{show_to_remove} has been removed from the SearchList. The list now includes:\n' + show_list_message(database_service.get_search_list())
             except DatabaseError | SearchItemNotFoundError as err:
-                reply = f'{str(err)}. The list remains as:\n' + show_list_for_message(database_service.get_search_list())
+                reply = f'{str(err)}. The list remains as:\n' + show_list_message(database_service.get_search_list())
 
             await message.channel.send(reply)
 
