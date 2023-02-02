@@ -321,3 +321,6 @@ class DatabaseService:
         if delete_result is None:
             raise DatabaseError(f"The Guide data for {date} could not be found")
 
+
+    def __repr__(self) -> str:
+        return f'DatabaseService [Client: {self.database.client} | Database: {self.database}]'
