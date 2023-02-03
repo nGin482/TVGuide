@@ -24,6 +24,20 @@ def get_date_of_latest_message():
     print(date_of_latest_message)
     return date_of_latest_message
 
+def get_date_from_discord_message(message: str):
+    """
+    Get the date that TVGuide message was sent. Receives the message as a parameter.
+    Returns `None` if the date could not be found in the message
+    """
+    message_header_search = re.search(r'\d{2}-\d{2}-\d{4} TVGuide', message)
+    if message_header_search is not None:
+        message_date_search = re.findall(r'\d+', message_header_search.group())
+        datetime_values = [int(value) for value in message_date_search]
+        date_of_latest_message = datetime(datetime_values[2], datetime_values[1], datetime_values[0])
+        return date_of_latest_message
+    else:
+        return None
+
 
 def compare_dates():
 
