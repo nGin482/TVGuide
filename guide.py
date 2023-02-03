@@ -80,13 +80,13 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
     
     return shows_on
 
-def compose_message(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
+def compose_message(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow'], message_date: datetime = datetime.today().date()):
     """
     toString function that writes the shows, times, channels and episode information (if available) via natural language
     :return: the to-string message
     """
     
-    message = f"{datetime.today().date().strftime('%A %d-%m-%Y')} TVGuide\n"
+    message = f"{message_date.strftime('%A %d-%m-%Y')} TVGuide\n"
 
     # Free to Air
     message += "\nFree to Air:\n"
