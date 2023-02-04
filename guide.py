@@ -141,7 +141,7 @@ def run_guide(database_service: DatabaseService):
     reminders(fta_shows, database_service)
     return guide_message
 
-def revert_tvguide(database_service: DatabaseService):
+def revert_database_tvguide(database_service: DatabaseService):
     "Forget sending a message and rollback the database to its previous state"
     delete_latest_entry()
     database_service.rollback_recorded_shows()
