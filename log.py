@@ -24,7 +24,7 @@ def get_date_of_latest_message():
     print(date_of_latest_message)
     return date_of_latest_message
 
-def get_date_from_discord_message(message: str):
+def get_date_from_tvguide_message(message: str):
     """
     Get the date that TVGuide message was sent. Receives the message as a parameter.
     Returns `None` if the date could not be found in the message
