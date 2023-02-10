@@ -1,5 +1,5 @@
 from __future__ import annotations
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import re
 
 from typing import TYPE_CHECKING
@@ -118,12 +118,16 @@ def parse_date_from_command(date: str):
             try:
                 return datetime.strptime(date, '%d-%m-%Y')
             except ValueError:
-                return datetime.strptime(date, '%d-%m-%y')
+                date_values = date.split('-')
+                date_formatted = f'{date_values[0]}-{date_values[1]}-20{date_values[2]}'
+                return datetime.strptime(date_formatted, '%d-%m-%Y')
         else:
             try:
                 return datetime.strptime(date, '%d/%m/%Y')
             except ValueError:
-                return datetime.strptime(date, '%d/%m/%y')
+                date_values = date.split('/')
+                date_formatted = f'{date_values[0]}/{date_values[1]}/20{date_values[2]}'
+                return datetime.strptime(date_formatted, '%d/%m/%Y')
     else:
         date_search = re.search(r'\d{1,2}(-|\/| )(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|(Nov|Dec)(?:ember)?)(-|\/| )\d{2,4}', date)
         print(date_search)
@@ -131,13 +135,17 @@ def parse_date_from_command(date: str):
             if '-' in date:
                 date_values = date_search.group().split('-')
             elif '/' in date:
-                date_values = date_search.group().split('-')
+                date_values = date_search.group().split('/')
             else:
                 date_values = date_search.group().split(' ')
             if len(date_values[1]) == 3:
                 month = datetime.strptime(date_values[1], '%b').month
             else:
                 month = datetime.strptime(date_values[1], '%B').month
-            return datetime(int(date_values[2]), month, int(date_values[0]))
+            if len(date_values[2]) == 2:
+                year = f'20{date_values[2]}'
+            else:
+                year = date_values[2]
+            return datetime(int(year), month, int(date_values[0]))
         else:
             raise ValueError('The date provided was not in a valid format.')
