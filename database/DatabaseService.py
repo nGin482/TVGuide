@@ -278,7 +278,7 @@ class DatabaseService:
         guide_date = self.guide_collection.find_one({'date': date})
         if guide_date is None:
             return None
-        return Guide.from_database(dict(guide_date))
+        return Guide.from_database(dict(guide_date), self)
 
     def get_guide_month(self, month: str):
         """
