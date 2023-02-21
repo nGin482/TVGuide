@@ -105,7 +105,7 @@ class Validation:
         """
         Returns the fields only valid for a reminder document
         """
-        return ['show', 'reminder time', 'interval']
+        return ['show', 'reminder alert', 'warning time', 'ocassions']
 
     @staticmethod
     def unknown_episodes_check(show_list: list):
