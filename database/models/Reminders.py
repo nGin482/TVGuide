@@ -18,8 +18,8 @@ class Reminder:
             self.notify_time = self.calculate_notification_time()
 
     @classmethod
-    def from_values(cls, show: 'GuideShow', reminder_alert: str, warning_time: int, occassions: str):
-        return cls(show.title, reminder_alert, warning_time, occassions, show)
+    def from_values(cls, show: str, reminder_alert: str, warning_time: int, occassions: str, guide_show: 'GuideShow' = None):
+        return cls(show, reminder_alert, warning_time, occassions, guide_show)
 
     @classmethod
     def from_database(cls, reminder_data: dict, show: 'GuideShow' = None):
@@ -76,6 +76,9 @@ class Reminder:
             'warning_time': self.warning_time,
             'occassions': self.occassions
         }
+
+    def message_format(self):
+        return f'{self.show}\nReminder Alert: {self.reminder_alert}\nWarning Time: {self.warning_time}\nOccassions: {self.occassions}'
     
     def __repr__(self) -> str:
         return f"Reminder [Show: {self.show}, Alert: {self.reminder_alert}, Warning Time: {self.warning_time}, Occassions: {self.occassions}]"
