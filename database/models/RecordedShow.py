@@ -217,15 +217,12 @@ class RecordedShow:
         imdb_id = recorded_show_details['imdb_id'] if 'imdb_id' in recorded_show_details.keys() else ''
         return cls(title, seasons, imdb_id)
     
-    def find_season(self, season_number: str) -> Season:
-        results = list(filter(lambda season_obj: season_obj.season_number == season_number, self.seasons))
-        if len(results) > 0:
-            return results[0]
-        raise SeasonNotFoundError(f'{self.title} does not have {season_number} seasons')
+    def find_season(self, season_number: str):
+        return next((season for season in self.seasons if season.season_number == season_number), None)
     
     def find_latest_season(self):
         if 'Doctor Who' in self.title:
-            list_of_seasons = list(filter(lambda season: season.season_number != 'Tennant Specials' and season.season_number != 'Smith Specials', self.seasons))
+            list_of_seasons = [season for season in self.seasons if season.season_number != 'Tennant Specials' and season.season_number != 'Smith Specials']
         else:
             list_of_seasons = self.seasons
         latest_season_number = max(int(season.season_number) for season in list_of_seasons)
