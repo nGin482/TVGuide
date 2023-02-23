@@ -261,12 +261,12 @@ class DatabaseService:
 
     def delete_reminder(self, show: str):
         """Delete a `Reminder` from the MongoDB collection.\n
-        Raises an `exceptions.DatabaseError` if the reminder document could not be found."""
+        Raises an `exceptions.ReminderNotFoundError` if the reminder document could not be found."""
         reminder_deleted: dict = self.reminders_collection.find_one_and_delete(
             {'show': show}
         )
         if reminder_deleted is None:
-            raise DatabaseError(f'The reminder for {show} could not be found')
+            raise ReminderNotFoundError(f'The reminder for {show} could not be found')
         return True
 
 # GUIDE
