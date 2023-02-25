@@ -105,11 +105,11 @@ class Validation:
         """
         Returns the fields only valid for a reminder document
         """
-        return ['show', 'reminder alert', 'warning time', 'ocassions']
+        return ['show', 'reminder_alert', 'warning_time', 'ocassions']
 
     @staticmethod
     def unknown_episodes_check(show_list: list):
-        shows_with_unknown_episodes = {}
+        shows_with_unknown_episodes: dict[str, list[str]] = {}
         show_titles_with_unknown_episodes = [show for show in show_list if show.season_number == 'Unknown']
         for show in show_titles_with_unknown_episodes:
             if show.title in shows_with_unknown_episodes.keys():
