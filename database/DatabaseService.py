@@ -259,6 +259,15 @@ class DatabaseService:
             raise DatabaseError(f'The Reminder document for {reminder.show} was not inserted into the Reminders collection')
         return True
 
+    def update_reminder(self, reminder: Reminder):
+        updated_reminder = self.reminders_collection.find_one_and_replace(
+            {'show': reminder.show},
+            reminder.to_dict()
+        )
+        if updated_reminder is None:
+            raise ReminderNotFoundError(f'The reminder for {reminder.show} could not be found')
+        return True
+    
     def delete_reminder(self, show: str):
         """Delete a `Reminder` from the MongoDB collection.\n
         Raises an `exceptions.ReminderNotFoundError` if the reminder document could not be found."""
