@@ -28,16 +28,14 @@ class GuideShow:
         season_number, episode_number, episode_title = episode_details
         repeat = False
         
-        try:
-            season = recorded_show.find_season(season_number)
+        season = recorded_show.find_season(season_number)
+        if season is not None:
             if episode_number != 0:
                 episode = season.find_episode(episode_number=episode_number)
             else:
                 episode = season.find_episode(episode_title=episode_title)
             if episode is not None:
                 repeat = True
-        except SeasonNotFoundError:
-            pass
 
         if episode_title == '' and recorded_show.imdb_id != '':
             episode_title = search_for_episode_title(title, season_number, episode_number, recorded_show.imdb_id)
