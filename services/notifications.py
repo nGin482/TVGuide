@@ -108,8 +108,11 @@ async def create_reminder(ctx: Context, show: str, reminder_alert: str = 'Before
         if reminder_exists is not None:
             await ctx.send(f'A reminder already exists for {show}')
     except ReminderNotFoundError:
-        reminder = Reminder.from_values(show, reminder_alert, int(warning_time), occassions)
-        database_service.insert_new_reminder(reminder)
+        if show in database_service.get_search_list():
+            reminder = Reminder.from_values(show, reminder_alert, int(warning_time), occassions)
+            database_service.insert_new_reminder(reminder)
+        else:
+            await ctx.send(f'A reminder cannot be created for {show} as it is not being searched for.')
         await ctx.send(f'A reminder has been created for {show}')
 
 @hermes.command()
