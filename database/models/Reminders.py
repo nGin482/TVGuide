@@ -77,6 +77,11 @@ class Reminder:
             'occassions': self.occassions
         }
 
+    def notification(self):
+        message = f'REMINDER: {self.show} is on {self.guide_show.channel} at {self.guide_show.time.strftime("%H:%M")}\n'
+        message += f'You will be reminded at {self.calculate_notification_time().strftime("%H:%M")}'
+        return message
+
     def message_format(self):
         return f'{self.show}\nReminder Alert: {self.reminder_alert}\nWarning Time: {self.warning_time}\nOccassions: {self.occassions}'
     
