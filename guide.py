@@ -111,35 +111,34 @@ def reminders(guide_list: list['GuideShow'], database_service: DatabaseService):
     print('Reminders:')
     reminders = database_service.get_reminders_for_shows(guide_list)
     if len(reminders) > 0:
-        for reminder in reminders:
-            if reminder.compare_reminder_interval():
-                print(f'REMINDER: {reminder.show} is on {reminder.guide_show.channel} at {reminder.guide_show.time.strftime("%H:%M")}')
-                print(f'You will be reminded at {reminder.calculate_notification_time().strftime("%H:%M")}')
+        reminders_message = '\n'.join([reminder.notification() for reminder in reminders if reminder.compare_reminder_interval() and 'HD' not in reminder.guide_show.channel])
+        print(reminders_message)
+        print('===================================================================================')
+        return reminders_message
     else:
         print('There are no reminders scheduled for today')
-    print('===================================================================================')
+        print('===================================================================================')
+        return 'There are no reminders scheduled for today'
 
-def run_guide(database_service: DatabaseService):
+def run_guide(database_service: DatabaseService, update_db_flag: bool, guide_list: list['GuideShow']):
 
-    update_db_flag = compare_dates()
     print(update_db_flag)
     
     clear_imdb_api_results()
-    fta_shows = search_free_to_air(database_service.get_search_list(), database_service)
-    guide_message = compose_message(fta_shows, [])
+    guide_message = compose_message(guide_list, [])
     print(guide_message)
     if update_db_flag:
         clear_events_log()
         database_service.backup_recorded_shows()
         
-        for guide_show in fta_shows:
+        for guide_show in guide_list:
             if 'HD' not in guide_show.channel:
                 guide_show.db_event = str(database_service.capture_db_event(guide_show)['result'])
-        database_service.add_guide_data(fta_shows, [])
-        log_guide_information(fta_shows, [])
+        database_service.add_guide_data(guide_list, [])
+        log_guide_information(guide_list, [])
 
-    reminders(fta_shows, database_service)
-    return guide_message
+    reminders_message = reminders(guide_list, database_service)
+    return guide_message, reminders_message
 
 def revert_database_tvguide(database_service: DatabaseService):
     "Forget sending a message and rollback the database to its previous state"
