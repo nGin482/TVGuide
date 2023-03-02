@@ -107,14 +107,12 @@ class DatabaseService:
         Create a local backup of the `RecordedShows` collection by storing data locally in JSON files
         """
         
+        if not os.path.isdir('database/backups/recorded_shows'):
+            os.mkdir('database/backups/recorded_shows')
+        
         for recorded_show in self.get_all_recorded_shows():
             recorded_show_title = recorded_show.title.replace(':', '') if ':' in recorded_show.title else recorded_show.title
-            if os.path.isdir('database/backups/recorded_shows'):
-                with open(f'database/backups/recorded_shows/{recorded_show_title}.json', 'w+') as fd:
-                    json.dump(recorded_show.to_dict(), fd, indent='\t')
-            else:
-                os.mkdir('database/backups/recorded_shows')
-                with open(f'database/backups/recorded_shows/{recorded_show_title}.json', 'w+') as fd:
+            with open(f'database/backups/recorded_shows/{recorded_show_title}.json', 'w+') as fd:
                     json.dump(recorded_show.to_dict(), fd, indent='\t')
 
     def rollback_recorded_shows(self):
