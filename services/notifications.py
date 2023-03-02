@@ -7,8 +7,8 @@ from aux_methods.helper_methods import show_list_message, parse_date_from_comman
 from database.models.Reminders import Reminder
 from exceptions.DatabaseError import DatabaseError, ReminderNotFoundError, SearchItemAlreadyExistsError, SearchItemNotFoundError, ShowNotFoundError
 from config import database_service
-from log import get_date_from_tvguide_message
-from guide import compose_message, revert_database_tvguide
+from log import get_date_from_tvguide_message, compare_dates, log_message_sent
+from guide import compose_message, revert_database_tvguide, run_guide, search_free_to_air
 from data_validation.validation import Validation
 
 load_dotenv('.env')
@@ -41,6 +41,15 @@ async def remove_show(ctx: Context, show: str):
     except DatabaseError | SearchItemNotFoundError as err:
         reply = f'Error: {str(err)}. The list remains as:\n{show_list_message(database_service.get_search_list())}'
     await ctx.send(reply)
+
+@hermes.command()
+async def send_guide(ctx: Context):
+    update_db_flag = compare_dates()
+    fta_list = search_free_to_air(database_service.get_search_list(), database_service)
+    guide_message, reminders_message = run_guide(database_service, update_db_flag, fta_list)
+    await ctx.send(guide_message)
+    await ctx.send(reminders_message)
+    log_message_sent()
 
 @hermes.command()
 async def send_guide_record(ctx: Context, date_to_send: str):
