@@ -1,7 +1,9 @@
 from datetime import datetime
-from discord import Message
+from discord import Message, File
 from discord.ext.commands import Bot, Context, DefaultHelpCommand
 from dotenv import load_dotenv
+from zipfile import ZipFile
+import os
 
 from aux_methods.helper_methods import show_list_message, parse_date_from_command
 from database.models.Reminders import Reminder
@@ -154,3 +156,16 @@ async def delete_reminder(ctx: Context, show: str):
         await ctx.send(f'The Reminder for {show} has been removed')
     except ReminderNotFoundError as err:
         await ctx.send(f'Error: {str(err)}')
+
+@hermes.command()
+async def backup_shows(ctx: Context):
+    database_service.backup_recorded_shows()
+
+    os.mkdir('database/backups/zip')
+    with ZipFile('database/backups/zip/Shows-Archive.zip', 'w') as zip:
+        for file in os.listdir('database/backups/recorded_shows'):
+            zip.write(f'database/backups/recorded_shows/{file}')
+    shows_zip = File('database/backups/zip/Shows-Archive.zip', 'Shows Archive.zip')
+    await ctx.send('A backup has been made of the Recorded Shows. This can be found attached.', file=shows_zip)
+    os.remove('database/backups/zip/Shows-Archive.zip')
+    os.rmdir('database/backups/zip')
