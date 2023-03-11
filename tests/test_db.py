@@ -31,6 +31,7 @@ class TestDatabase(unittest.TestCase):
     def test_connection(self):
         self.assertEqual(self.test_db.database.name, 'test')
 
+    # @unittest.skip
     def test_create_recorded_show_from_db(self):
         recorded_show = RecordedShow.from_database(self.recorded_shows[0])
         self.assertEqual(recorded_show.title, self.recorded_shows[0]['show'])
@@ -40,6 +41,7 @@ class TestDatabase(unittest.TestCase):
             episode_count += len(season.episodes)
         self.assertGreater(episode_count, 0)
 
+    # @unittest.skip
     def test_create_recorded_show_from_guide_show(self):
         new_show = GuideShow(
             'Endeavour',
@@ -61,6 +63,7 @@ class TestDatabase(unittest.TestCase):
         print(recorded_show)
         self.assertFalse(recorded_show.seasons[0].episodes[0].repeat)
 
+    # @unittest.skip
     def test_01_insert_new_show(self):
         new_unforgotten_episode = GuideShow(
             'Unforgotten',
@@ -77,6 +80,7 @@ class TestDatabase(unittest.TestCase):
 
         self.assertGreater(new_length, original_length)
     
+    # @unittest.skip
     def test_02_insert_new_season(self):
         new_show = GuideShow(
             'Unforgotten',
@@ -94,6 +98,7 @@ class TestDatabase(unittest.TestCase):
         self.assertGreater(new_length, original_length)
 
 
+    # @unittest.skip
     def test_03_insert_new_episode(self):
         new_show = GuideShow(
             'Unforgotten',
@@ -112,6 +117,7 @@ class TestDatabase(unittest.TestCase):
         self.assertGreater(new_length, original_length)
 
 
+    # @unittest.skip
     def test_create_reminder_from_values(self):
         reminder_dw = Reminder.from_values(self.guide_shows[0], 'Before', 3, 'All')
         print(reminder_dw.guide_show.recorded_show.find_latest_season())
@@ -132,12 +138,21 @@ class TestDatabase(unittest.TestCase):
         self.reminders.append(reminder_endeavour)
 
     def test_reminder_needed(self):
-        print(self.guide_shows)
-        reminders = Reminder.get_reminders_for_shows(self.guide_shows)
-        print(reminders)
+        dw_episode = GuideShow('Doctor Who', ('ABC1', datetime.today()), ('6', 7, 'A Good Man Goes To War', True), None)
+        endeavour = GuideShow('Endeavour', ('ABC1', datetime.today()), ('5', 6, 'Icarus', True), None)
+        guide_list = [dw_episode, endeavour]
+        reminders = self.test_db.get_reminders_for_shows(guide_list)
+        print(f'Reminders: {reminders}')
+        self.assertGreater(len(reminders), 1)
+        print(len(reminders))
         self.assertTrue(reminders[0].compare_reminder_interval())
-        with self.assertRaises(IndexError) as exception_context:
-            reminders[1].compare_reminder_interval()
+        self.assertTrue(reminders[1].compare_reminder_interval())
+        self.assertIsNotNone(reminders[0].guide_show)
+        self.assertIsNotNone(reminders[1].guide_show)
+        print(reminders[0].notification())
+        print(reminders[1].notification())
+        # with self.assertRaises(IndexError) as exception_context:
+        #     reminders[1].compare_reminder_interval()
     
 
     def tearDown(self) -> None:
