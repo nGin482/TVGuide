@@ -241,7 +241,7 @@ class DatabaseService:
         guide_reminders: list[Reminder] = []
         for show in guide_list:
             for reminder in all_reminders:
-                if reminder.show == show.title:
+                if reminder.show == show.title and 'HD' not in show.channel:
                     reminder.guide_show = show
                     guide_reminders.append(reminder)
 
