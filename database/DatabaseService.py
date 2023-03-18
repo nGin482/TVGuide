@@ -119,20 +119,22 @@ class DatabaseService:
         """
         Rollback the `RecordedShows` collection to a point before the TVGuide has interacted with the DB for the current day
         """
+        from services.notifications import hermes
         
         for recorded_show_file_name in os.listdir(f'database/{directory}/recorded_shows'):
             recorded_show_title = recorded_show_file_name.replace(':', '') if ':' in recorded_show_file_name else recorded_show_file_name
-            print(recorded_show_title)
-            with open(f'database/{directory}/recorded_shows/{recorded_show_title}') as fd:
-                show_data = dict(json.load(fd))
-            show_name: str = show_data['show']
-            self.recorded_shows_collection.find_one_and_update(
-                {'show': show_name},
-                {'$set': {'seasons': show_data['seasons']}},
-                return_document=ReturnDocument.AFTER
-            )
-            # how to notify that this is done - discord dispatch
-        pass
+            if '.zip' not in recorded_show_file_name:
+                print(recorded_show_title)
+                with open(f'database/{directory}/recorded_shows/{recorded_show_title}') as fd:
+                    show_data = dict(json.load(fd))
+                show_name: str = show_data['show']
+                self.recorded_shows_collection.find_one_and_update(
+                    {'show': show_name},
+                    {'$set': {'seasons': show_data['seasons']}},
+                    return_document=ReturnDocument.AFTER
+                )
+        
+        hermes.dispatch('db_rollback')
 
 
     def capture_db_event(self, guide_show: GuideShow):
