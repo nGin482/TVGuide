@@ -15,6 +15,7 @@
 /episode_search_results
 /misc_working
 /database/backups
+/database/restore
 
 # files
 /aux_methods.pyc

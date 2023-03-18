@@ -164,8 +164,25 @@ async def backup_shows(ctx: Context):
     os.mkdir('database/backups/zip')
     with ZipFile('database/backups/zip/Shows-Archive.zip', 'w') as zip:
         for file in os.listdir('database/backups/recorded_shows'):
-            zip.write(f'database/backups/recorded_shows/{file}')
-    shows_zip = File('database/backups/zip/Shows-Archive.zip', 'Shows Archive.zip')
+            zip.write(f'database/backups/recorded_shows/{file}', arcname=file)
+    shows_zip = File('database/backups/zip/Shows-Archive.zip', f'Shows Archive - {datetime.today().strftime("%d/%m/%Y")}.zip')
     await ctx.send('A backup has been made of the Recorded Shows. This can be found attached.', file=shows_zip)
     os.remove('database/backups/zip/Shows-Archive.zip')
     os.rmdir('database/backups/zip')
+
+@hermes.command()
+async def restore_shows(ctx: Context):
+    os.makedirs('database/restore/recorded_shows')
+    message: Message = ctx.message
+    shows_attachment = message.attachments[0]
+    filename = shows_attachment.filename
+    await shows_attachment.save(f'database/restore/recorded_shows/{filename}')
+    with ZipFile(f'database/restore/recorded_shows/{filename}', 'r') as zip:
+        zip.extractall('database/restore/recorded_shows')
+
+    database_service.rollback_recorded_shows(directory='restore')
+
+    for file in os.listdir('database/restore/recorded_shows'):
+        os.remove(f'database/restore/recorded_shows/{file}')
+    os.rmdir('database/restore/recorded_shows')
+    os.removedirs('database/restore')
