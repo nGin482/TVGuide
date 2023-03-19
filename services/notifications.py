@@ -33,6 +33,11 @@ async def event_message(message: str):
 async def on_db_rollback():
     event_message('The RecordedShows collection has been rolled back.')
 
+@hermes.event
+async def on_show_not_processed(show: str, err: str):
+    message = f'A GuideShow object was not able to be processed.\nGuideShow: {show}.\nError: {err}'
+    event_message(message)
+
 
 @hermes.command()
 async def show_list(ctx: Context):

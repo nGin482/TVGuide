@@ -138,6 +138,8 @@ class DatabaseService:
 
 
     def capture_db_event(self, guide_show: GuideShow):
+        from services.notifications import hermes
+        
         recorded_show = guide_show.recorded_show
         
         try:
@@ -183,6 +185,7 @@ class DatabaseService:
             event = {'show': guide_show.to_dict(), 'result': insert_show}
         except Exception as err:
             event = {'show': guide_show.to_dict(), 'message': 'Unable to process this episode.', 'error': str(err)}
+            hermes.dispatch('show_not_processed', guide_show.message_string(), err)
 
         log_database_event(event)
         return event
