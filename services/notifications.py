@@ -21,14 +21,17 @@ hermes = Bot(command_prefix='$', help_command=DefaultHelpCommand())
 async def on_ready():
     print('Logged in as', hermes.user)
 
-@hermes.event
-async def on_db_rollback():
+async def event_message(message: str):
     tvguide_channel: TextChannel = hermes.get_channel(int(os.getenv('TVGUIDE_CHANNEL')))
     if tvguide_channel is not None:
-        await tvguide_channel.send('The RecordedShows collection has been rolled back.')
+        await tvguide_channel.send(message)
     else:
         ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
-        await ngin.send('The RecordedShows collection has been rolled back.\nHermes was also unable to send this message through the TVGuide channel')
+        await ngin.send(f'{message}\nHermes was also unable to send this message through the TVGuide channel')
+
+@hermes.event
+async def on_db_rollback():
+    event_message('The RecordedShows collection has been rolled back.')
 
 
 @hermes.command()
