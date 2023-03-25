@@ -4,7 +4,7 @@ from requests import get
 from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
-from log import clear_events_log, clear_imdb_api_results, compare_dates, delete_latest_entry, log_guide_information
+from log import clear_events_log, clear_imdb_api_results, delete_latest_entry, log_guide_information
 
 def find_json(url):
     return dict(get(url).json())
