@@ -5,8 +5,10 @@ def mongo_client():
     try:
         return MongoClient(os.getenv('TVGUIDE_DB'))
     except errors.ConfigurationError as e:
+        from services.notifications import hermes
         print('Having trouble connecting to the database.')
         print(e)
+        hermes.dispatch('db_not_connected', str(e))
         
 
 def database():
