@@ -113,16 +113,16 @@ async def revert_tvguide(ctx: Context, date_to_delete: str = None):
 
 @hermes.command()
 async def recorded_show(ctx: Context, show: str):
-    try:
-        show_record = database_service.get_one_recorded_show(show)
+    show_record = database_service.get_one_recorded_show(show)
+    if show_record is not None:
         await ctx.send(show_record.message_format())
-    except ShowNotFoundError as err:
-        await ctx.send(f'Error: {str(err)}')
+    else:
+        await ctx.send(f'{show} could not be found in the database')
 
 @hermes.command()
 async def season_details(ctx: Context, show: str, season: str):
-    try:
-        show_record = database_service.get_one_recorded_show(show)
+    show_record = database_service.get_one_recorded_show(show)
+    if show_record is not None:
         season_record = show_record.find_season(season)
         if season_record is not None:
             await ctx.send(season_record.message_format())
@@ -131,8 +131,8 @@ async def season_details(ctx: Context, show: str, season: str):
                 await ctx.send(f'{show} does not have an {season} season')
             else:
                 await ctx.send(f'{show} does not have {season} seasons')
-    except ShowNotFoundError as err:
-        await ctx.send(f'Error: {str(err)}')
+    else:
+        await ctx.send(f'{show} could not be found in the database')
 
 @hermes.command()
 async def create_reminder(ctx: Context, show: str, reminder_alert: str = 'Before', warning_time: str = '3', occassions: str = 'All'):

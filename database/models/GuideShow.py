@@ -8,7 +8,7 @@ from services.imdb_api import search_for_episode_title, search_for_season_number
 
 class GuideShow:
     
-    def __init__(self, title: str, airing_details: tuple[str, datetime], episode_details: tuple[str, int, str, bool], recorded_show: RecordedShow) -> None:
+    def __init__(self, title: str, airing_details: tuple[str, datetime], episode_details: tuple[str, int, str, bool], recorded_show: RecordedShow, new_show: bool = False) -> None:
         channel, time = airing_details
         season_number, episode_number, episode_title, repeat = episode_details
         
@@ -21,26 +21,31 @@ class GuideShow:
         self.repeat = repeat
         self.recorded_show = recorded_show
         self.db_event = 'No DB event was performed on this show.'
+        self.new_show = new_show
 
     @classmethod
     def known_season(cls, title: str, airing_details: tuple[str, datetime], episode_details: tuple[str, int, str], recorded_show: RecordedShow):
         channel, time = airing_details
         season_number, episode_number, episode_title = episode_details
         repeat = False
+        new_show = False
         
-        season = recorded_show.find_season(season_number)
-        if season is not None:
-            if episode_number != 0:
-                episode = season.find_episode(episode_number=episode_number)
-            else:
-                episode = season.find_episode(episode_title=episode_title)
-            if episode is not None:
-                repeat = True
+        if recorded_show is not None:
+            season = recorded_show.find_season(season_number)
+            if season is not None:
+                if episode_number != 0:
+                    episode = season.find_episode(episode_number=episode_number)
+                else:
+                    episode = season.find_episode(episode_title=episode_title)
+                if episode is not None:
+                    repeat = True
 
-        if episode_title == '' and recorded_show.imdb_id != '':
-            episode_title = search_for_episode_title(title, season_number, episode_number, recorded_show.imdb_id)
+            if episode_title == '' and recorded_show.imdb_id != '':
+                episode_title = search_for_episode_title(title, season_number, episode_number, recorded_show.imdb_id)
+        else:
+            new_show = True
         
-        return cls(title, (channel, time), (season_number, episode_number, episode_title, repeat), recorded_show)
+        return cls(title, (channel, time), (season_number, episode_number, episode_title, repeat), recorded_show, new_show)
 
     @classmethod
     def unknown_season(cls, title: str, airing_details: tuple[str, datetime], episode_title: str, recorded_show: RecordedShow, unknown_episodes: int):
@@ -135,7 +140,7 @@ class GuideShow:
         Raises `ShowNotFoundError` if the show can't be found in the database.
         """
         # check_show = get_one_recorded_show(show['title'])
-        if self.recorded_show:
+        if self.recorded_show or not self.new_show:
             season = self.recorded_show.find_season(self.season_number)
             if season:
                 episode = season.find_episode(episode_number=self.episode_number, episode_title=self.episode_title)
