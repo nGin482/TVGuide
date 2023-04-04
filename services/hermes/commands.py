@@ -1,20 +1,17 @@
 from datetime import datetime
-from discord import Message, File, TextChannel
-from discord.ext.commands import Bot, Context, DefaultHelpCommand
-from dotenv import load_dotenv
+from discord import Message, File
+from discord.ext.commands import Context
 from zipfile import ZipFile
 import os
 
 from aux_methods.helper_methods import show_list_message, parse_date_from_command
+from config import database_service
+from data_validation.validation import Validation
 from database.models.Reminders import Reminder
 from exceptions.DatabaseError import DatabaseError, ReminderNotFoundError, SearchItemAlreadyExistsError, SearchItemNotFoundError, ShowNotFoundError
-from config import database_service
-from log import get_date_from_tvguide_message, compare_dates, log_message_sent
 from guide import compose_message, revert_database_tvguide, run_guide, search_free_to_air
-from data_validation.validation import Validation
-
-load_dotenv('.env')
-hermes = Bot(command_prefix='$', help_command=DefaultHelpCommand())
+from log import get_date_from_tvguide_message, compare_dates, log_message_sent
+from services.hermes.hermes import hermes
 
 
 @hermes.command()

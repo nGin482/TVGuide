@@ -119,7 +119,7 @@ class DatabaseService:
         """
         Rollback the `RecordedShows` collection to a point before the TVGuide has interacted with the DB for the current day
         """
-        from services.notifications import hermes
+        from services.hermes.hermes import hermes
         
         for recorded_show_file_name in os.listdir(f'database/{directory}/recorded_shows'):
             recorded_show_title = recorded_show_file_name.replace(':', '') if ':' in recorded_show_file_name else recorded_show_file_name
@@ -138,7 +138,7 @@ class DatabaseService:
 
 
     def capture_db_event(self, guide_show: GuideShow):
-        from services.notifications import hermes
+        from services.hermes.hermes import hermes
         
         recorded_show = guide_show.recorded_show
         
