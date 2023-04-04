@@ -58,17 +58,6 @@ class Reminder:
         else:
             return self.guide_show.time - timedelta(minutes=self.warning_time)
 
-    @staticmethod
-    def get_reminders_for_shows(show_list: list['GuideShow']):
-        reminder_list: list[Reminder] = []
-        for show in show_list:
-            try:
-                reminder = Reminder.from_database(show)
-                reminder_list.append(reminder)
-            except ReminderNotFoundError:
-                pass
-        return reminder_list
-
     def to_dict(self):
         return {
             'show': self.show,
@@ -78,11 +67,12 @@ class Reminder:
         }
 
     def notification(self):
-        message = f'REMINDER: {self.show} is on {self.guide_show.channel} at {self.guide_show.time.strftime("%H:%M")}\n'
-        message += f'You will be reminded at {self.calculate_notification_time().strftime("%H:%M")}'
-        return message
+        return f'REMINDER: {self.show} is on {self.guide_show.channel} at {self.guide_show.time.strftime("%H:%M")}'
+    
+    def general_message(self):
+        return f'{self.notification()}\nYou will be reminded at {self.calculate_notification_time().strftime("%H:%M")}'
 
-    def message_format(self):
+    def reminder_details(self):
         return f'{self.show}\nReminder Alert: {self.reminder_alert}\nWarning Time: {self.warning_time}\nOccassions: {self.occassions}'
     
     def __repr__(self) -> str:
