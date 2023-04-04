@@ -17,33 +17,6 @@ load_dotenv('.env')
 hermes = Bot(command_prefix='$', help_command=DefaultHelpCommand())
 
 
-@hermes.event
-async def on_ready():
-    print('Logged in as', hermes.user)
-
-async def event_message(message: str):
-    tvguide_channel: TextChannel = hermes.get_channel(int(os.getenv('TVGUIDE_CHANNEL')))
-    if tvguide_channel is not None:
-        await tvguide_channel.send(message)
-    else:
-        ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
-        await ngin.send(f'{message}\nHermes was also unable to send this message through the TVGuide channel')
-
-@hermes.event
-async def on_db_rollback():
-    event_message('The RecordedShows collection has been rolled back.')
-
-@hermes.event
-async def on_show_not_processed(show: str, err: str):
-    message = f'A GuideShow object was not able to be processed.\nGuideShow: {show}.\nError: {err}'
-    event_message(message)
-
-@hermes.event
-async def on_db_not_connected(err: str):
-    message = f'Having trouble connecting to the database.\nError: {err}'
-    event_message(message)
-
-
 @hermes.command()
 async def show_list(ctx: Context):
     await ctx.send(show_list_message(database_service.get_search_list()))
@@ -152,7 +125,7 @@ async def create_reminder(ctx: Context, show: str, reminder_alert: str = 'Before
 async def view_reminder(ctx: Context, show: str):
     try:
         reminder = database_service.get_one_reminder(show)
-        await ctx.send(reminder.message_format())
+        await ctx.send(reminder.reminder_details())
     except ReminderNotFoundError as err:
         await ctx.send(f'Error: {err}')
 
@@ -165,7 +138,7 @@ async def update_reminder(ctx: Context, show: str, attribute: str, value: str):
                 value = int(value)
             setattr(reminder, attribute, value)
             database_service.update_reminder(reminder)
-            await ctx.send(f"The reminder for {show} has been updated. It's details are now:\n{reminder.message_format()}")
+            await ctx.send(f"The reminder for {show} has been updated. It's details are now:\n{reminder.reminder_details()}")
         else:
             await ctx.send(f'Error: {attribute} is not a valid property for a reminder')
     except ReminderNotFoundError as err:
