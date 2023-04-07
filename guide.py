@@ -1,15 +1,19 @@
 from datetime import datetime
 from requests import get
+from typing import TYPE_CHECKING
 
 from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
 from log import clear_events_log, clear_imdb_api_results, delete_latest_entry, log_guide_information
 
+if TYPE_CHECKING:
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 def find_json(url):
     return dict(get(url).json())
 
-def search_free_to_air(search_list: list[str], database_service: DatabaseService):
+def search_free_to_air(database_service: DatabaseService):
     """
 
     :return:
@@ -20,6 +24,7 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
     shows_data: list[dict] = []
 
     data = find_json(new_url)['schedule']
+    search_list = database_service.get_search_list()
 
     for channel_data in data:
         for guide_show in channel_data['listing']:
@@ -106,18 +111,18 @@ def compose_message(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow'], 
 
     return message
 
-def reminders(guide_list: list['GuideShow'], database_service: DatabaseService):
+def reminders(guide_list: list['GuideShow'], database_service: DatabaseService, scheduler: AsyncIOScheduler = None):
     print('===================================================================================')
     print('Reminders:')
     reminders = database_service.get_reminders_for_shows(guide_list)
     if len(reminders) > 0:
-        from apscheduler.triggers.date import DateTrigger
-        from config import scheduler
-        from services.hermes.utilities import send_message
+        if scheduler is not None:
+            from apscheduler.triggers.date import DateTrigger
+            from services.hermes.utilities import send_message
         
-        for reminder in reminders:
-            if reminder.compare_reminder_interval() and 'HD' not in reminder.guide_show.channel:
-                scheduler.add_job(send_message, DateTrigger(run_date=reminder.notify_time), [reminder.notification()])
+            for reminder in reminders:
+                if reminder.compare_reminder_interval() and 'HD' not in reminder.guide_show.channel:
+                    scheduler.add_job(send_message, DateTrigger(run_date=reminder.notify_time), [reminder.notification()])
         reminders_message = '\n'.join([reminder.general_message() for reminder in reminders if reminder.compare_reminder_interval() and 'HD' not in reminder.guide_show.channel])
         print(reminders_message)
         print('===================================================================================')
@@ -127,7 +132,7 @@ def reminders(guide_list: list['GuideShow'], database_service: DatabaseService):
         print('===================================================================================')
         return 'There are no reminders scheduled for today'
 
-def run_guide(database_service: DatabaseService, update_db_flag: bool, guide_list: list['GuideShow']):
+def run_guide(database_service: DatabaseService, update_db_flag: bool, guide_list: list['GuideShow'], scheduler: AsyncIOScheduler=None):
 
     print(update_db_flag)
     
@@ -144,7 +149,7 @@ def run_guide(database_service: DatabaseService, update_db_flag: bool, guide_lis
         database_service.add_guide_data(guide_list, [])
         log_guide_information(guide_list, [])
 
-    reminders_message = reminders(guide_list, database_service)
+    reminders_message = reminders(guide_list, database_service, scheduler)
     return guide_message, reminders_message
 
 def revert_database_tvguide(database_service: DatabaseService):
