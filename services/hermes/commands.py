@@ -10,7 +10,7 @@ from data_validation.validation import Validation
 from database.models.Reminders import Reminder
 from exceptions.DatabaseError import DatabaseError, ReminderNotFoundError, SearchItemAlreadyExistsError, SearchItemNotFoundError, ShowNotFoundError
 from guide import compose_message, revert_database_tvguide, run_guide, search_free_to_air
-from log import get_date_from_tvguide_message, compare_dates, log_message_sent
+from log import get_date_from_tvguide_message
 from services.hermes.hermes import hermes
 
 
@@ -38,12 +38,10 @@ async def remove_show(ctx: Context, show: str):
 
 @hermes.command()
 async def send_guide(ctx: Context):
-    update_db_flag = compare_dates()
-    fta_list = search_free_to_air(database_service.get_search_list(), database_service)
-    guide_message, reminders_message = run_guide(database_service, update_db_flag, fta_list)
+    fta_list = search_free_to_air(database_service)
+    guide_message, reminders_message = run_guide(database_service, fta_list)
     await ctx.send(guide_message)
     await ctx.send(reminders_message)
-    log_message_sent()
 
 @hermes.command()
 async def send_guide_record(ctx: Context, date_to_send: str):
