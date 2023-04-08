@@ -3,7 +3,7 @@ from os import getenv
 
 from config import database_service
 from guide import run_guide, search_free_to_air
-from log import compare_dates, log_message_sent
+from log import log_message_sent
 from services.hermes.hermes import hermes
 
 
@@ -13,9 +13,8 @@ async def send_main_message():
     :param send_status:
     :return: n/a
     """
-    update_db_flag = compare_dates()
     fta_list = search_free_to_air(database_service)
-    guide_message, reminder_message = run_guide(database_service, update_db_flag, fta_list)
+    guide_message, reminder_message = run_guide(database_service, fta_list)
     
     await hermes.wait_until_ready()
     tvguide_channel: TextChannel = hermes.get_channel(int(getenv('TVGUIDE_CHANNEL')))
