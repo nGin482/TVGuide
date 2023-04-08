@@ -1,14 +1,11 @@
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
 from requests import get
-from typing import TYPE_CHECKING
 
 from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
-from log import clear_events_log, clear_imdb_api_results, delete_latest_entry, log_guide_information
-
-if TYPE_CHECKING:
-    from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from log import clear_events_log, clear_imdb_api_results, compare_dates, delete_latest_entry, log_guide_information
 
 def find_json(url):
     return dict(get(url).json())
@@ -132,8 +129,9 @@ def reminders(guide_list: list['GuideShow'], database_service: DatabaseService, 
         print('===================================================================================')
         return 'There are no reminders scheduled for today'
 
-def run_guide(database_service: DatabaseService, update_db_flag: bool, guide_list: list['GuideShow'], scheduler: AsyncIOScheduler=None):
+def run_guide(database_service: DatabaseService, guide_list: list['GuideShow'], scheduler: AsyncIOScheduler=None):
 
+    update_db_flag = compare_dates()
     print(update_db_flag)
     
     clear_imdb_api_results()
