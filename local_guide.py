@@ -1,7 +1,6 @@
 from discord import TextChannel
 from os import getenv
 
-from config import database_service
 from guide import run_guide, search_free_to_air
 from log import log_message_sent
 from services.hermes.hermes import hermes
@@ -13,6 +12,7 @@ async def send_main_message():
     :param send_status:
     :return: n/a
     """
+    from config import database_service
     fta_list = search_free_to_air(database_service)
     guide_message, reminder_message = run_guide(database_service, fta_list)
     
