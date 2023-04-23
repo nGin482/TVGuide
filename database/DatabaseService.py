@@ -1,6 +1,6 @@
 from pymongo.database import Database
 from pymongo.errors import OperationFailure
-from pymongo import ReturnDocument
+from pymongo import ReturnDocument, DESCENDING
 from datetime import datetime
 import json
 import os
@@ -303,6 +303,12 @@ class DatabaseService:
                 month = str(datetime.strptime(month, '%B').month)
         guide_search = self.guide_collection.find({'date': f"/{month}/"})
         return [Guide.from_database(dict(document)) for document in guide_search]
+    
+    def get_latest_guide(self):
+        """Return the latest `Guide` record from the collection"""
+        guide_results = list(self.guide_collection.find({}).sort('_id', DESCENDING).limit(1))
+        latest_guide = dict(guide_results[0])
+        return Guide.from_database(latest_guide, self)
 
     def search_guides_for_show(self, show_title: str):
         """Search all guide data for when the given show_title has been aired"""

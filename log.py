@@ -11,19 +11,6 @@ if TYPE_CHECKING:
     from database.models.GuideShow import GuideShow
 
 
-def get_date_of_latest_message():
-
-    with open('log/emails.txt') as fd:
-        all_messages = fd.read().splitlines()
-
-    latest_message = all_messages[-1]
-    datetime_values = re.findall(r'\d+', latest_message)
-    datetime_values = [int(value) for value in datetime_values]
-    date_of_latest_message = datetime(datetime_values[2], datetime_values[1], datetime_values[0], datetime_values[3], datetime_values[4])
-
-    print(date_of_latest_message)
-    return date_of_latest_message
-
 def get_date_from_tvguide_message(message: str):
     """
     Get the date that TVGuide message was sent. Receives the message as a parameter.
@@ -39,9 +26,8 @@ def get_date_from_tvguide_message(message: str):
         return None
 
 
-def compare_dates():
+def compare_dates(date: datetime):
 
-    date = get_date_of_latest_message()
     if date.day != datetime.today().day:
         return True
     else:

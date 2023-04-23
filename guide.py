@@ -131,7 +131,10 @@ def reminders(guide_list: list['GuideShow'], database_service: DatabaseService, 
 
 def run_guide(database_service: DatabaseService, guide_list: list['GuideShow'], scheduler: AsyncIOScheduler=None):
 
-    update_db_flag = compare_dates()
+    latest_guide = database_service.get_latest_guide()
+    print(latest_guide.date)
+    
+    update_db_flag = compare_dates(latest_guide.date)
     print(update_db_flag)
     
     clear_imdb_api_results()
