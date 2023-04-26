@@ -157,20 +157,17 @@ class RedElection(SpecialCases):
 class SilentWitness(SpecialCases):
     
     @staticmethod
-    def handle(season_number: str, episode_title: str):
-        episode_data = SilentWitness.silent_witness(season_number, episode_title)
+    def handle(episode_title: str):
+        episode_data = SilentWitness.silent_witness(episode_title)
         return episode_data
 
     @staticmethod
-    def silent_witness(season_number: str, episode_title: str):
+    def silent_witness(episode_title: str):
         
-        from log import logging_app
         try:
             check_episode = SilentWitness.check_silent_witness(episode_title)
-            logging_app(f'Logging Silent Witness Episode\nSeason Number: {season_number}, Episode Title: {episode_title} Result: {check_episode}')
             return check_episode
         except ValueError:
-            logging_app(f'Logging Silent Witness Episode\nSeason Number: {season_number}, Episode Title: {episode_title}')
             return None
         
 
