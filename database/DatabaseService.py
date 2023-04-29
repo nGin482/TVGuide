@@ -248,6 +248,7 @@ class DatabaseService:
             for reminder in all_reminders:
                 if reminder.show == show.title and 'HD' not in show.channel:
                     reminder.guide_show = show
+                    reminder.notify_time = reminder.calculate_notification_time()
                     guide_reminders.append(reminder)
 
         return guide_reminders

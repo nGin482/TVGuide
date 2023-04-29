@@ -113,6 +113,7 @@ def reminders(guide_list: list['GuideShow'], database_service: DatabaseService, 
     print('Reminders:')
     reminders = database_service.get_reminders_for_shows(guide_list)
     if len(reminders) > 0:
+        reminders_message = '\n'.join([reminder.general_message() for reminder in reminders if reminder.compare_reminder_interval() and 'HD' not in reminder.guide_show.channel])
         if scheduler is not None:
             from apscheduler.triggers.date import DateTrigger
             from services.hermes.utilities import send_message
@@ -120,7 +121,6 @@ def reminders(guide_list: list['GuideShow'], database_service: DatabaseService, 
             for reminder in reminders:
                 if reminder.compare_reminder_interval() and 'HD' not in reminder.guide_show.channel:
                     scheduler.add_job(send_message, DateTrigger(run_date=reminder.notify_time), [reminder.notification()])
-        reminders_message = '\n'.join([reminder.general_message() for reminder in reminders if reminder.compare_reminder_interval() and 'HD' not in reminder.guide_show.channel])
         print(reminders_message)
         print('===================================================================================')
         return reminders_message
