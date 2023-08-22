@@ -46,6 +46,7 @@ class GuideShow:
     def unknown_season(cls, title: str, airing_details: tuple[str, datetime], episode_title: str, recorded_show: RecordedShow, unknown_episodes: int):
         channel, time = airing_details
         repeat = False
+        new_show = False
 
         # TODO: The below will need to be improved
         if episode_title == '':
@@ -61,17 +62,24 @@ class GuideShow:
                 repeat = True
                 # doesn't account for times when the db_search returns 'Unknown' as season_number
             else:
-                season_number_search = search_for_season_number(title, episode_title)
-                if season_number_search is not None:
-                    season_number, episode_number = season_number_search
+                season_number = 'Unknown'
+                if recorded_show is not None and recorded_show.find_season('Unknown') is not None:
+                    episode_number = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes) + unknown_episodes
                 else:
-                    season_number = 'Unknown'
-                    if recorded_show is not None and recorded_show.find_season('Unknown') is not None:
-                        episode_number = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes) + unknown_episodes
-                    else:
-                        episode_number = 1
+                    episode_number = 1
+                    new_show = True
+                # season_number_search = search_for_season_number(title, episode_title)
+                # if season_number_search is not None:
+                #     season_number, episode_number = season_number_search
+                # else:
+                #     season_number = 'Unknown'
+                #     if recorded_show is not None and recorded_show.find_season('Unknown') is not None:
+                #         episode_number = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes) + unknown_episodes
+                #     else:
+                #         episode_number = 1
+                #         new_show = True
         
-        return cls(title, (channel, time), (season_number, episode_number, episode_title, repeat), recorded_show)
+        return cls(title, (channel, time), (season_number, episode_number, episode_title, repeat), recorded_show, new_show)
 
     @staticmethod
     def get_show(title: str, season_number: str, episode_number: int, episode_title: str):
