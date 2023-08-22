@@ -86,6 +86,8 @@ class DoctorWho(SpecialCases):
             return '12', 11, 'Revolution of the Daleks'
         elif 'Eve of the Daleks' in title or 'Eve Of The Daleks' in title:
             return '13', 7, 'Eve of the Daleks'
+        elif 'Legend Of The Sea Devils' in title:
+            return '13', 8, 'Legend of the Sea Devils'
         elif 'The Power Of The Doctor' in title:
             return '13', 9, 'Power of the Doctor'
         else:
