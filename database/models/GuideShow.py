@@ -24,7 +24,6 @@ class GuideShow:
 
     @classmethod
     def known_season(cls, title: str, airing_details: tuple[str, datetime], episode_details: tuple[str, int, str], recorded_show: RecordedShow):
-        channel, time = airing_details
         season_number, episode_number, episode_title = episode_details
         repeat = False
         
@@ -40,11 +39,10 @@ class GuideShow:
         if episode_title == '' and recorded_show.imdb_id != '':
             episode_title = search_for_episode_title(title, season_number, episode_number, recorded_show.imdb_id)
         
-        return cls(title, (channel, time), (season_number, episode_number, episode_title, repeat), recorded_show)
+        return cls(title, airing_details, (season_number, episode_number, episode_title, repeat), recorded_show)
 
     @classmethod
     def unknown_season(cls, title: str, airing_details: tuple[str, datetime], episode_title: str, recorded_show: RecordedShow, unknown_episodes: int):
-        channel, time = airing_details
         repeat = False
         new_show = False
 
@@ -79,7 +77,7 @@ class GuideShow:
                 #         episode_number = 1
                 #         new_show = True
         
-        return cls(title, (channel, time), (season_number, episode_number, episode_title, repeat), recorded_show, new_show)
+        return cls(title, airing_details, (season_number, episode_number, episode_title, repeat), recorded_show, new_show)
 
     @staticmethod
     def get_show(title: str, season_number: str, episode_number: int, episode_title: str):
