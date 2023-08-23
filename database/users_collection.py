@@ -1,7 +1,7 @@
 from pymongo import errors, ReturnDocument
 from database.mongo import database
 from aux_methods.helper_methods import get_today_date
-import bcrypt
+# import bcrypt
 import uuid
 import json
 import os
