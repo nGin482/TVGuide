@@ -109,12 +109,15 @@ def compose_message(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
 def reminders(guide_list: list['GuideShow'], database_service: DatabaseService):
     print('===================================================================================')
     print('Reminders:')
-    reminders = database_service.get_reminders_for_shows(guide_list)
-    if len(reminders) > 0:
-        for reminder in reminders:
-            if reminder.compare_reminder_interval():
-                print(f'REMINDER: {reminder.show} is on {reminder.guide_show.channel} at {reminder.guide_show.time.strftime("%H:%M")}')
-                print(f'You will be reminded at {reminder.calculate_notification_time().strftime("%H:%M")}')
+    for guide_show in guide_list:
+        guide_show.create_reminder(database_service)
+    reminders_count = len([guide_show.reminder for guide_show in guide_list if guide_show.reminder is not None])
+
+    if reminders_count > 0:
+        for guide_show in guide_list:
+            if guide_show.reminder is not None:
+                print(f'REMINDER: {guide_show.title} is on {guide_show.channel} at {guide_show.time.strftime("%H:%M")}')
+                print(f'You will be reminded at {guide_show.reminder.notify_time.strftime("%H:%M")}')        
     else:
         print('There are no reminders scheduled for today')
     print('===================================================================================')
