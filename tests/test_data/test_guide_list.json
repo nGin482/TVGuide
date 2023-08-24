@@ -3,7 +3,6 @@
         "title": "Doctor Who",
         "channel": "ABC2",
         "time": "18:29",
-        "episode_info": true,
         "season_number": "4",
         "episode_number": 1,
         "episode_title": "Partners In Crime"
@@ -12,9 +11,22 @@
         "title": "Endeavour",
         "channel": "ABC1",
         "time": "18:30",
-        "episode_info": true,
         "season_number": "5",
         "episode_number": 6,
         "episode_title": "Icarus"
+    },
+    {
+        "title": "Transformers: Prime",
+        "channel": "GO",
+        "time": "07:01",
+        "series_num": "1",
+        "episode_num": "12",
+        "episode_title": "Darkness Rising, Part 1"
+    },
+    {
+        "title": "Transformers: Prime",
+        "channel": "GO",
+        "time": "07:01",
+        "episode_title": "Darkness Rising, Part 1"
     }
 ]
