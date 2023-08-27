@@ -36,8 +36,11 @@ class GuideShow:
             if episode is not None:
                 repeat = True
 
-        if episode_title == '' and recorded_show.imdb_id != '':
-            episode_title = search_for_episode_title(title, season_number, episode_number, recorded_show.imdb_id)
+            if episode_title == '' and recorded_show.imdb_id != '':
+                print(title, season_number, episode_number)
+                # episode_title = search_for_episode_title(title, season_number, episode_number, recorded_show.imdb_id)
+        else:
+            new_show = True
         
         return cls(title, airing_details, (season_number, episode_number, episode_title, repeat), recorded_show)
 
