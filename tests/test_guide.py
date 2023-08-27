@@ -1,26 +1,31 @@
 import unittest
+import json
 
-from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
-from database.mongo import mongo_client
-from guide import search_free_to_air
+
 
 class TestGuide(unittest.TestCase):
 
+    def setUp(self):
+        print('hello')
+        with open('tests/test_data/test_guide_list.json') as fd:
+            self.data = json.load(fd)
 
-    def setUp(self) -> None:
-        self.database_service = DatabaseService(mongo_client().get_database('tvguide'))
-        return super().setUp()
-
-    def test_search_free_to_air():
-        dw_episode = {
-            'title': 'Doctor Who: The Power of the Doctor',
-            'channel': 'ABC2',
-            'time': '10:30',
-            'season_number': '',
-            'episode_number': 0,
-            'episode_title': ''
-        }
-
-    def test_today_data():
+    @unittest.skip('Test not yet set')
+    def test_get_show(self):
         pass
+
+    def test_season_known(self):
+        dw_episode = self.data[0]
+        known_episode = GuideShow.known_season(
+            dw_episode['title'],
+            (dw_episode['channel'], dw_episode['time']),
+            (dw_episode['season_number'], dw_episode['episode_number'], dw_episode['episode_title']),
+            None
+        )
+        self.assertEqual('Doctor Who', known_episode.title)
+        self.assertEqual('ABC2', known_episode.channel)
+
+
+if __name__ == '__main__':
+    unittest.main()
