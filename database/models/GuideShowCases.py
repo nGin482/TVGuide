@@ -39,11 +39,11 @@ class DoctorWho(SpecialCases):
     def handle(title: str, episode_title: str):
         if title != 'Doctor Who':
             check_dw_title: tuple = DoctorWho.doctor_who_episodes(title, episode_title)
-            return 'Doctor Who', str(check_dw_title[0]), int(check_dw_title[1]), str(check_dw_title[2])
+            return 'Doctor Who', check_dw_title[0], check_dw_title[1], check_dw_title[2]
         return title
     
     @staticmethod
-    def doctor_who_episodes(title: str, episode_title: str) -> tuple:
+    def doctor_who_episodes(title: str, episode_title: str) -> tuple[str, int, str]:
         """
         Given an episode's title, return the `season number`, `episode number` and correct `episode title` of a Doctor Who episode
         """
@@ -100,7 +100,7 @@ class MorseGuideShow(SpecialCases):
         titles = title.split(': ')
         episode = MorseGuideShow.morse_episodes(titles[1])
         
-        return 'Inspector Morse', str(episode[0]), episode[1], episode[2]
+        return 'Inspector Morse', episode[0], episode[1], episode[2]
 
     @staticmethod
     def morse_episodes(guide_title: str):
@@ -159,20 +159,16 @@ class RedElection(SpecialCases):
 class SilentWitness(SpecialCases):
     
     @staticmethod
-    def handle(season_number: str, episode_title: str):
-        episode_data = SilentWitness.silent_witness(season_number, episode_title)
-        return episode_data
+    def handle(episode_title: str):
+        return SilentWitness.silent_witness(episode_title)
 
     @staticmethod
-    def silent_witness(season_number: str, episode_title: str):
+    def silent_witness(episode_title: str):
         
-        from log import logging_app
         try:
             check_episode = SilentWitness.check_silent_witness(episode_title)
-            logging_app(f'Logging Silent Witness Episode\nSeason Number: {season_number}, Episode Title: {episode_title} Result: {check_episode}')
             return check_episode
         except ValueError:
-            logging_app(f'Logging Silent Witness Episode\nSeason Number: {season_number}, Episode Title: {episode_title}')
             return None
         
 
