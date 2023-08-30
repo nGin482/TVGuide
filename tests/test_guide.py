@@ -7,12 +7,20 @@ from database.models.GuideShow import GuideShow
 class TestGuide(unittest.TestCase):
 
     def setUp(self):
-        print('hello')
         with open('tests/test_data/test_guide_list.json') as fd:
             self.data = json.load(fd)
 
-    @unittest.skip('Test not yet set')
+    # @unittest.skip('Test not yet set')
     def test_get_show(self):
+        dw_episode = next(show for show in self.data if show['title'] == 'Doctor Who: In London')
+        print(dw_episode)
+        dw_show = GuideShow.get_show(
+            dw_episode['title'],
+            dw_episode['season_number'],
+            dw_episode['episode_number'],
+            dw_episode['episode_title']
+        )
+        print(dw_show)
         pass
 
     def test_season_known(self):

@@ -28,5 +28,13 @@
         "channel": "GO",
         "time": "07:01",
         "episode_title": "Darkness Rising, Part 1"
+    },
+    {
+        "title": "Doctor Who: In London",
+        "channel": "ABC2",
+        "time": "18:29",
+        "season_number": "4",
+        "episode_number": 1,
+        "episode_title": "Partners In Crime"
     }
 ]
