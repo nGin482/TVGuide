@@ -147,10 +147,7 @@ class MorseGuideShow(SpecialCases):
 
 class RedElection(SpecialCases):
 
-    def handle(title: str, season_number: str, episode_title: str):
-        from log import logging_app
-        logging_app(f'Logging Red Election Episode\nSeason Number: {season_number}\nEpisode title: {episode_title}')
-        
+    def handle(title: str, episode_title: str):
         episode_details = episode_title[episode_title.find('Series'):]
         
         episode_detail_values = episode_details.split(' ')

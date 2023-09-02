@@ -97,9 +97,9 @@ class GuideShow:
         elif 'Morse' in title:
             return MorseGuideShow.handle(title)
         elif 'Red Election' in title:
-            return RedElection.handle(title, season_number, episode_title)
+            return RedElection.handle(title, episode_title)
         elif 'Silent Witness' in title:
-            return SilentWitness.handle(season_number, episode_title)
+            return SilentWitness.handle(episode_title)
         elif 'NCIS Encore' in title:
             return 'NCIS', season_number, episode_number, episode_title
         else:
