@@ -8,6 +8,14 @@
         "episode_title": "Partners In Crime"
     },
     {
+        "title": "Doctor Who: In London",
+        "channel": "ABC2",
+        "time": "18:29",
+        "season_number": "4",
+        "episode_number": 1,
+        "episode_title": "Partners In Crime"
+    },
+    {
         "title": "Endeavour",
         "channel": "ABC1",
         "time": "18:30",
@@ -16,10 +24,58 @@
         "episode_title": "Icarus"
     },
     {
+        "title": "Transformers",
+        "channel": "9",
+        "time": "19:00",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": ""
+    },
+    {
+        "title": "Transformers: Revenge of the Fallen",
+        "channel": "9",
+        "time": "19:00",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": ""
+    },
+    {
+        "title": "Transformers: Dark of the Moon",
+        "channel": "9",
+        "time": "19:00",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": ""
+    },
+    {
+        "title": "Transformers: Age of Extinction",
+        "channel": "9",
+        "time": "19:00",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": ""
+    },
+    {
+        "title": "Transformers: The Last Knight",
+        "channel": "9",
+        "time": "19:00",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": ""
+    },
+    {
+        "title": "Bumblebee",
+        "channel": "9",
+        "time": "19:00",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": ""
+    },
+    {
         "title": "Transformers: Prime",
         "channel": "GO",
         "time": "07:01",
-        "series_num": "1",
+        "season_number": "1",
         "episode_num": "12",
         "episode_title": "Darkness Rising, Part 1"
     },
@@ -28,13 +84,5 @@
         "channel": "GO",
         "time": "07:01",
         "episode_title": "Darkness Rising, Part 1"
-    },
-    {
-        "title": "Doctor Who: In London",
-        "channel": "ABC2",
-        "time": "18:29",
-        "season_number": "4",
-        "episode_number": 1,
-        "episode_title": "Partners In Crime"
     }
 ]
