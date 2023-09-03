@@ -12,13 +12,11 @@ class TransformersGuideShow(SpecialCases):
     def handle(title: str):
         check_transformers = TransformersGuideShow.transformers_shows(title)
         if isinstance(check_transformers, tuple):
-            if 'Bumblebee' in title:
-                title = 'Transformers'
             return 'Transformers', str(check_transformers[0]), check_transformers[1], check_transformers[2]
         return title
 
     @staticmethod
-    def transformers_shows(transformers: str) -> tuple:
+    def transformers_shows(transformers: str) -> tuple[str, int, str]:
         if 'Fallen' in transformers:
             return '1', 2, 'Revenge of the Fallen'
         elif 'Dark' in transformers:
@@ -39,11 +37,11 @@ class DoctorWho(SpecialCases):
     def handle(title: str, episode_title: str):
         if title != 'Doctor Who':
             check_dw_title: tuple = DoctorWho.doctor_who_episodes(title, episode_title)
-            return 'Doctor Who', str(check_dw_title[0]), int(check_dw_title[1]), str(check_dw_title[2])
+            return 'Doctor Who', check_dw_title[0], check_dw_title[1], check_dw_title[2]
         return title
     
     @staticmethod
-    def doctor_who_episodes(title: str, episode_title: str) -> tuple:
+    def doctor_who_episodes(title: str, episode_title: str) -> tuple[str, int, str]:
         """
         Given an episode's title, return the `season number`, `episode number` and correct `episode title` of a Doctor Who episode
         """
@@ -100,7 +98,7 @@ class MorseGuideShow(SpecialCases):
         titles = title.split(': ')
         episode = MorseGuideShow.morse_episodes(titles[1])
         
-        return 'Inspector Morse', str(episode[0]), episode[1], episode[2]
+        return 'Inspector Morse', episode[0], episode[1], episode[2]
 
     @staticmethod
     def morse_episodes(guide_title: str):
@@ -147,10 +145,7 @@ class MorseGuideShow(SpecialCases):
 
 class RedElection(SpecialCases):
 
-    def handle(title: str, season_number: str, episode_title: str):
-        from log import logging_app
-        logging_app(f'Logging Red Election Episode\nSeason Number: {season_number}\nEpisode title: {episode_title}')
-        
+    def handle(title: str, episode_title: str):
         episode_details = episode_title[episode_title.find('Series'):]
         
         episode_detail_values = episode_details.split(' ')
@@ -160,8 +155,7 @@ class SilentWitness(SpecialCases):
     
     @staticmethod
     def handle(episode_title: str):
-        episode_data = SilentWitness.silent_witness(episode_title)
-        return episode_data
+        return SilentWitness.silent_witness(episode_title)
 
     @staticmethod
     def silent_witness(episode_title: str):
