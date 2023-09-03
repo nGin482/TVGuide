@@ -51,10 +51,9 @@ class Validation:
             return 'Death In Paradise'
         elif 'Grantchester Christmas Special' in show:
             return 'Grantchester'
-        title = show
-        if ':' in title:
-            title = title.replace(':', '')
-        return title
+        if ':' in show:
+            show = show.replace(':', '')
+        return show
 
     @staticmethod
     def remove_unwanted_shows(guide_list: list[dict]):
