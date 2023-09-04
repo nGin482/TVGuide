@@ -61,5 +61,45 @@
                 ]
             }
         ]
+    },
+    {
+        "show": "NCIS",
+        "seasons": [
+            {
+                "season_number": "Unknown",
+                "episodes": [
+                    {
+                        "episode_number": 1,
+                        "episode_title": "Episode D",
+                        "channels": [
+                            "TEN"
+                        ],
+                        "first_air_date": "15-04-2020",
+                        "latest_air_date": "15-04-2020",
+                        "repeat": false
+                    },
+                    {
+                        "episode_number": 2,
+                        "episode_title": "Episode E",
+                        "channels": [
+                            "TEN"
+                        ],
+                        "first_air_date": "15-04-2020",
+                        "latest_air_date": "15-04-2020",
+                        "repeat": false
+                    },
+                    {
+                        "episode_number": 3,
+                        "episode_title": "Episode F",
+                        "channels": [
+                            "TEN"
+                        ],
+                        "first_air_date": "15-04-2020",
+                        "latest_air_date": "15-04-2020",
+                        "repeat": false
+                    }
+                ]
+            }
+        ]
     }
 ]
