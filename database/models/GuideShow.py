@@ -8,7 +8,7 @@ from exceptions.DatabaseError import EpisodeNotFoundError, SeasonNotFoundError, 
 
 class GuideShow:
     
-    def __init__(self, title: str, airing_details: tuple[str, datetime], episode_details: tuple[str, int, str, bool], recorded_show: RecordedShow) -> None:
+    def __init__(self, title: str, airing_details: tuple[str, datetime], episode_details: tuple[str, int, str, bool], recorded_show: RecordedShow, new_show: bool) -> None:
         channel, time = airing_details
         season_number, episode_number, episode_title, repeat = episode_details
         
@@ -67,7 +67,7 @@ class GuideShow:
                 if recorded_show is not None and recorded_show.find_season('Unknown') is not None:
                     episode_number = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes) + unknown_episodes
                 else:
-                    episode_number = 1
+                    episode_number = unknown_episodes
                     new_show = True
                 # season_number_search = search_for_season_number(title, episode_title)
                 # if season_number_search is not None:
