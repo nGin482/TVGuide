@@ -55,7 +55,7 @@ class GuideShow:
             if recorded_show is not None and recorded_show.find_season('Unknown') is not None:
                 episode_number = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes) + unknown_episodes
             else:
-                episode_number = 1
+                episode_number = unknown_episodes
         else:
             episode_title_search = GuideShow.check_database_for_episode(episode_title, recorded_show)
             if episode_title_search is not None:
