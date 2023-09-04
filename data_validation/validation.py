@@ -1,3 +1,8 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from database.models.GuideShow import GuideShow
+
 class Validation:
 
     @staticmethod
@@ -107,8 +112,8 @@ class Validation:
         return ['show', 'reminder time', 'interval']
 
     @staticmethod
-    def unknown_episodes_check(show_list: list):
-        shows_with_unknown_episodes = {}
+    def unknown_episodes_check(show_list: list['GuideShow']):
+        shows_with_unknown_episodes: dict[str, list[str]] = {}
         show_titles_with_unknown_episodes = [show for show in show_list if show.season_number == 'Unknown']
         for show in show_titles_with_unknown_episodes:
             if show.title in shows_with_unknown_episodes.keys():
@@ -118,14 +123,11 @@ class Validation:
         return shows_with_unknown_episodes
     
     @staticmethod
-    def get_unknown_episode_number(show_list: list, show_title: str, episode_title: str):
+    def get_unknown_episode_number(show_list: list['GuideShow'], show_title: str, episode_title: str):
         if episode_title == '':
             return None
         
         unknown_episodes_map = Validation.unknown_episodes_check(show_list)
         if show_title in unknown_episodes_map.keys():
-            try:
-                show = list(unknown_episodes_map[show_title])
-                return show.index(episode_title) + 1
-            except ValueError:
-                pass
+            show = list(unknown_episodes_map[show_title])
+            return len(show) + 1
