@@ -63,6 +63,33 @@ class TestGuide(unittest.TestCase):
         self.assertEqual(5, unknown_episode.episode_number)
         self.assertEqual('Unknown', unknown_episode.season_number)
 
+    def test_season_unknown_episode_title_provided_repeat(self):
+        episode_data = next(show for show in self.data if show['episode_title'] == 'The Next Doctor')
+        dw_recorded_show = next((show for show in self.recorded_shows if show.title == 'Doctor Who'), None)
+        unknown_episode = GuideShow.unknown_season(
+            episode_data['title'],
+            (episode_data['channel'], episode_data['time']),
+            episode_data['episode_title'],
+            dw_recorded_show,
+            1
+        )
+        self.assertEqual('Unknown', unknown_episode.season_number)
+        self.assertEqual(1, unknown_episode.episode_number)
+        self.assertEqual(True, unknown_episode.repeat)
+
+    def test_season_unknown_episode_title_provided_non_repeat(self):
+        episode_data = next(show for show in self.data if show['episode_title'] == 'End of Time: Part 1')
+        dw_recorded_show = next((show for show in self.recorded_shows if show.title == 'Doctor Who'), None)
+        unknown_episode = GuideShow.unknown_season(
+            episode_data['title'],
+            (episode_data['channel'], episode_data['time']),
+            episode_data['episode_title'],
+            dw_recorded_show,
+            1
+        )
+        self.assertEqual('Unknown', unknown_episode.season_number)
+        self.assertEqual(4, unknown_episode.episode_number)
+        self.assertEqual(False, unknown_episode.repeat)
 
 
 if __name__ == '__main__':
