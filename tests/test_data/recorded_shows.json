@@ -101,5 +101,80 @@
                 ]
             }
         ]
+    },
+    {
+        "show": "Doctor Who",
+        "seasons": [
+            {
+                "season_number": "4",
+                "episodes": [
+                    {
+                        "episode_number": 1,
+                        "episode_title": "Partners in Crime",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "first_air_date": "15-04-2020",
+                        "latest_air_date": "15-04-2020",
+                        "repeat": false
+                    },
+                    {
+                        "episode_number": 2,
+                        "episode_title": "Fires of Pompeii",
+                        "channels": [
+                            "TEN"
+                        ],
+                        "first_air_date": "15-04-2020",
+                        "latest_air_date": "15-04-2020",
+                        "repeat": false
+                    },
+                    {
+                        "episode_number": 3,
+                        "episode_title": "Planet of the Ood",
+                        "channels": [
+                            "TEN"
+                        ],
+                        "first_air_date": "15-04-2020",
+                        "latest_air_date": "15-04-2020",
+                        "repeat": false
+                    }
+                ]
+            },
+            {
+                "season_number": "Unknown",
+                "episodes": [
+                    {
+                        "episode_number": 1,
+                        "episode_title": "The Next Doctor",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "first_air_date": "15-04-2020",
+                        "latest_air_date": "15-04-2020",
+                        "repeat": false
+                    },
+                    {
+                        "episode_number": 2,
+                        "episode_title": "Planet of the Dead",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "first_air_date": "15-04-2020",
+                        "latest_air_date": "15-04-2020",
+                        "repeat": false
+                    },
+                    {
+                        "episode_number": 3,
+                        "episode_title": "Waters of Mars",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "first_air_date": "15-04-2020",
+                        "latest_air_date": "15-04-2020",
+                        "repeat": false
+                    }
+                ]
+            }
+        ]
     }
 ]
