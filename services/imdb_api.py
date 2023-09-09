@@ -10,10 +10,12 @@ def imdb_api(path: str):
 
     request = requests.get(f'https://imdb-api.com/en/API/{path}')
             
-    response_data = dict(request.json())
-    if request.status_code != 200 or ('errorMessage' in response_data.keys() and response_data['errorMessage'] != ''):
-        raise IMDBAPIRequestFailedError(f'Error: {request.status_code}: {response_data["errorMessage"]}')
-    return response_data
+    if request.status_code == 200:
+        response_data = dict(request.json())
+        if ('errorMessage' in response_data.keys() and response_data['errorMessage'] != ''):
+            raise IMDBAPIRequestFailedError(f'Error: {request.status_code}: {response_data["errorMessage"]}')
+        return response_data
+    return {}
 
 def search_for_season_number(show_title: str, episode_title: str):
 
@@ -42,7 +44,7 @@ def search_for_episode_title(show_title: str, season_number: str, episode_number
     
     request = imdb_api(f'SeasonEpisodes/{os.getenv("IMDB_API")}/{imdb_id}/{season_number}')
 
-    if request is not None:
+    if request is not None and 'episodes' in request.keys():
         for episode in request['episodes']:
             if episode['episodeNumber'] == str(episode_number):
                 episode_title = str(episode['title'])

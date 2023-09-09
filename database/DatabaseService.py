@@ -1,6 +1,6 @@
 from pymongo.database import Database
 from pymongo.errors import OperationFailure
-from pymongo import ReturnDocument
+from pymongo import ReturnDocument, DESCENDING
 from datetime import datetime
 import json
 import os
@@ -30,7 +30,7 @@ class DatabaseService:
     def get_one_recorded_show(self, show_title: str):
         search = self.recorded_shows_collection.find_one({'show': show_title})
         if search is None:
-            raise ShowNotFoundError(f'{show_title} could not be found in the database')
+            return None
         return RecordedShow.from_database(dict(search))
 
     def insert_recorded_show_document(self, recorded_show: RecordedShow):
@@ -107,37 +107,39 @@ class DatabaseService:
         Create a local backup of the `RecordedShows` collection by storing data locally in JSON files
         """
         
+        if not os.path.isdir('database/backups/recorded_shows'):
+            os.mkdir('database/backups/recorded_shows')
+        
         for recorded_show in self.get_all_recorded_shows():
             recorded_show_title = recorded_show.title.replace(':', '') if ':' in recorded_show.title else recorded_show.title
-            if os.path.isdir('database/backups/recorded_shows'):
-                with open(f'database/backups/recorded_shows/{recorded_show_title}.json', 'w+') as fd:
-                    json.dump(recorded_show.to_dict(), fd, indent='\t')
-            else:
-                os.mkdir('database/backups/recorded_shows')
-                with open(f'database/backups/recorded_shows/{recorded_show_title}.json', 'w+') as fd:
-                    json.dump(recorded_show.to_dict(), fd, indent='\t')
+            with open(f'database/backups/recorded_shows/{recorded_show_title}.json', 'w+') as fd:
+                json.dump(recorded_show.to_dict(), fd, indent='\t')
 
-    def rollback_recorded_shows(self):
+    def rollback_recorded_shows(self, directory: str = 'backups'):
         """
         Rollback the `RecordedShows` collection to a point before the TVGuide has interacted with the DB for the current day
         """
+        from services.hermes.hermes import hermes
         
-        for recorded_show_file_name in os.listdir('database/backups/recorded_shows'):
+        for recorded_show_file_name in os.listdir(f'database/{directory}/recorded_shows'):
             recorded_show_title = recorded_show_file_name.replace(':', '') if ':' in recorded_show_file_name else recorded_show_file_name
-            print(recorded_show_title)
-            with open(f'database/backups/recorded_shows/{recorded_show_title}') as fd:
-                show_data = dict(json.load(fd))
-            show_name: str = show_data['show']
-            self.recorded_shows_collection.find_one_and_update(
-                {'show': show_name},
-                {'$set': {'seasons': show_data['seasons']}},
-                return_document=ReturnDocument.AFTER
-            )
-            # how to notify that this is done
-        pass
+            if '.zip' not in recorded_show_file_name:
+                print(recorded_show_title)
+                with open(f'database/{directory}/recorded_shows/{recorded_show_title}') as fd:
+                    show_data = dict(json.load(fd))
+                show_name: str = show_data['show']
+                self.recorded_shows_collection.find_one_and_update(
+                    {'show': show_name},
+                    {'$set': {'seasons': show_data['seasons']}},
+                    return_document=ReturnDocument.AFTER
+                )
+        
+        hermes.dispatch('db_rollback')
 
 
     def capture_db_event(self, guide_show: GuideShow):
+        from services.hermes.hermes import hermes
+        
         recorded_show = guide_show.recorded_show
         
         try:
@@ -183,6 +185,7 @@ class DatabaseService:
             event = {'show': guide_show.to_dict(), 'result': insert_show}
         except Exception as err:
             event = {'show': guide_show.to_dict(), 'message': 'Unable to process this episode.', 'error': str(err)}
+            hermes.dispatch('show_not_processed', guide_show.message_string(), err)
 
         log_database_event(event)
         return event
@@ -243,8 +246,9 @@ class DatabaseService:
         guide_reminders: list[Reminder] = []
         for show in guide_list:
             for reminder in all_reminders:
-                if reminder.show == show.title:
+                if reminder.show == show.title and 'HD' not in show.channel:
                     reminder.guide_show = show
+                    reminder.notify_time = reminder.calculate_notification_time()
                     guide_reminders.append(reminder)
 
         return guide_reminders
@@ -259,14 +263,23 @@ class DatabaseService:
             raise DatabaseError(f'The Reminder document for {reminder.show} was not inserted into the Reminders collection')
         return True
 
+    def update_reminder(self, reminder: Reminder):
+        updated_reminder = self.reminders_collection.find_one_and_replace(
+            {'show': reminder.show},
+            reminder.to_dict()
+        )
+        if updated_reminder is None:
+            raise ReminderNotFoundError(f'The reminder for {reminder.show} could not be found')
+        return True
+    
     def delete_reminder(self, show: str):
         """Delete a `Reminder` from the MongoDB collection.\n
-        Raises an `exceptions.DatabaseError` if the reminder document could not be found."""
+        Raises an `exceptions.ReminderNotFoundError` if the reminder document could not be found."""
         reminder_deleted: dict = self.reminders_collection.find_one_and_delete(
             {'show': show}
         )
         if reminder_deleted is None:
-            raise DatabaseError(f'The reminder for {show} could not be found')
+            raise ReminderNotFoundError(f'The reminder for {show} could not be found')
         return True
 
 # GUIDE
@@ -278,7 +291,7 @@ class DatabaseService:
         guide_date = self.guide_collection.find_one({'date': date})
         if guide_date is None:
             return None
-        return Guide.from_database(dict(guide_date))
+        return Guide.from_database(dict(guide_date), self)
 
     def get_guide_month(self, month: str):
         """
@@ -291,6 +304,12 @@ class DatabaseService:
                 month = str(datetime.strptime(month, '%B').month)
         guide_search = self.guide_collection.find({'date': f"/{month}/"})
         return [Guide.from_database(dict(document)) for document in guide_search]
+    
+    def get_latest_guide(self):
+        """Return the latest `Guide` record from the collection"""
+        guide_results = list(self.guide_collection.find({}).sort('_id', DESCENDING).limit(1))
+        latest_guide = dict(guide_results[0])
+        return Guide.from_database(latest_guide, self)
 
     def search_guides_for_show(self, show_title: str):
         """Search all guide data for when the given show_title has been aired"""
@@ -321,3 +340,6 @@ class DatabaseService:
         if delete_result is None:
             raise DatabaseError(f"The Guide data for {date} could not be found")
 
+
+    def __repr__(self) -> str:
+        return f'DatabaseService [Client: {self.database.client} | Database: {self.database}]'
