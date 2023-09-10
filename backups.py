@@ -25,7 +25,7 @@ def move_month_files():
         create_monthly_folder()
         prev_month = date.today() - timedelta(days=1)
         previous_month_folder = f'BackUps/{prev_month.strftime("%B-%Y")}'
-        for i in range(16, calendar.monthrange(prev_month.year, prev_month.month)[1]):
+        for i in range(16, calendar.monthrange(prev_month.year, prev_month.month)[1]+1):
             day = str(i)
             file = f'{day}-{date.strftime(prev_month, "%m-%Y")}.json'
             original_path = os.path.join('BackUps', file)
