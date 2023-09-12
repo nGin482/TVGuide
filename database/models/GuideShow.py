@@ -63,6 +63,8 @@ class GuideShow:
                     season_number, episode_number = episode_title_search
                     repeat = True
                     # doesn't account for times when the db_search returns 'Unknown' as season_number
+                else:
+                    episode_number = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes) + unknown_episodes  
             else:
                 episode_number = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes) + unknown_episodes
         
