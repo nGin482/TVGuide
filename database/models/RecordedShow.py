@@ -44,14 +44,16 @@ class Episode:
             latest_air_date = str(recorded_episode['latest_air_date'])
             if '-' in latest_air_date:
                 latest_air_date = latest_air_date.replace('-', '/')
-            latest_air_date = datetime.strptime(latest_air_date, '%d/%m/%Y')
+            if latest_air_date != "":
+                latest_air_date = datetime.strptime(latest_air_date, '%d/%m/%Y')
         else:
             latest_air_date = datetime.today()
         repeat: bool = recorded_episode['repeat']
 
         if '-' in first_air_date:
             first_air_date = first_air_date.replace('-', '/')
-        first_air_date: datetime = datetime.strptime(first_air_date, '%d/%m/%Y')
+        if first_air_date != "":
+            first_air_date: datetime = datetime.strptime(first_air_date, '%d/%m/%Y')
 
         return cls(episode_number, episode_title, channels, first_air_date, latest_air_date, repeat)
 
@@ -118,12 +120,20 @@ class Episode:
             print(len(unknown_season['episodes']))
 
     def to_dict(self):
+        if isinstance(self.first_air_date, datetime):
+            first_air_date = self.first_air_date.strftime('%d/%m/%Y')
+        else:
+            first_air_date = self.first_air_date
+        if isinstance(self.latest_air_date, datetime):
+            latest_air_date = self.latest_air_date.strftime('%d/%m/%Y')
+        else:
+            latest_air_date = self.latest_air_date
         return {
             'episode_number': self.episode_number,
             'episode_title': self.episode_title,
             'channels': self.channels,
-            'first_air_date': self.first_air_date.strftime('%d/%m/%Y'),
-            'latest_air_date': self.latest_air_date.strftime('%d/%m/%Y'),
+            'first_air_date': first_air_date,
+            'latest_air_date': latest_air_date,
             'repeat': self.repeat
         }
 
