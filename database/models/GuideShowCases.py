@@ -126,7 +126,7 @@ class MorseGuideShow(SpecialCases):
         if 'Infernal Spirit' in guide_title:
             return '4', 1, 'The Infernal Serpent'
         if 'In Australia' in guide_title:
-            return '5', 4, 'Promised Land'
+            return '5', 5, 'Promised Land'
         if 'Death Is' in guide_title:
             return '8', 3, 'Death Is Now My Neighbour'
         else:
