@@ -57,6 +57,10 @@ class GuideShow:
             new_show = True
             episode_number = unknown_episodes
         else:
+            if recorded_show.find_season('Unknown') is not None:
+                unknown_season_episodes = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes)
+            else:
+                unknown_season_episodes = 0
             if episode_title != '':
                 episode_title_search = GuideShow.check_database_for_episode(episode_title, recorded_show)
                 if episode_title_search is not None:
@@ -64,9 +68,9 @@ class GuideShow:
                     repeat = True
                     # doesn't account for times when the db_search returns 'Unknown' as season_number
                 else:
-                    episode_number = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes) + unknown_episodes  
+                    episode_number = 1 if unknown_season_episodes + unknown_episodes == 0 else unknown_season_episodes + unknown_episodes
             else:
-                episode_number = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes) + unknown_episodes
+                episode_number = 1 if unknown_season_episodes + unknown_episodes == 0 else unknown_season_episodes + unknown_episodes
         
         return cls(title, airing_details, (season_number, episode_number, episode_title, repeat), recorded_show, new_show)
 
