@@ -34,19 +34,19 @@ class Validation:
         return time
 
     @staticmethod
-    def format_episode_title(title: str):
+    def format_episode_title(episode_title: str):
         """
-        Format a show's given title into a more reader-friendly appearance
+        Format a show's episode title into a more reader-friendly appearance
         """
 
-        if ', The' in title:
-            idx_the = title.find(', The')
-            title = 'The ' + title[0:idx_the]
-        if ', A' in title:
-            idx_a = title.find(', A')
-            title = 'A ' + title[0:idx_a]
+        if ', The' in episode_title:
+            idx_the = episode_title.find(', The')
+            episode_title = 'The ' + episode_title[0:idx_the]
+        if ', A' in episode_title and episode_title != 'Kolcheck, A.':
+            idx_a = episode_title.find(', A')
+            episode_title = 'A ' + episode_title[0:idx_a]
 
-        return title
+        return episode_title
 
     @staticmethod
     def check_show_titles(show: str):
