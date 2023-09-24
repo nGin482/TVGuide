@@ -13,10 +13,10 @@ class TransformersGuideShow(SpecialCases):
         check_transformers = TransformersGuideShow.transformers_shows(title)
         if isinstance(check_transformers, tuple):
             return 'Transformers', str(check_transformers[0]), check_transformers[1], check_transformers[2]
-        return title
+        return check_transformers
 
     @staticmethod
-    def transformers_shows(transformers: str) -> tuple[str, int, str]:
+    def transformers_shows(transformers: str) -> tuple[str, int, str] | str:
         if 'Fallen' in transformers:
             return '1', 2, 'Revenge of the Fallen'
         elif 'Dark' in transformers:
@@ -29,6 +29,8 @@ class TransformersGuideShow(SpecialCases):
             return '1', 6, 'Bumblebee'
         elif transformers == 'Transformers':
             return '1', 1, 'Transformers'
+        elif 'Cyberverse' in transformers:
+            return 'Transformers: Cyberverse'
         else:
             return transformers
 
