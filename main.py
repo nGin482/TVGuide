@@ -187,10 +187,7 @@ def search_bbc_channels():
     #     check = check_time_sort(shows_on)
     show_titles = [check_show_titles(show['title']) for show in shows_on]
     get_today_shows_data(show_titles)
-    if imdb_api_status == 200:
-        shows_on = [search_episode_information(show) for show in shows_on]
-    else:
-        print('IMDB API is not available')
+    
     return shows_on
 
 async def send_main_message(database_service: DatabaseService):
@@ -213,8 +210,6 @@ async def send_main_message(database_service: DatabaseService):
 
 
 if __name__ == '__main__':
-    
-    imdb_api_status = get('https://imdb-api.com/').status_code
     
     scheduler.add_job(send_main_message, CronTrigger(hour=9), [database_service])
     scheduler.start()
