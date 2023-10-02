@@ -1,10 +1,11 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from datetime import datetime
+from datetime import datetime, timedelta
 from requests import get
 
 from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
+from database.models.GuideShowCases import TransformersGuideShow
 from log import clear_events_log, clear_imdb_api_results, compare_dates, delete_latest_entry, log_guide_information
 
 def find_json(url):
@@ -38,14 +39,16 @@ def search_free_to_air(database_service: DatabaseService):
                             episode_number = int(guide_show['episode_num'])
                         if 'episode_title' in guide_show.keys():
                             episode_title = guide_show['episode_title']
-                        shows_data.append({
-                            'title': guide_show['title'],
-                            'channel': channel_data['channel'],
-                            'time': show_date,
-                            'season_number': season_number,
-                            'episode_number': episode_number,
-                            'episode_title': Validation.format_episode_title(episode_title)
-                        })
+                        episodes = Validation.build_episode(
+                            guide_show['title'],
+                            channel_data['channel'],
+                            show_date,
+                            season_number,
+                            episode_number,
+                            episode_title
+                        )
+                        for episode in episodes:
+                            shows_data.append(episode)
 
     shows_data = Validation.remove_unwanted_shows(shows_data)
 

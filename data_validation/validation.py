@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -111,6 +112,31 @@ class Validation:
         Returns the fields only valid for a reminder document
         """
         return ['show', 'reminder_alert', 'warning_time', 'ocassions']
+    
+    @staticmethod
+    def build_episode(show_title: str, channel: str, time: datetime, season_number: str, episode_number: int, episode_title: str):
+        episodes = []
+        if 'Cyberverse' in show_title and '/' in episode_title:
+            episode_titles = episode_title.split('/')
+            for idx, episode in enumerate(episode_titles):
+                episodes.append({
+                    'title': show_title,
+                    'channel': channel,
+                    'time': time + timedelta(minutes=14) if idx == 1 else time,
+                    'season_number': season_number,
+                    'episode_number': episode_number,
+                    'episode_title': Validation.format_episode_title(episode.capitalize())
+                })
+        else:
+            episodes.append({
+                'title': show_title,
+                'channel': channel,
+                'time': time,
+                'season_number': season_number,
+                'episode_number': episode_number,
+                'episode_title': Validation.format_episode_title(episode)
+            })
+        return episodes
 
     @staticmethod
     def unknown_episodes_check(show_list: list['GuideShow']):
