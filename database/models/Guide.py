@@ -50,7 +50,7 @@ class Guide:
 
     def to_dict(self):
         return {
-            'date': datetime.today().strftime('%d/%m/%Y'),
+            'date': self.date.strftime('%d/%m/%Y'),
             'FTA': [show.to_dict() for show in self.fta_shows],
             'BBC': [show.to_dict() for show in self.bbc_shows]
         }
