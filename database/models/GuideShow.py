@@ -8,7 +8,7 @@ from exceptions.DatabaseError import EpisodeNotFoundError, SeasonNotFoundError, 
 
 class GuideShow:
     
-    def __init__(self, title: str, airing_details: tuple[str, datetime], episode_details: tuple[str, int, str, bool], recorded_show: RecordedShow, new_show: bool) -> None:
+    def __init__(self, title: str, airing_details: tuple[str, datetime], episode_details: tuple[str, int, str, bool], recorded_show: RecordedShow, new_show: bool = False) -> None:
         channel, time = airing_details
         season_number, episode_number, episode_title, repeat = episode_details
         
@@ -21,20 +21,23 @@ class GuideShow:
         self.repeat = repeat
         self.recorded_show = recorded_show
         self.db_event = 'No DB event was performed on this show.'
+        self.new_show = new_show
 
     @classmethod
     def known_season(cls, title: str, airing_details: tuple[str, datetime], episode_details: tuple[str, int, str], recorded_show: RecordedShow):
         season_number, episode_number, episode_title = episode_details
         repeat = False
+        new_show = False
         
-        season = recorded_show.find_season(season_number)
-        if season is not None:
-            if episode_number != 0:
-                episode = season.find_episode(episode_number=episode_number)
-            else:
-                episode = season.find_episode(episode_title=episode_title)
-            if episode is not None:
-                repeat = True
+        if recorded_show is not None:
+            season = recorded_show.find_season(season_number)
+            if season is not None:
+                if episode_number != 0:
+                    episode = season.find_episode(episode_number=episode_number)
+                else:
+                    episode = season.find_episode(episode_title=episode_title)
+                if episode is not None:
+                    repeat = True
 
             if episode_title == '' and recorded_show.imdb_id != '':
                 print(title, season_number, episode_number)
@@ -42,43 +45,32 @@ class GuideShow:
         else:
             new_show = True
         
-        return cls(title, airing_details, (season_number, episode_number, episode_title, repeat), recorded_show)
+        return cls(title, airing_details, (season_number, episode_number, episode_title, repeat), recorded_show, new_show)
 
     @classmethod
     def unknown_season(cls, title: str, airing_details: tuple[str, datetime], episode_title: str, recorded_show: RecordedShow, unknown_episodes: int):
         repeat = False
         new_show = False
+        season_number = 'Unknown'
 
-        # TODO: The below will need to be improved
-        if episode_title == '':
-            season_number = 'Unknown'
-            if recorded_show is not None and recorded_show.find_season('Unknown') is not None:
-                episode_number = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes) + unknown_episodes
-            else:
-                episode_number = unknown_episodes
+        if recorded_show is None:
+            new_show = True
+            episode_number = unknown_episodes
         else:
-            episode_title_search = GuideShow.check_database_for_episode(episode_title, recorded_show)
-            if episode_title_search is not None:
-                season_number, episode_number = episode_title_search
-                repeat = True
-                # doesn't account for times when the db_search returns 'Unknown' as season_number
+            if recorded_show.find_season('Unknown') is not None:
+                unknown_season_episodes = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes)
             else:
-                season_number = 'Unknown'
-                if recorded_show is not None and recorded_show.find_season('Unknown') is not None:
-                    episode_number = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes) + unknown_episodes
+                unknown_season_episodes = 0
+            if episode_title != '':
+                episode_title_search = GuideShow.check_database_for_episode(episode_title, recorded_show)
+                if episode_title_search is not None:
+                    season_number, episode_number = episode_title_search
+                    repeat = True
+                    # doesn't account for times when the db_search returns 'Unknown' as season_number
                 else:
-                    episode_number = unknown_episodes
-                    new_show = True
-                # season_number_search = search_for_season_number(title, episode_title)
-                # if season_number_search is not None:
-                #     season_number, episode_number = season_number_search
-                # else:
-                #     season_number = 'Unknown'
-                #     if recorded_show is not None and recorded_show.find_season('Unknown') is not None:
-                #         episode_number = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes) + unknown_episodes
-                #     else:
-                #         episode_number = 1
-                #         new_show = True
+                    episode_number = 1 if unknown_season_episodes + unknown_episodes == 0 else unknown_season_episodes + unknown_episodes
+            else:
+                episode_number = 1 if unknown_season_episodes + unknown_episodes == 0 else unknown_season_episodes + unknown_episodes
         
         return cls(title, airing_details, (season_number, episode_number, episode_title, repeat), recorded_show, new_show)
 
@@ -144,7 +136,7 @@ class GuideShow:
         Raises `ShowNotFoundError` if the show can't be found in the database.
         """
         # check_show = get_one_recorded_show(show['title'])
-        if self.recorded_show:
+        if self.recorded_show or not self.new_show:
             season = self.recorded_show.find_season(self.season_number)
             if season:
                 episode = season.find_episode(episode_number=self.episode_number, episode_title=self.episode_title)

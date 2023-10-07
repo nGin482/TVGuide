@@ -15,13 +15,10 @@
 /episode_search_results
 /misc_working
 /database/backups
+/database/restore
 
 # files
-/aux_methods.pyc
-/backups.pyc
-/log.pyc
-/repeat_handler.pyc
-/show.pyc
+*.pyc
 .env
 aux_methods/imdb_api_results.json
 update_showlist.py

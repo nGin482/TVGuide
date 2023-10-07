@@ -13,10 +13,10 @@ class TransformersGuideShow(SpecialCases):
         check_transformers = TransformersGuideShow.transformers_shows(title)
         if isinstance(check_transformers, tuple):
             return 'Transformers', str(check_transformers[0]), check_transformers[1], check_transformers[2]
-        return title
+        return check_transformers
 
     @staticmethod
-    def transformers_shows(transformers: str) -> tuple[str, int, str]:
+    def transformers_shows(transformers: str) -> tuple[str, int, str] | str:
         if 'Fallen' in transformers:
             return '1', 2, 'Revenge of the Fallen'
         elif 'Dark' in transformers:
@@ -29,6 +29,8 @@ class TransformersGuideShow(SpecialCases):
             return '1', 6, 'Bumblebee'
         elif transformers == 'Transformers':
             return '1', 1, 'Transformers'
+        elif 'Cyberverse' in transformers:
+            return 'Transformers: Cyberverse'
         else:
             return transformers
 
@@ -126,7 +128,7 @@ class MorseGuideShow(SpecialCases):
         if 'Infernal Spirit' in guide_title:
             return '4', 1, 'The Infernal Serpent'
         if 'In Australia' in guide_title:
-            return '5', 4, 'Promised Land'
+            return '5', 5, 'Promised Land'
         if 'Death Is' in guide_title:
             return '8', 3, 'Death Is Now My Neighbour'
         else:

@@ -18,8 +18,8 @@ class Reminder:
             self.notify_time = self.calculate_notification_time()
 
     @classmethod
-    def from_values(cls, show: 'GuideShow', reminder_alert: str, warning_time: int, occassions: str):
-        return cls(show.title, reminder_alert, warning_time, occassions, show)
+    def from_values(cls, show: str, reminder_alert: str, warning_time: int, occassions: str, guide_show: 'GuideShow' = None):
+        return cls(show, reminder_alert, warning_time, occassions, guide_show)
 
     @classmethod
     def from_database(cls, reminder_data: dict, show: 'GuideShow' = None):
@@ -58,17 +58,6 @@ class Reminder:
         else:
             return self.guide_show.time - timedelta(minutes=self.warning_time)
 
-    @staticmethod
-    def get_reminders_for_shows(show_list: list['GuideShow']):
-        reminder_list: list[Reminder] = []
-        for show in show_list:
-            try:
-                reminder = Reminder.from_database(show)
-                reminder_list.append(reminder)
-            except ReminderNotFoundError:
-                pass
-        return reminder_list
-
     def to_dict(self):
         return {
             'show': self.show,
@@ -76,6 +65,15 @@ class Reminder:
             'warning_time': self.warning_time,
             'occassions': self.occassions
         }
+
+    def notification(self):
+        return f'REMINDER: {self.show} is on {self.guide_show.channel} at {self.guide_show.time.strftime("%H:%M")}'
+    
+    def general_message(self):
+        return f'{self.notification()}\nYou will be reminded at {self.notify_time.strftime("%H:%M")}'
+
+    def reminder_details(self):
+        return f'{self.show}\nReminder Alert: {self.reminder_alert}\nWarning Time: {self.warning_time}\nOccassions: {self.occassions}'
     
     def __repr__(self) -> str:
         return f"Reminder [Show: {self.show}, Alert: {self.reminder_alert}, Warning Time: {self.warning_time}, Occassions: {self.occassions}]"

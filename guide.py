@@ -1,15 +1,17 @@
-from datetime import datetime
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from datetime import datetime, timedelta
 from requests import get
 
 from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
+from database.models.GuideShowCases import TransformersGuideShow
 from log import clear_events_log, clear_imdb_api_results, compare_dates, delete_latest_entry, log_guide_information
 
 def find_json(url):
     return dict(get(url).json())
 
-def search_free_to_air(search_list: list[str], database_service: DatabaseService):
+def search_free_to_air(database_service: DatabaseService):
     """
 
     :return:
@@ -20,6 +22,7 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
     shows_data: list[dict] = []
 
     data = find_json(new_url)['schedule']
+    search_list = database_service.get_search_list()
 
     for channel_data in data:
         for guide_show in channel_data['listing']:
@@ -36,14 +39,16 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
                             episode_number = int(guide_show['episode_num'])
                         if 'episode_title' in guide_show.keys():
                             episode_title = guide_show['episode_title']
-                        shows_data.append({
-                            'title': guide_show['title'],
-                            'channel': channel_data['channel'],
-                            'time': show_date,
-                            'season_number': season_number,
-                            'episode_number': episode_number,
-                            'episode_title': Validation.format_episode_title(episode_title)
-                        })
+                        episodes = Validation.build_episode(
+                            guide_show['title'],
+                            channel_data['channel'],
+                            show_date,
+                            season_number,
+                            episode_number,
+                            episode_title
+                        )
+                        for episode in episodes:
+                            shows_data.append(episode)
 
     shows_data = Validation.remove_unwanted_shows(shows_data)
 
@@ -80,13 +85,13 @@ def search_free_to_air(search_list: list[str], database_service: DatabaseService
     
     return shows_on
 
-def compose_message(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
+def compose_message(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow'], message_date: datetime = datetime.today().date()):
     """
     toString function that writes the shows, times, channels and episode information (if available) via natural language
     :return: the to-string message
     """
     
-    message = f"{datetime.today().date().strftime('%A %d-%m-%Y')} TVGuide\n"
+    message = f"{message_date.strftime('%A %d-%m-%Y')} TVGuide\n"
 
     # Free to Air
     message += "\nFree to Air:\n"
@@ -106,42 +111,52 @@ def compose_message(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
 
     return message
 
-def reminders(guide_list: list['GuideShow'], database_service: DatabaseService):
+def reminders(guide_list: list['GuideShow'], database_service: DatabaseService, scheduler: AsyncIOScheduler = None):
     print('===================================================================================')
     print('Reminders:')
     reminders = database_service.get_reminders_for_shows(guide_list)
     if len(reminders) > 0:
-        for reminder in reminders:
-            if reminder.compare_reminder_interval():
-                print(f'REMINDER: {reminder.show} is on {reminder.guide_show.channel} at {reminder.guide_show.time.strftime("%H:%M")}')
-                print(f'You will be reminded at {reminder.calculate_notification_time().strftime("%H:%M")}')
+        reminders_message = '\n'.join([reminder.general_message() for reminder in reminders if reminder.compare_reminder_interval() and 'HD' not in reminder.guide_show.channel])
+        if scheduler is not None:
+            from apscheduler.triggers.date import DateTrigger
+            from services.hermes.utilities import send_message
+        
+            for reminder in reminders:
+                if reminder.compare_reminder_interval() and 'HD' not in reminder.guide_show.channel:
+                    scheduler.add_job(send_message, DateTrigger(run_date=reminder.notify_time), [reminder.notification()])
+        print(reminders_message)
+        print('===================================================================================')
+        return reminders_message
     else:
         print('There are no reminders scheduled for today')
-    print('===================================================================================')
+        print('===================================================================================')
+        return 'There are no reminders scheduled for today'
 
-def run_guide(database_service: DatabaseService):
+def run_guide(database_service: DatabaseService, guide_list: list['GuideShow'], scheduler: AsyncIOScheduler=None):
 
-    update_db_flag = compare_dates()
+    latest_guide = database_service.get_latest_guide()
+    print(latest_guide.date)
+    
+    update_db_flag = compare_dates(latest_guide.date)
     print(update_db_flag)
     
     clear_imdb_api_results()
-    fta_shows = search_free_to_air(database_service.get_search_list(), database_service)
-    guide_message = compose_message(fta_shows, [])
+    guide_message = compose_message(guide_list, [])
     print(guide_message)
     if update_db_flag:
         clear_events_log()
         database_service.backup_recorded_shows()
         
-        for guide_show in fta_shows:
+        for guide_show in guide_list:
             if 'HD' not in guide_show.channel:
                 guide_show.db_event = str(database_service.capture_db_event(guide_show)['result'])
-        database_service.add_guide_data(fta_shows, [])
-        log_guide_information(fta_shows, [])
+        database_service.add_guide_data(guide_list, [])
+        log_guide_information(guide_list, [])
 
-    reminders(fta_shows, database_service)
-    return guide_message
+    reminders_message = reminders(guide_list, database_service, scheduler)
+    return guide_message, reminders_message
 
-def revert_tvguide(database_service: DatabaseService):
+def revert_database_tvguide(database_service: DatabaseService):
     "Forget sending a message and rollback the database to its previous state"
     delete_latest_entry()
     database_service.rollback_recorded_shows()

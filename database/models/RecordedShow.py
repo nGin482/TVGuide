@@ -3,6 +3,8 @@ from datetime import datetime
 from pymongo import ReturnDocument
 from database.mongo import recorded_shows_collection
 
+from exceptions.DatabaseError import SeasonNotFoundError
+
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from database.models.GuideShow import GuideShow
@@ -42,14 +44,16 @@ class Episode:
             latest_air_date = str(recorded_episode['latest_air_date'])
             if '-' in latest_air_date:
                 latest_air_date = latest_air_date.replace('-', '/')
-            latest_air_date = datetime.strptime(latest_air_date, '%d/%m/%Y')
+            if latest_air_date != "":
+                latest_air_date = datetime.strptime(latest_air_date, '%d/%m/%Y')
         else:
             latest_air_date = datetime.today()
         repeat: bool = recorded_episode['repeat']
 
         if '-' in first_air_date:
             first_air_date = first_air_date.replace('-', '/')
-        first_air_date: datetime = datetime.strptime(first_air_date, '%d/%m/%Y')
+        if first_air_date != "":
+            first_air_date: datetime = datetime.strptime(first_air_date, '%d/%m/%Y')
 
         return cls(episode_number, episode_title, channels, first_air_date, latest_air_date, repeat)
 
@@ -116,14 +120,29 @@ class Episode:
             print(len(unknown_season['episodes']))
 
     def to_dict(self):
+        if isinstance(self.first_air_date, datetime):
+            first_air_date = self.first_air_date.strftime('%d/%m/%Y')
+        else:
+            first_air_date = self.first_air_date
+        if isinstance(self.latest_air_date, datetime):
+            latest_air_date = self.latest_air_date.strftime('%d/%m/%Y')
+        else:
+            latest_air_date = self.latest_air_date
         return {
             'episode_number': self.episode_number,
             'episode_title': self.episode_title,
             'channels': self.channels,
-            'first_air_date': self.first_air_date.strftime('%d/%m/%Y'),
-            'latest_air_date': self.latest_air_date.strftime('%d/%m/%Y'),
+            'first_air_date': first_air_date,
+            'latest_air_date': latest_air_date,
             'repeat': self.repeat
         }
+
+    def message_format(self):
+        episode_message = f'Episode: {self.episode_number} - Episode Title: {self.episode_title} - Channels: {",".join(self.channels)} - '
+        episode_message += f'First Airing: {self.first_air_date.strftime("%d/%m/%Y")} - Latest Airing: {self.latest_air_date.strftime("%d/%m/%Y")} - '
+        if self.repeat:
+            episode_message += 'Repeat'
+        return episode_message
 
     def __repr__(self) -> str:
         return f"Episode [Episode Number: {self.episode_number}, Episode Title: {self.episode_title}, Channels: {self.channels}, Repeat: {self.repeat}]"
@@ -157,14 +176,14 @@ class Season:
         if episode_number == 0 and episode_title == '':
             raise ValueError('Please provide a value to either the episode_number or episode_title')
         else:
-            if self.season_number == 'Unknown':
-                episode = next((ep for ep in self.episodes if ep.episode_title == episode_title), None)
+            if episode_title != "":
+                episode = next((ep for ep in self.episodes if ep.episode_title.lower() == episode_title.lower()), None)
             else:
                 episode = next((ep for ep in self.episodes if ep.episode_number == episode_number), None)
             return episode
 
     def to_dict(self):
-        season_dict = {
+        season_dict: dict[str, str|list] = {
             'season_number': self.season_number,
             'episodes': []
         }
@@ -172,6 +191,12 @@ class Season:
             season_dict['episodes'].append(episode.to_dict())
         
         return season_dict
+
+    def message_format(self):
+        episodes = ''
+        for episode in self.episodes:
+            episodes += f'\t{episode.message_format()}\n'
+        return f'Season: {self.season_number}\n{episodes}'
 
     def __repr__(self) -> str:
         return f'Season [Season Number: {self.season_number}, episodes: {self.episodes}]'
@@ -202,15 +227,12 @@ class RecordedShow:
         imdb_id = recorded_show_details['imdb_id'] if 'imdb_id' in recorded_show_details.keys() else ''
         return cls(title, seasons, imdb_id)
     
-    def find_season(self, season_number: str) -> Season:
-        results = list(filter(lambda season_obj: season_obj.season_number == season_number, self.seasons))
-        if len(results) > 0:
-            return results[0]
-        return None
+    def find_season(self, season_number: str):
+        return next((season for season in self.seasons if season.season_number == season_number), None)
     
     def find_latest_season(self):
         if 'Doctor Who' in self.title:
-            list_of_seasons = list(filter(lambda season: season.season_number != 'Tennant Specials' and season.season_number != 'Smith Specials', self.seasons))
+            list_of_seasons = [season for season in self.seasons if season.season_number != 'Tennant Specials' and season.season_number != 'Smith Specials']
         else:
             list_of_seasons = self.seasons
         latest_season_number = max(int(season.season_number) for season in list_of_seasons)
@@ -228,7 +250,7 @@ class RecordedShow:
         return instances
     
     def to_dict(self) -> dict:
-        show_dict = {
+        show_dict: dict[str, str|list] = {
             # '_id': self._id,
             'show': self.title,
             'seasons': []
@@ -238,6 +260,12 @@ class RecordedShow:
             show_dict['seasons'].append(season.to_dict())
 
         return show_dict
+
+    def message_format(self):
+        seasons = ''
+        for season in self.seasons:
+            seasons = f'{seasons}\nSeason {season.season_number}: {len(season.episodes)} episodes'
+        return f'{self.title}\nSeasons:\n{seasons}'
 
     def __repr__(self) -> str:
         return f"RecordedShow [Title: {self.title}, Seasons: {self.seasons}]"
