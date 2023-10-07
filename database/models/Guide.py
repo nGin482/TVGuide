@@ -41,8 +41,8 @@ class Guide:
         return cls(guide_details['date'], fta_list, [])
 
     @classmethod
-    def from_runtime(cls, fta_shows: list[GuideShow], bbc_shows: list[GuideShow]):
-        return cls(datetime.today().strftime('%d/%m/%Y'), fta_shows, bbc_shows)
+    def from_runtime(cls, fta_shows: list[GuideShow], bbc_shows: list[GuideShow], date = datetime.today()):
+        return cls(date.strftime('%d/%m/%Y'), fta_shows, bbc_shows)
 
     def search_for_show(self, show_title):
         return [show for show in self.fta_shows if show_title in show.title]
@@ -50,7 +50,7 @@ class Guide:
 
     def to_dict(self):
         return {
-            'date': datetime.today().strftime('%d/%m/%Y'),
+            'date': self.date.strftime('%d/%m/%Y'),
             'FTA': [show.to_dict() for show in self.fta_shows],
             'BBC': [show.to_dict() for show in self.bbc_shows]
         }
