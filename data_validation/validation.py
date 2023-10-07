@@ -57,10 +57,9 @@ class Validation:
             return 'Death In Paradise'
         elif 'Grantchester Christmas Special' in show:
             return 'Grantchester'
-        title = show
-        if ':' in title:
-            title = title.replace(':', '')
-        return title
+        elif 'NCIS Encore' in show:
+            return 'NCIS'
+        return show
 
     @staticmethod
     def remove_unwanted_shows(guide_list: list[dict]):
@@ -134,7 +133,7 @@ class Validation:
                 'time': time,
                 'season_number': season_number,
                 'episode_number': episode_number,
-                'episode_title': Validation.format_episode_title(episode)
+                'episode_title': Validation.format_episode_title(episode_title)
             })
         return episodes
 
