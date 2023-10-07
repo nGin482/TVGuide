@@ -12,7 +12,7 @@ class TransformersGuideShow(SpecialCases):
     def handle(title: str):
         check_transformers = TransformersGuideShow.transformers_shows(title)
         if isinstance(check_transformers, tuple):
-            return 'Transformers', str(check_transformers[0]), check_transformers[1], check_transformers[2]
+            return 'Transformers', check_transformers[0], check_transformers[1], check_transformers[2]
         return check_transformers
 
     @staticmethod

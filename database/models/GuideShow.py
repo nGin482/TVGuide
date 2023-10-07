@@ -1,10 +1,9 @@
 from datetime import datetime
 
 from data_validation.validation import Validation
-from database.models.GuideShowCases import TransformersGuideShow, DoctorWho, MorseGuideShow, RedElection, SilentWitness
+from database.models.GuideShowCases import TransformersGuideShow
 from database.models.RecordedShow import RecordedShow
 from exceptions.DatabaseError import EpisodeNotFoundError, SeasonNotFoundError, ShowNotFoundError
-# from services.imdb_api import search_for_episode_title, search_for_season_number
 
 class GuideShow:
     
@@ -79,21 +78,9 @@ class GuideShow:
             if isinstance(handle_result, str):
                 return handle_result, season_number, episode_number, episode_title
             return handle_result
-        elif 'Doctor Who' in title:
-            handle_result = DoctorWho.handle(title, episode_title)
-            if isinstance(handle_result, str):
-                return handle_result, season_number, episode_number, episode_title
-            return handle_result
-        elif 'Morse' in title:
-            return MorseGuideShow.handle(title)
-        elif 'Red Election' in title:
-            return RedElection.handle(title, episode_title)
-        elif 'Silent Witness' in title:
-            return SilentWitness.handle(episode_title)
-        elif 'NCIS Encore' in title:
-            return 'NCIS', season_number, episode_number, episode_title
-        else:
-            return Validation.check_show_titles(title), season_number, episode_number, episode_title
+        if ': ' in title and episode_title == "":
+            title, episode_title = title.split(': ')
+        return Validation.check_show_titles(title), season_number, episode_number, episode_title
 
     def find_recorded_episode(self):
         """
@@ -102,7 +89,6 @@ class GuideShow:
         Raises `SeasonNotFoundError` if the season can't be found in the database.\n
         Raises `ShowNotFoundError` if the show can't be found in the database.
         """
-        # check_show = get_one_recorded_show(show['title'])
         if self.recorded_show or not self.new_show:
             season = self.recorded_show.find_season(self.season_number)
             if season:
