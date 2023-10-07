@@ -11,13 +11,21 @@ if TYPE_CHECKING:
 
 class Episode:
     
-    def __init__(self, episode_number: int, episode_title: str, channels: list[str], first_air_date: datetime, latest_air_date: datetime, repeat: bool) -> None:
+    def __init__(
+            self,
+            episode_number: int,
+            episode_title: str,
+            alternative_titles: list[str],
+            summary: str,
+            channels: list[str],
+            air_dates: list[datetime]
+        ) -> None:
         self.episode_number = episode_number
         self.episode_title = episode_title
+        self.alternative_titles = alternative_titles
+        self.summary = summary
         self.channels = channels
-        self.first_air_date = first_air_date
-        self.latest_air_date = latest_air_date
-        self.repeat = repeat
+        self.air_dates = air_dates
 
     @classmethod
     def from_guide_show(cls, guide_show: 'GuideShow'):
@@ -29,7 +37,7 @@ class Episode:
             channels.append('ABCHD')
         if 'TEN' in channels:
             channels.append('TENHD')
-        return cls(guide_show.episode_number, guide_show.episode_title, channels, datetime.today(), datetime.today(), False)
+        return cls(guide_show.episode_number, guide_show.episode_title, [], "", channels, [datetime.today()])
 
     @classmethod
     def from_database(cls, recorded_episode: dict):
@@ -38,24 +46,12 @@ class Episode:
         """
         episode_number = int(recorded_episode['episode_number'])
         episode_title: str = recorded_episode['episode_title']
+        alternative_titles: list[str] = recorded_episode['alternative_titles']
+        summary: str = recorded_episode['summary'] if recorded_episode['summary'] is not None else ""
         channels: list[str] = recorded_episode['channels']
-        first_air_date: str = recorded_episode['first_air_date']
-        if 'latest_air_date' in recorded_episode.keys():
-            latest_air_date = str(recorded_episode['latest_air_date'])
-            if '-' in latest_air_date:
-                latest_air_date = latest_air_date.replace('-', '/')
-            if latest_air_date != "":
-                latest_air_date = datetime.strptime(latest_air_date, '%d/%m/%Y')
-        else:
-            latest_air_date = datetime.today()
-        repeat: bool = recorded_episode['repeat']
+        air_dates = [datetime.strptime(air_date, '%d/%m/%Y') for air_date in recorded_episode['air_dates']]
 
-        if '-' in first_air_date:
-            first_air_date = first_air_date.replace('-', '/')
-        if first_air_date != "":
-            first_air_date: datetime = datetime.strptime(first_air_date, '%d/%m/%Y')
-
-        return cls(episode_number, episode_title, channels, first_air_date, latest_air_date, repeat)
+        return cls(episode_number, episode_title, alternative_titles, summary, channels, air_dates)
 
     def add_channel(self, channel: str):
         """Add the given channel to the episode's channel list.\n
@@ -91,6 +87,9 @@ class Episode:
         if channel not in self.channels:
             return False
         return True
+    
+    def is_repeat(self):
+        return len(self.air_dates) >= 2
         
     def remove_unknown_episode(self, show_title: str):
         """
@@ -120,37 +119,29 @@ class Episode:
             print(len(unknown_season['episodes']))
 
     def to_dict(self):
-        if isinstance(self.first_air_date, datetime):
-            first_air_date = self.first_air_date.strftime('%d/%m/%Y')
-        else:
-            first_air_date = self.first_air_date
-        if isinstance(self.latest_air_date, datetime):
-            latest_air_date = self.latest_air_date.strftime('%d/%m/%Y')
-        else:
-            latest_air_date = self.latest_air_date
         return {
             'episode_number': self.episode_number,
             'episode_title': self.episode_title,
+            'alternative_titles': self.alternative_titles,
+            'summary': self.summary,
             'channels': self.channels,
-            'first_air_date': first_air_date,
-            'latest_air_date': latest_air_date,
-            'repeat': self.repeat
+            'air_dates': [datetime.strftime(date, '%d/%m/%Y') for date in self.air_dates]
         }
 
     def message_format(self):
         episode_message = f'Episode: {self.episode_number} - Episode Title: {self.episode_title} - Channels: {",".join(self.channels)} - '
-        episode_message += f'First Airing: {self.first_air_date.strftime("%d/%m/%Y")} - Latest Airing: {self.latest_air_date.strftime("%d/%m/%Y")} - '
-        if self.repeat:
+        episode_message += f'First Airing: {self.air_dates[0].strftime("%d/%m/%Y")} - Latest Airing: {self.air_dates[-1].strftime("%d/%m/%Y")} - '
+        if self.is_repeat():
             episode_message += 'Repeat'
         return episode_message
 
     def __repr__(self) -> str:
-        return f"Episode [Episode Number: {self.episode_number}, Episode Title: {self.episode_title}, Channels: {self.channels}, Repeat: {self.repeat}]"
+        return f"Episode [Episode Number: {self.episode_number}, Episode Title: {self.episode_title}, Channels: {self.channels}, Repeat: {self.is_repeat()}]"
 
 
 class Season:
     
-    def __init__(self, season_number: str, episodes: list['Episode']) -> None:
+    def __init__(self, season_number: int, episodes: list['Episode']) -> None:
         self.season_number = season_number
         self.episodes = episodes
 
@@ -166,30 +157,26 @@ class Season:
         """
         Used when creating a `Season` object from the existing values stored in a `RecordedShow`'s subdocument stored in the MongoDB collection
         """
-        try:
-            season_number = recorded_season['season_number']
-        except KeyError:
-            season_number = recorded_season['season number']
-        return cls(season_number, [Episode.from_database(episode) for episode in recorded_season['episodes']])
+        # print(recorded_season['season_number'])
+        return cls(recorded_season['season_number'], [Episode.from_database(episode) for episode in recorded_season['episodes']])
 
-    def find_episode(self, episode_number = 0, episode_title = '') -> Episode:
+    def find_episode(self, episode_number = 0, episode_title = ''):
         if episode_number == 0 and episode_title == '':
             raise ValueError('Please provide a value to either the episode_number or episode_title')
         else:
             if episode_title != "":
                 episode = next((ep for ep in self.episodes if ep.episode_title.lower() == episode_title.lower()), None)
+                if episode is None:
+                    episode = next((ep for ep in self.episodes if episode_title in ep.alternative_titles), None)
             else:
                 episode = next((ep for ep in self.episodes if ep.episode_number == episode_number), None)
             return episode
 
     def to_dict(self):
-        season_dict: dict[str, str|list] = {
+        season_dict: dict[str, str|list[Episode]] = {
             'season_number': self.season_number,
-            'episodes': []
+            'episodes': [episode.to_dict() for episode in self.episodes]
         }
-        for episode in self.episodes:
-            season_dict['episodes'].append(episode.to_dict())
-        
         return season_dict
 
     def message_format(self):
@@ -203,11 +190,11 @@ class Season:
 
 class RecordedShow:
     
-    def __init__(self, show_title: str, seasons: list[Season], imdb_id: str) -> None:
+    def __init__(self, show_title: str, seasons: list[Season], tvmaze_id: str) -> None:
         # self._id = recorded_show_details['_id']
         self.title = show_title
         self.seasons = seasons
-        self.imdb_id = imdb_id
+        self.tvmaze_id = tvmaze_id
 
     @classmethod
     def from_guide_show(cls, guide_show: 'GuideShow'):
@@ -224,11 +211,11 @@ class RecordedShow:
         """
         title: str = recorded_show_details['show']
         seasons = [Season.from_database(season) for season in recorded_show_details['seasons']]
-        imdb_id = recorded_show_details['imdb_id'] if 'imdb_id' in recorded_show_details.keys() else ''
+        imdb_id = recorded_show_details['tvmaze_id'] if 'tvmaze_id' in recorded_show_details.keys() else ''
         return cls(title, seasons, imdb_id)
     
     def find_season(self, season_number: str):
-        return next((season for season in self.seasons if season.season_number == season_number), None)
+        return next((season for season in self.seasons if str(season.season_number) == str(season_number)), None)
     
     def find_latest_season(self):
         if 'Doctor Who' in self.title:
@@ -238,26 +225,28 @@ class RecordedShow:
         latest_season_number = max(int(season.season_number) for season in list_of_seasons)
         return self.find_season(str(latest_season_number))
 
-    def find_episode_instances(self, episode_title: str) -> list[tuple[str, int]]:
+    def find_episode_instances(self, episode_title: str):
         """Search all seasons and return all instances where the given `episode_title` has been stored.\n
         Return as a list of tuples containing the `season_number` and `episode_number`
         """
-        instances: list[tuple] = []
+        season_num = 0
+        episode = None
         for season in self.seasons:
-            for episode in season.episodes:
-                if episode.episode_title == episode_title:
-                    instances.append((season.season_number, episode.episode_number))
-        return instances
+            episode_search = season.find_episode(episode_title=episode_title)
+            if episode_search is not None:
+                season_num = season.season_number
+                episode = episode_search
+        if season_num == 0 or episode is None:
+            return None
+        return season_num, episode
     
     def to_dict(self) -> dict:
         show_dict: dict[str, str|list] = {
             # '_id': self._id,
             'show': self.title,
-            'seasons': []
+            'seasons': [season.to_dict() for season in self.seasons],
+            'tvmaze_id': self.tvmaze_id
         }
-        season: Season
-        for season in self.seasons:
-            show_dict['seasons'].append(season.to_dict())
 
         return show_dict
 

@@ -25,7 +25,7 @@ class DatabaseService:
 # RECORDED SHOWS
     def get_all_recorded_shows(self):
         documents = list(self.recorded_shows_collection.find({}))
-        return [RecordedShow.from_database(dict(document)) for document in documents]
+        return [RecordedShow.from_database(dict(document)) for document in documents if document['show'] != "Transformers: Bumblebee Cyberverse Adventures"]
 
     def get_one_recorded_show(self, show_title: str):
         search = self.recorded_shows_collection.find_one({'show': show_title})
@@ -145,17 +145,11 @@ class DatabaseService:
         try:
             episode = guide_show.find_recorded_episode()
             print(f'{guide_show.title} happening on channel/repeat')
-            episode.latest_air_date = datetime.today()
+            episode.air_dates.append(datetime.today())
             episode.channels = list(set(episode.channels))
-            if episode.channel_check(guide_show.channel) is False and episode.repeat is False:
-                channel_add = episode.add_channel(guide_show.channel)
-                episode.repeat = True
-                result = f"{channel_add} and the episode has been marked as a repeat."
-            elif episode.channel_check(guide_show.channel) is False:
+            result = f"{guide_show.title} has aired today"
+            if episode.channel_check(guide_show.channel) is False:
                 result = episode.add_channel(guide_show.channel)
-            else:
-                episode.repeat = True
-                result = 'The episode has been marked as a repeat.'
             self.update_episode_in_database(guide_show.title, guide_show.season_number, episode)
             event = {'show': guide_show.to_dict(), 'result': result}
         except EpisodeNotFoundError as err:
