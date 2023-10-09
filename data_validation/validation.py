@@ -124,7 +124,7 @@ class Validation:
                     'time': time + timedelta(minutes=14) if idx == 1 else time,
                     'season_number': season_number,
                     'episode_number': episode_number,
-                    'episode_title': Validation.format_episode_title(episode.capitalize())
+                    'episode_title': Validation.format_episode_title(episode.title())
                 })
         else:
             episodes.append({
