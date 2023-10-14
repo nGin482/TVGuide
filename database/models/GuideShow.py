@@ -80,6 +80,10 @@ class GuideShow:
             return handle_result
         if ': ' in title and episode_title == "":
             title, episode_title = title.split(': ')
+        if ' - ' in title and episode_title == "":
+            title, episode_title = title.split(' - ')
+        if f'{title} - ' in episode_title:
+            episode_title = episode_title.split(' - ')[1]
         return Validation.check_show_titles(title), season_number, episode_number, episode_title
 
     def find_recorded_episode(self):
