@@ -136,30 +136,6 @@ def log_discord_message_too_long(message_length, fta_length):
     with open('log/message_logging.txt', 'w', encoding='utf-8') as fd:
         fd.write(f'{current_log_contents}\n\n\n{log_message}')
 
-def log_imdb_api_results(show: dict, imdb_results: dict):
-    """
-    Write the results from the IMDB API request to a JSON file
-    """
-
-    try:
-        with open('log/imdb_api_results.json') as fd:
-            results:list = json.load(fd)
-    except FileNotFoundError:
-        results: list[dict] = []
-
-    results.append({'show': show, 'api_results': imdb_results})
-
-    with open('log/imdb_api_results.json', 'w+') as fd:
-        json.dump(results, fd, indent='\t')
-
-def clear_imdb_api_results():
-    """
-    Remove existing results from IMDB API searches
-    """
-
-    with open('log/imdb_api_results.json', 'w+') as fd:
-        json.dump([], fd)
-
 def logging_app(log_info: str, level = logging.DEBUG):
     logging.basicConfig(filename='tvguide.log', filemode='a', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     if level == logging.DEBUG:
