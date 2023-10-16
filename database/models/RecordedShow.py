@@ -3,7 +3,7 @@ from datetime import datetime
 from pymongo import ReturnDocument
 from database.mongo import recorded_shows_collection
 
-from exceptions.DatabaseError import SeasonNotFoundError
+import pytz
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -37,7 +37,8 @@ class Episode:
             channels.append('ABCHD')
         if 'TEN' in channels:
             channels.append('TENHD')
-        return cls(guide_show.episode_number, guide_show.episode_title, [], "", channels, [datetime.today()])
+        date = datetime.now(pytz.timezone('Australia/Sydney'))
+        return cls(guide_show.episode_number, guide_show.episode_title, [], "", channels, [date])
 
     @classmethod
     def from_database(cls, recorded_episode: dict):

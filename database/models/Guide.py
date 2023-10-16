@@ -1,6 +1,7 @@
 from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
+import pytz
 if TYPE_CHECKING:
     from database.DatabaseService import DatabaseService
 
@@ -41,7 +42,7 @@ class Guide:
         return cls(guide_details['date'], fta_list, [])
 
     @classmethod
-    def from_runtime(cls, fta_shows: list[GuideShow], bbc_shows: list[GuideShow], date = datetime.today()):
+    def from_runtime(cls, fta_shows: list[GuideShow], bbc_shows: list[GuideShow], date = datetime.now(pytz.timezone('Australia/Sydney'))):
         return cls(date.strftime('%d/%m/%Y'), fta_shows, bbc_shows)
 
     def search_for_show(self, show_title):

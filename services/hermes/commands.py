@@ -58,6 +58,7 @@ async def revert_tvguide(ctx: Context, date_to_delete: str = None):
     # if provided, find and delete that message
     # else, search for today's date
     # if none found, send message "could not find TVGuide message"
+    import pytz
     
     revert_database_tvguide(database_service)
     message_to_delete = None
@@ -70,7 +71,7 @@ async def revert_tvguide(ctx: Context, date_to_delete: str = None):
                 message_to_delete = message
                 break
         elif message_date is not None and date_to_delete is None:
-            if message_date.day == datetime.today().day:
+            if message_date.day == datetime.now(pytz.timezone('Australia/Sydney')).date().day:
                 message_to_delete = message
                 break
     if message_to_delete is not None:
@@ -150,12 +151,14 @@ async def delete_reminder(ctx: Context, show: str):
 @hermes.command()
 async def backup_shows(ctx: Context):
     database_service.backup_recorded_shows()
+    import pytz
+    date = datetime.now(pytz.timezone('Australia/Sydney'))
 
     os.mkdir('database/backups/zip')
     with ZipFile('database/backups/zip/Shows-Archive.zip', 'w') as zip:
         for file in os.listdir('database/backups/recorded_shows'):
             zip.write(f'database/backups/recorded_shows/{file}', arcname=file)
-    shows_zip = File('database/backups/zip/Shows-Archive.zip', f'Shows Archive - {datetime.today().strftime("%d/%m/%Y")}.zip')
+    shows_zip = File('database/backups/zip/Shows-Archive.zip', f'Shows Archive - {date.strftime("%d/%m/%Y")}.zip')
     await ctx.send('A backup has been made of the Recorded Shows. This can be found attached.', file=shows_zip)
     os.remove('database/backups/zip/Shows-Archive.zip')
     os.rmdir('database/backups/zip')

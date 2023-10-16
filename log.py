@@ -3,6 +3,7 @@ from datetime import datetime
 from backups import write_to_backup_file
 import logging
 import json
+import pytz
 import os
 import re
 
@@ -28,7 +29,7 @@ def get_date_from_tvguide_message(message: str):
 
 def compare_dates(date: datetime):
 
-    if date.day != datetime.today().day:
+    if date.day != datetime.now(pytz.timezone('Australia/Sydney')).day:
         return True
     else:
         if date.hour <= 6:
@@ -59,7 +60,8 @@ def log_message_sent():
     contents = read_file().splitlines(True)
     if len(contents) > 1:
         new_log = [contents[1]]
-    new_log.append(f"\nTVGuide was sent on {datetime.today().strftime('%d-%m-%y')} at {datetime.now().strftime('%H:%M')}")
+    message_date = datetime.now(tz=pytz.timezone('Australia/Sydney'))
+    new_log.append(f"\nTVGuide was sent on {message_date.strftime('%d-%m-%y')} at {message_date.strftime('%H:%M')}")
     
     with open('log/emails.txt', 'w') as fd:
         for line in new_log:
@@ -105,7 +107,7 @@ def log_guide_information(fta_shows: list['GuideShow'], bbc_shows: list['GuideSh
     bbc_list = [show.to_dict() for show in bbc_shows]
     
     today_guide = {'FTA': fta_list, 'BBC': bbc_list}
-    with open(f'today_guide/{datetime.today().strftime("%d-%m-%Y")}.json', 'w+', encoding='utf-8') as fd:
+    with open(f'today_guide/{datetime.now(tz=pytz.timezone("Australia/Sydney")).strftime("%d-%m-%Y")}.json', 'w+', encoding='utf-8') as fd:
         json.dump(today_guide, fd, ensure_ascii=False, indent=4)
     
     # guide = organise_guide(fta_shows, bbc_shows)

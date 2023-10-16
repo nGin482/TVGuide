@@ -211,7 +211,7 @@ async def send_main_message(database_service: DatabaseService):
 
 if __name__ == '__main__':
     
-    scheduler.add_job(send_main_message, CronTrigger(hour=9), [database_service])
+    scheduler.add_job(send_main_message, CronTrigger(hour=9, timezone='Australia/Sydney'), [database_service])
     scheduler.start()
     hermes.run(os.getenv('HERMES'))
 
