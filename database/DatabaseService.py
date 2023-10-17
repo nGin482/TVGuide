@@ -146,7 +146,7 @@ class DatabaseService:
         try:
             episode = guide_show.find_recorded_episode()
             print(f'{guide_show.title} happening on channel/repeat')
-            episode.air_dates.append(datetime.now(tz=pytz.timezone('Austrlia/Sydney')).date())
+            episode.air_dates.append(datetime.now(tz=pytz.timezone('Australia/Sydney')).date())
             episode.channels = list(set(episode.channels))
             result = f"{guide_show.title} has aired today"
             if episode.channel_check(guide_show.channel) is False:
