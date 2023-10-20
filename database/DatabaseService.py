@@ -5,6 +5,7 @@ from datetime import datetime
 import json
 import os
 
+from data_validation.validation import Validation
 from database.models.Guide import Guide
 from database.models.GuideShow import GuideShow
 from database.models.RecordedShow import RecordedShow, Season, Episode
@@ -139,19 +140,18 @@ class DatabaseService:
 
     def capture_db_event(self, guide_show: GuideShow):
         from services.hermes.hermes import hermes
-        import pytz
         
         recorded_show = guide_show.recorded_show
         
         try:
             episode = guide_show.find_recorded_episode()
             print(f'{guide_show.title} happening on channel/repeat')
-            episode.air_dates.append(datetime.now(tz=pytz.timezone('Australia/Sydney')).date())
+            episode.air_dates.append(Validation.get_current_date().date())
             episode.channels = list(set(episode.channels))
             result = f"{guide_show.title} has aired today"
             if episode.channel_check(guide_show.channel) is False:
                 result = episode.add_channel(guide_show.channel)
-            self.update_episode_in_database(guide_show.title, guide_show.season_number, episode)
+            self.update_episode_in_database(guide_show.title, int(guide_show.season_number), episode)
             event = {'show': guide_show.to_dict(), 'result': result}
         except EpisodeNotFoundError as err:
             try:

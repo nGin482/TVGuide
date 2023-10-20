@@ -58,7 +58,6 @@ async def revert_tvguide(ctx: Context, date_to_delete: str = None):
     # if provided, find and delete that message
     # else, search for today's date
     # if none found, send message "could not find TVGuide message"
-    import pytz
     
     revert_database_tvguide(database_service)
     message_to_delete = None
@@ -71,7 +70,7 @@ async def revert_tvguide(ctx: Context, date_to_delete: str = None):
                 message_to_delete = message
                 break
         elif message_date is not None and date_to_delete is None:
-            if message_date.day == datetime.now(pytz.timezone('Australia/Sydney')).date().day:
+            if message_date.day == Validation.get_current_date().date().day:
                 message_to_delete = message
                 break
     if message_to_delete is not None:
@@ -151,8 +150,7 @@ async def delete_reminder(ctx: Context, show: str):
 @hermes.command()
 async def backup_shows(ctx: Context):
     database_service.backup_recorded_shows()
-    import pytz
-    date = datetime.now(pytz.timezone('Australia/Sydney'))
+    date = Validation.get_current_date()
 
     os.mkdir('database/backups/zip')
     with ZipFile('database/backups/zip/Shows-Archive.zip', 'w') as zip:

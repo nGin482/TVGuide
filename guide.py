@@ -1,7 +1,6 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
 from requests import get
-import pytz
 
 from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
@@ -17,7 +16,7 @@ def search_free_to_air(database_service: DatabaseService):
     :return:
     """
 
-    date = datetime.now(pytz.timezone('Australia/Sydney')).date()
+    date = Validation.get_current_date().date()
 
     new_url = f'https://epg.abctv.net.au/processed/Sydney_{str(date)}.json'
     shows_on: list[GuideShow] = []
@@ -87,7 +86,7 @@ def search_free_to_air(database_service: DatabaseService):
 def compose_message(
         fta_shows: list['GuideShow'],
         bbc_shows: list['GuideShow'],
-        message_date: datetime = datetime.now(pytz.timezone('Australia/Sydney')).date()
+        message_date: datetime = Validation.get_current_date()
     ):
     """
     toString function that writes the shows, times, channels and episode information (if available) via natural language
@@ -162,4 +161,4 @@ def revert_database_tvguide(database_service: DatabaseService):
     "Forget sending a message and rollback the database to its previous state"
     delete_latest_entry()
     database_service.rollback_recorded_shows()
-    database_service.remove_guide_data(datetime.now(pytz.timezone('Australia/Sydney')).strftime('%d/%m/%Y'))
+    database_service.remove_guide_data(Validation.get_current_date().strftime('%d/%m/%Y'))

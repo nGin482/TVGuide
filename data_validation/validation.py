@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
+import pytz
 
 if TYPE_CHECKING:
     from database.models.GuideShow import GuideShow
@@ -157,3 +158,7 @@ class Validation:
         if show_title in unknown_episodes_map.keys():
             show = list(unknown_episodes_map[show_title])
             return len(show) + 1
+        
+    @staticmethod
+    def get_current_date():
+        return datetime.now(pytz.timezone('Australia/Sydney'))

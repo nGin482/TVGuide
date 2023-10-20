@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
-import pytz
+from data_validation.validation import Validation
 if TYPE_CHECKING:
     from database.DatabaseService import DatabaseService
 
@@ -42,7 +42,7 @@ class Guide:
         return cls(guide_details['date'], fta_list, [])
 
     @classmethod
-    def from_runtime(cls, fta_shows: list[GuideShow], bbc_shows: list[GuideShow], date = datetime.now(pytz.timezone('Australia/Sydney'))):
+    def from_runtime(cls, fta_shows: list[GuideShow], bbc_shows: list[GuideShow], date = Validation.get_current_date()):
         return cls(date.strftime('%d/%m/%Y'), fta_shows, bbc_shows)
 
     def search_for_show(self, show_title):
