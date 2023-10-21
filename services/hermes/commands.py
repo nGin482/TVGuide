@@ -7,11 +7,13 @@ import os
 from aux_methods.helper_methods import show_list_message, parse_date_from_command, compose_events_message
 from config import database_service
 from data_validation.validation import Validation
+from database.models.RecordedShow import RecordedShow
 from database.models.Reminders import Reminder
 from exceptions.DatabaseError import DatabaseError, ReminderNotFoundError, SearchItemAlreadyExistsError, SearchItemNotFoundError, ShowNotFoundError
 from guide import compose_message, revert_database_tvguide, run_guide, search_free_to_air
 from log import get_date_from_tvguide_message
 from services.hermes.hermes import hermes
+from tvmaze.tvmaze_api import get_show_data
 
 
 @hermes.command()
@@ -19,8 +21,11 @@ async def show_list(ctx: Context):
     await ctx.send(show_list_message(database_service.get_search_list()))
 
 @hermes.command()
-async def add_show(ctx: Context, show: str):
+async def add_show(ctx: Context, show: str, tvmaze_id: str, season_start: int = None, include_specials: bool = False):
     try:
+        new_show_data = get_show_data(show, tvmaze_id, season_start, include_specials)
+        new_show = RecordedShow.from_database(new_show_data)
+        database_service.insert_recorded_show_document(new_show)
         database_service.insert_into_showlist_collection(show)
         reply = f'{show} has been added to the SearchList. The list now includes:\n{show_list_message(database_service.get_search_list())}'
     except SearchItemAlreadyExistsError | DatabaseError as err:
