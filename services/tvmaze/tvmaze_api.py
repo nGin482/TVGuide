@@ -1,6 +1,6 @@
 import requests
 
-from tvmaze_helpers import format_episode_title, group_seasons
+from services.tvmaze.tvmaze_helpers import format_episode_title, group_seasons
 
 
 def get_show_data(show: str, tvmaze_id: str, season_start: int = None, include_specials: bool = False):

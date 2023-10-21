@@ -13,7 +13,7 @@ from exceptions.DatabaseError import DatabaseError, ReminderNotFoundError, Searc
 from guide import compose_message, revert_database_tvguide, run_guide, search_free_to_air
 from log import get_date_from_tvguide_message
 from services.hermes.hermes import hermes
-from tvmaze.tvmaze_api import get_show_data
+from services.tvmaze.tvmaze_api import get_show_data
 
 
 @hermes.command()
