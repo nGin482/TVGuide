@@ -150,7 +150,7 @@ def run_guide(database_service: DatabaseService, guide_list: list['GuideShow'], 
         
         for guide_show in guide_list:
             if 'HD' not in guide_show.channel:
-                guide_show.db_event = str(database_service.capture_db_event(guide_show)['result'])
+                database_service.capture_db_event(guide_show)
         database_service.add_guide_data(guide_list, [])
         log_guide_information(guide_list, [])
 

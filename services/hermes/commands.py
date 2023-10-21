@@ -4,7 +4,7 @@ from discord.ext.commands import Context
 from zipfile import ZipFile
 import os
 
-from aux_methods.helper_methods import show_list_message, parse_date_from_command
+from aux_methods.helper_methods import show_list_message, parse_date_from_command, compose_events_message
 from config import database_service
 from data_validation.validation import Validation
 from database.models.Reminders import Reminder
@@ -177,3 +177,7 @@ async def restore_shows(ctx: Context):
         os.remove(f'database/restore/recorded_shows/{file}')
     os.rmdir('database/restore/recorded_shows')
     os.removedirs('database/restore')
+
+@hermes.command()
+async def events(ctx: Context):
+    await ctx.send(compose_events_message())

@@ -152,7 +152,8 @@ class DatabaseService:
             if episode.channel_check(guide_show.channel) is False:
                 result = episode.add_channel(guide_show.channel)
             self.update_episode_in_database(guide_show.title, int(guide_show.season_number), episode)
-            event = {'show': guide_show.to_dict(), 'result': result}
+            guide_show.db_event = result
+            event = {'show': guide_show.to_dict(), 'episode': episode.to_dict()}
         except EpisodeNotFoundError as err:
             try:
                 new_episode = Episode.from_guide_show(guide_show)
@@ -161,7 +162,8 @@ class DatabaseService:
             except DatabaseError as err:
                 add_episode_status = str(err)
             print(f'{guide_show.title} happening on episode')
-            event = {'show': guide_show.to_dict(), 'result': add_episode_status}
+            guide_show.db_event = add_episode_status
+            event = {'show': guide_show.to_dict()}
         except SeasonNotFoundError as err:
             new_season = Season.from_guide_show(guide_show)
             try:
@@ -169,7 +171,8 @@ class DatabaseService:
             except DatabaseError as err:
                 insert_season = str(err)
             print(f'{guide_show.title} happening on season')
-            event = {'show': guide_show.to_dict(), 'result': insert_season}
+            guide_show.db_event = insert_season
+            event = {'show': guide_show.to_dict()}
         except ShowNotFoundError as err:
             recorded_show = RecordedShow.from_guide_show(guide_show)
             try:
@@ -177,7 +180,8 @@ class DatabaseService:
             except DatabaseError as err:
                 insert_show = str(err)
             print(f'{guide_show.title} happening on show')
-            event = {'show': guide_show.to_dict(), 'result': insert_show}
+            guide_show.db_event = insert_show
+            event = {'show': guide_show.to_dict()}
         except Exception as err:
             event = {'show': guide_show.to_dict(), 'message': 'Unable to process this episode.', 'error': str(err)}
             hermes.dispatch('show_not_processed', guide_show.message_string(), err)

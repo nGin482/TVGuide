@@ -2,6 +2,8 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta
 import re
 
+from log import read_events
+
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from database.models.GuideShow import GuideShow
@@ -149,3 +151,8 @@ def parse_date_from_command(date: str):
             return datetime(int(year), month, int(date_values[0]))
         else:
             raise ValueError('The date provided was not in a valid format.')
+        
+def compose_events_message():
+    events: list[dict[str, dict]] = read_events()
+
+    return "\n".join([f"{event['show']['title']} - {event['show']['db_event']}" for event in events])
