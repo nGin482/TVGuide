@@ -155,4 +155,4 @@ def parse_date_from_command(date: str):
 def compose_events_message():
     events: list[dict[str, dict]] = read_events()
 
-    return "\n".join([f"{event['show']['title']} - {event['show']['db_event']}" for event in events])
+    return "\n".join([f"{event['show']['title']} - {event['show']['event']}" for event in events])

@@ -5,7 +5,7 @@ from zipfile import ZipFile
 import os
 
 from aux_methods.helper_methods import show_list_message, parse_date_from_command, compose_events_message
-from config import database_service
+from config import database_service, scheduler
 from data_validation.validation import Validation
 from database.models.RecordedShow import RecordedShow
 from database.models.Reminders import Reminder
@@ -44,7 +44,7 @@ async def remove_show(ctx: Context, show: str):
 @hermes.command()
 async def send_guide(ctx: Context):
     fta_list = search_free_to_air(database_service)
-    guide_message, reminders_message = run_guide(database_service, fta_list)
+    guide_message, reminders_message = run_guide(database_service, fta_list, scheduler)
     await ctx.send(guide_message)
     await ctx.send(reminders_message)
 
