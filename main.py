@@ -6,8 +6,7 @@ from dotenv import load_dotenv
 from requests import get
 import os
 
-from aux_methods.helper_methods import format_time, check_show_titles
-from aux_methods.episode_info import search_episode_information
+from aux_methods.helper_methods import format_time, check_show_titles, compose_events_message
 from config import database_service, scheduler
 from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
@@ -201,17 +200,19 @@ async def send_main_message(database_service: DatabaseService):
     
     await hermes.wait_until_ready()
     tvguide_channel: TextChannel = hermes.get_channel(int(os.getenv('TVGUIDE_CHANNEL')))
+    ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
     try:
         await tvguide_channel.send(guide_message)
         await tvguide_channel.send(reminder_message)
+        await ngin.send(compose_events_message())
+        await ngin.send(f"Full - {Validation.get_current_date()}\nSTRF - {Validation.get_current_date().strftime('%d/%m/%Y %H:%M')}")
     except AttributeError:
-        ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
         await ngin.send('The channel resolved to NoneType so the message could not be sent')
 
 
 if __name__ == '__main__':
     
-    scheduler.add_job(send_main_message, CronTrigger(hour=9), [database_service])
+    scheduler.add_job(send_main_message, CronTrigger(hour=9, timezone='Australia/Sydney'), [database_service], misfire_grace_time=None)
     scheduler.start()
     hermes.run(os.getenv('HERMES'))
 

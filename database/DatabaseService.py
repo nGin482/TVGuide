@@ -5,6 +5,7 @@ from datetime import datetime
 import json
 import os
 
+from data_validation.validation import Validation
 from database.models.Guide import Guide
 from database.models.GuideShow import GuideShow
 from database.models.RecordedShow import RecordedShow, Season, Episode
@@ -25,7 +26,7 @@ class DatabaseService:
 # RECORDED SHOWS
     def get_all_recorded_shows(self):
         documents = list(self.recorded_shows_collection.find({}))
-        return [RecordedShow.from_database(dict(document)) for document in documents]
+        return [RecordedShow.from_database(dict(document)) for document in documents if document['show'] != "Transformers: Bumblebee Cyberverse Adventures"]
 
     def get_one_recorded_show(self, show_title: str):
         search = self.recorded_shows_collection.find_one({'show': show_title})
@@ -145,19 +146,14 @@ class DatabaseService:
         try:
             episode = guide_show.find_recorded_episode()
             print(f'{guide_show.title} happening on channel/repeat')
-            episode.latest_air_date = datetime.today()
+            episode.air_dates.append(Validation.get_current_date().date())
             episode.channels = list(set(episode.channels))
-            if episode.channel_check(guide_show.channel) is False and episode.repeat is False:
-                channel_add = episode.add_channel(guide_show.channel)
-                episode.repeat = True
-                result = f"{channel_add} and the episode has been marked as a repeat."
-            elif episode.channel_check(guide_show.channel) is False:
+            result = f"{guide_show.title} has aired today"
+            if episode.channel_check(guide_show.channel) is False:
                 result = episode.add_channel(guide_show.channel)
-            else:
-                episode.repeat = True
-                result = 'The episode has been marked as a repeat.'
-            self.update_episode_in_database(guide_show.title, guide_show.season_number, episode)
-            event = {'show': guide_show.to_dict(), 'result': result}
+            self.update_episode_in_database(guide_show.title, int(guide_show.season_number), episode)
+            guide_show.db_event = result
+            event = {'show': guide_show.to_dict(), 'episode': episode.to_dict()}
         except EpisodeNotFoundError as err:
             try:
                 new_episode = Episode.from_guide_show(guide_show)
@@ -166,7 +162,8 @@ class DatabaseService:
             except DatabaseError as err:
                 add_episode_status = str(err)
             print(f'{guide_show.title} happening on episode')
-            event = {'show': guide_show.to_dict(), 'result': add_episode_status}
+            guide_show.db_event = add_episode_status
+            event = {'show': guide_show.to_dict()}
         except SeasonNotFoundError as err:
             new_season = Season.from_guide_show(guide_show)
             try:
@@ -174,7 +171,8 @@ class DatabaseService:
             except DatabaseError as err:
                 insert_season = str(err)
             print(f'{guide_show.title} happening on season')
-            event = {'show': guide_show.to_dict(), 'result': insert_season}
+            guide_show.db_event = insert_season
+            event = {'show': guide_show.to_dict()}
         except ShowNotFoundError as err:
             recorded_show = RecordedShow.from_guide_show(guide_show)
             try:
@@ -182,7 +180,8 @@ class DatabaseService:
             except DatabaseError as err:
                 insert_show = str(err)
             print(f'{guide_show.title} happening on show')
-            event = {'show': guide_show.to_dict(), 'result': insert_show}
+            guide_show.db_event = insert_show
+            event = {'show': guide_show.to_dict()}
         except Exception as err:
             event = {'show': guide_show.to_dict(), 'message': 'Unable to process this episode.', 'error': str(err)}
             hermes.dispatch('show_not_processed', guide_show.message_string(), err)

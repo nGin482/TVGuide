@@ -1,11 +1,12 @@
 from __future__ import annotations
 from datetime import datetime
-from backups import write_to_backup_file
 import logging
 import json
 import os
 import re
 
+from backups import write_to_backup_file
+from data_validation.validation import Validation
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from database.models.GuideShow import GuideShow
@@ -28,13 +29,12 @@ def get_date_from_tvguide_message(message: str):
 
 def compare_dates(date: datetime):
 
-    if date.day != datetime.today().day:
+    if date.day != Validation.get_current_date().day:
         return True
     else:
         if date.hour <= 6:
             return True
-        else:
-            return False
+        return False
 
 
 def read_file():
@@ -59,7 +59,8 @@ def log_message_sent():
     contents = read_file().splitlines(True)
     if len(contents) > 1:
         new_log = [contents[1]]
-    new_log.append(f"\nTVGuide was sent on {datetime.today().strftime('%d-%m-%y')} at {datetime.now().strftime('%H:%M')}")
+    message_date = Validation.get_current_date()
+    new_log.append(f"\nTVGuide was sent on {message_date.strftime('%d-%m-%y')} at {message_date.strftime('%H:%M')}")
     
     with open('log/emails.txt', 'w') as fd:
         for line in new_log:
@@ -105,7 +106,7 @@ def log_guide_information(fta_shows: list['GuideShow'], bbc_shows: list['GuideSh
     bbc_list = [show.to_dict() for show in bbc_shows]
     
     today_guide = {'FTA': fta_list, 'BBC': bbc_list}
-    with open(f'today_guide/{datetime.today().strftime("%d-%m-%Y")}.json', 'w+', encoding='utf-8') as fd:
+    with open(f'today_guide/{Validation.get_current_date().strftime("%d-%m-%Y")}.json', 'w+', encoding='utf-8') as fd:
         json.dump(today_guide, fd, ensure_ascii=False, indent=4)
     
     # guide = organise_guide(fta_shows, bbc_shows)
@@ -135,30 +136,6 @@ def log_discord_message_too_long(message_length, fta_length):
             
     with open('log/message_logging.txt', 'w', encoding='utf-8') as fd:
         fd.write(f'{current_log_contents}\n\n\n{log_message}')
-
-def log_imdb_api_results(show: dict, imdb_results: dict):
-    """
-    Write the results from the IMDB API request to a JSON file
-    """
-
-    try:
-        with open('log/imdb_api_results.json') as fd:
-            results:list = json.load(fd)
-    except FileNotFoundError:
-        results: list[dict] = []
-
-    results.append({'show': show, 'api_results': imdb_results})
-
-    with open('log/imdb_api_results.json', 'w+') as fd:
-        json.dump(results, fd, indent='\t')
-
-def clear_imdb_api_results():
-    """
-    Remove existing results from IMDB API searches
-    """
-
-    with open('log/imdb_api_results.json', 'w+') as fd:
-        json.dump([], fd)
 
 def logging_app(log_info: str, level = logging.DEBUG):
     logging.basicConfig(filename='tvguide.log', filemode='a', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')

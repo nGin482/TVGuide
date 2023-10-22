@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
+import pytz
 
 if TYPE_CHECKING:
     from database.models.GuideShow import GuideShow
@@ -57,8 +58,8 @@ class Validation:
             return 'Death In Paradise'
         elif 'Grantchester Christmas Special' in show:
             return 'Grantchester'
-        if ':' in show:
-            show = show.replace(':', '')
+        elif 'NCIS Encore' in show:
+            return 'NCIS'
         return show
 
     @staticmethod
@@ -124,7 +125,7 @@ class Validation:
                     'time': time + timedelta(minutes=14) if idx == 1 else time,
                     'season_number': season_number,
                     'episode_number': episode_number,
-                    'episode_title': Validation.format_episode_title(episode.capitalize())
+                    'episode_title': Validation.format_episode_title(episode.title())
                 })
         else:
             episodes.append({
@@ -133,7 +134,7 @@ class Validation:
                 'time': time,
                 'season_number': season_number,
                 'episode_number': episode_number,
-                'episode_title': Validation.format_episode_title(episode)
+                'episode_title': Validation.format_episode_title(episode_title)
             })
         return episodes
 
@@ -157,3 +158,7 @@ class Validation:
         if show_title in unknown_episodes_map.keys():
             show = list(unknown_episodes_map[show_title])
             return len(show) + 1
+        
+    @staticmethod
+    def get_current_date():
+        return datetime.now(pytz.timezone('Australia/Sydney'))

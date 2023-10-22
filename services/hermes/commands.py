@@ -4,14 +4,16 @@ from discord.ext.commands import Context
 from zipfile import ZipFile
 import os
 
-from aux_methods.helper_methods import show_list_message, parse_date_from_command
-from config import database_service
+from aux_methods.helper_methods import show_list_message, parse_date_from_command, compose_events_message
+from config import database_service, scheduler
 from data_validation.validation import Validation
+from database.models.RecordedShow import RecordedShow
 from database.models.Reminders import Reminder
 from exceptions.DatabaseError import DatabaseError, ReminderNotFoundError, SearchItemAlreadyExistsError, SearchItemNotFoundError, ShowNotFoundError
 from guide import compose_message, revert_database_tvguide, run_guide, search_free_to_air
 from log import get_date_from_tvguide_message
 from services.hermes.hermes import hermes
+from services.tvmaze.tvmaze_api import get_show_data
 
 
 @hermes.command()
@@ -19,8 +21,11 @@ async def show_list(ctx: Context):
     await ctx.send(show_list_message(database_service.get_search_list()))
 
 @hermes.command()
-async def add_show(ctx: Context, show: str):
+async def add_show(ctx: Context, show: str, tvmaze_id: str, season_start: int = None, include_specials: bool = False):
     try:
+        new_show_data = get_show_data(show, tvmaze_id, season_start, include_specials)
+        new_show = RecordedShow.from_database(new_show_data)
+        database_service.insert_recorded_show_document(new_show)
         database_service.insert_into_showlist_collection(show)
         reply = f'{show} has been added to the SearchList. The list now includes:\n{show_list_message(database_service.get_search_list())}'
     except SearchItemAlreadyExistsError | DatabaseError as err:
@@ -39,7 +44,7 @@ async def remove_show(ctx: Context, show: str):
 @hermes.command()
 async def send_guide(ctx: Context):
     fta_list = search_free_to_air(database_service)
-    guide_message, reminders_message = run_guide(database_service, fta_list)
+    guide_message, reminders_message = run_guide(database_service, fta_list, scheduler)
     await ctx.send(guide_message)
     await ctx.send(reminders_message)
 
@@ -70,7 +75,7 @@ async def revert_tvguide(ctx: Context, date_to_delete: str = None):
                 message_to_delete = message
                 break
         elif message_date is not None and date_to_delete is None:
-            if message_date.day == datetime.today().day:
+            if message_date.day == Validation.get_current_date().date().day:
                 message_to_delete = message
                 break
     if message_to_delete is not None:
@@ -150,12 +155,13 @@ async def delete_reminder(ctx: Context, show: str):
 @hermes.command()
 async def backup_shows(ctx: Context):
     database_service.backup_recorded_shows()
+    date = Validation.get_current_date()
 
     os.mkdir('database/backups/zip')
     with ZipFile('database/backups/zip/Shows-Archive.zip', 'w') as zip:
         for file in os.listdir('database/backups/recorded_shows'):
             zip.write(f'database/backups/recorded_shows/{file}', arcname=file)
-    shows_zip = File('database/backups/zip/Shows-Archive.zip', f'Shows Archive - {datetime.today().strftime("%d/%m/%Y")}.zip')
+    shows_zip = File('database/backups/zip/Shows-Archive.zip', f'Shows Archive - {date.strftime("%d/%m/%Y")}.zip')
     await ctx.send('A backup has been made of the Recorded Shows. This can be found attached.', file=shows_zip)
     os.remove('database/backups/zip/Shows-Archive.zip')
     os.rmdir('database/backups/zip')
@@ -176,3 +182,7 @@ async def restore_shows(ctx: Context):
         os.remove(f'database/restore/recorded_shows/{file}')
     os.rmdir('database/restore/recorded_shows')
     os.removedirs('database/restore')
+
+@hermes.command()
+async def events(ctx: Context):
+    await ctx.send(compose_events_message())

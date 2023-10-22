@@ -1,10 +1,9 @@
 from datetime import datetime
 
 from data_validation.validation import Validation
-from database.models.GuideShowCases import TransformersGuideShow, DoctorWho, MorseGuideShow, RedElection, SilentWitness
+from database.models.GuideShowCases import TransformersGuideShow
 from database.models.RecordedShow import RecordedShow
 from exceptions.DatabaseError import EpisodeNotFoundError, SeasonNotFoundError, ShowNotFoundError
-# from services.imdb_api import search_for_episode_title, search_for_season_number
 
 class GuideShow:
     
@@ -36,12 +35,10 @@ class GuideShow:
                     episode = season.find_episode(episode_number=episode_number)
                 else:
                     episode = season.find_episode(episode_title=episode_title)
-                if episode is not None:
+                if episode_title == "":
+                    episode_title = episode.episode_title
+                if episode.is_repeat() or len(episode.air_dates) == 1:
                     repeat = True
-
-            if episode_title == '' and recorded_show.imdb_id != '':
-                print(title, season_number, episode_number)
-                # episode_title = search_for_episode_title(title, season_number, episode_number, recorded_show.imdb_id)
         else:
             new_show = True
         
@@ -56,21 +53,21 @@ class GuideShow:
         if recorded_show is None:
             new_show = True
             episode_number = unknown_episodes
+        elif episode_title == "":
+            episode_number = 1 if unknown_episodes == 0 else unknown_episodes
         else:
-            if recorded_show.find_season('Unknown') is not None:
-                unknown_season_episodes = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes)
-            else:
-                unknown_season_episodes = 0
-            if episode_title != '':
-                episode_title_search = GuideShow.check_database_for_episode(episode_title, recorded_show)
-                if episode_title_search is not None:
-                    season_number, episode_number = episode_title_search
-                    repeat = True
-                    # doesn't account for times when the db_search returns 'Unknown' as season_number
+            episode_search = recorded_show.find_episode_instances(episode_title)
+            if episode_search is None:
+                if recorded_show.find_season('Unknown') is not None:
+                    unknown_season_episodes = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes)
                 else:
-                    episode_number = 1 if unknown_season_episodes + unknown_episodes == 0 else unknown_season_episodes + unknown_episodes
-            else:
+                    unknown_season_episodes = 0
                 episode_number = 1 if unknown_season_episodes + unknown_episodes == 0 else unknown_season_episodes + unknown_episodes
+            else:
+                season_number, episode = episode_search
+                episode_number = episode.episode_number
+                if episode.is_repeat() or len(episode.air_dates) == 1:
+                    repeat = True
         
         return cls(title, airing_details, (season_number, episode_number, episode_title, repeat), recorded_show, new_show)
 
@@ -81,52 +78,13 @@ class GuideShow:
             if isinstance(handle_result, str):
                 return handle_result, season_number, episode_number, episode_title
             return handle_result
-        elif 'Doctor Who' in title:
-            handle_result = DoctorWho.handle(title, episode_title)
-            if isinstance(handle_result, str):
-                return handle_result, season_number, episode_number, episode_title
-            return handle_result
-        elif 'Morse' in title:
-            return MorseGuideShow.handle(title)
-        elif 'Red Election' in title:
-            return RedElection.handle(title, episode_title)
-        elif 'Silent Witness' in title:
-            return SilentWitness.handle(episode_title)
-        elif 'NCIS Encore' in title:
-            return 'NCIS', season_number, episode_number, episode_title
-        else:
-            return Validation.check_show_titles(title), season_number, episode_number, episode_title
-
-    @staticmethod
-    def check_database_for_episode(episode_title: str, recorded_show: 'RecordedShow'):
-        """Given an `episode_title`, search the database for every episode that contains this title.\n
-        Use `RecordedShow.find_episode_instances(episode_title)`, which will return a list of tuples containing the `season_numbers` and `episode_numbers`.\n
-        If the `episode_title` appears more than once, prioritise returning the episode that is not contained within the `Unknown` season.
-        If that can be done, delete the episode from the `Unknown` season.
-        If this is not possible, return the earliest episode occurrence.\n
-        If it appears once, return this tuple\n
-        If it does not appear, return `None`"""
-        if recorded_show is None:
-            return None
-        instances = recorded_show.find_episode_instances(episode_title)
-        if len(instances) > 2:
-            print(f"Episode {episode_title} appears too many times in {recorded_show.title}'s document")
-            print(instances)
-        if len(instances) == 0:
-            return None
-        elif len(instances) == 1:
-            return instances[0]
-        else:
-            known_instance = next((instance for instance in instances if instance[0] != 'Unknown'), None)
-            if known_instance is not None:
-                unknown_season = recorded_show.find_season('Unknown')
-                if unknown_season:
-                    episode_in_unknown_season = unknown_season.find_episode(episode_title=episode_title)
-                    if episode_in_unknown_season:
-                        episode_in_unknown_season.remove_unknown_episode(recorded_show.title)
-                        unknown_season.episodes.remove(episode_in_unknown_season)
-                        print(f"{episode_title} has been removed from {recorded_show.title}'s Unknown season to be updated with this latest episode")
-            return known_instance
+        if ': ' in title and episode_title == "":
+            title, episode_title = title.split(': ')
+        if ' - ' in title and episode_title == "":
+            title, episode_title = title.split(' - ')
+        if f'{title} - ' in episode_title:
+            episode_title = episode_title.split(' - ')[1]
+        return Validation.check_show_titles(title), season_number, episode_number, episode_title
 
     def find_recorded_episode(self):
         """
@@ -135,7 +93,6 @@ class GuideShow:
         Raises `SeasonNotFoundError` if the season can't be found in the database.\n
         Raises `ShowNotFoundError` if the show can't be found in the database.
         """
-        # check_show = get_one_recorded_show(show['title'])
         if self.recorded_show or not self.new_show:
             season = self.recorded_show.find_season(self.season_number)
             if season:

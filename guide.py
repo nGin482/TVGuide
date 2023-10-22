@@ -1,12 +1,11 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from datetime import datetime, timedelta
+from datetime import datetime
 from requests import get
 
 from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
-from database.models.GuideShowCases import TransformersGuideShow
-from log import clear_events_log, clear_imdb_api_results, compare_dates, delete_latest_entry, log_guide_information
+from log import clear_events_log, compare_dates, delete_latest_entry, log_guide_information
 
 def find_json(url):
     return dict(get(url).json())
@@ -17,7 +16,9 @@ def search_free_to_air(database_service: DatabaseService):
     :return:
     """
 
-    new_url = f'https://epg.abctv.net.au/processed/Sydney_{str(datetime.today().date())}.json'
+    date = Validation.get_current_date().date()
+
+    new_url = f'https://epg.abctv.net.au/processed/Sydney_{str(date)}.json'
     shows_on: list[GuideShow] = []
     shows_data: list[dict] = []
 
@@ -30,7 +31,7 @@ def search_free_to_air(database_service: DatabaseService):
             for show in search_list:
                 if show in title:
                     show_date = datetime.strptime(guide_show['start_time'], '%Y-%m-%dT%H:%M:%S')
-                    if show_date.day == datetime.today().day:
+                    if show_date.day == date.day:
                         season_number = 'Unknown'
                         episode_number = 0
                         episode_title = ''
@@ -54,9 +55,6 @@ def search_free_to_air(database_service: DatabaseService):
 
     for show in shows_data:
         episode_data = GuideShow.get_show(show['title'], show['season_number'], show['episode_number'], show['episode_title'])
-        if episode_data is None:
-            print(f'{show["title"]} return NoneType')
-            continue
         title, season_number, episode_number, episode_title = episode_data
         recorded_show = database_service.get_one_recorded_show(title)
 
@@ -85,7 +83,11 @@ def search_free_to_air(database_service: DatabaseService):
     
     return shows_on
 
-def compose_message(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow'], message_date: datetime = datetime.today().date()):
+def compose_message(
+        fta_shows: list['GuideShow'],
+        bbc_shows: list['GuideShow'],
+        message_date: datetime = Validation.get_current_date()
+    ):
     """
     toString function that writes the shows, times, channels and episode information (if available) via natural language
     :return: the to-string message
@@ -123,7 +125,7 @@ def reminders(guide_list: list['GuideShow'], database_service: DatabaseService, 
         
             for reminder in reminders:
                 if reminder.compare_reminder_interval() and 'HD' not in reminder.guide_show.channel:
-                    scheduler.add_job(send_message, DateTrigger(run_date=reminder.notify_time), [reminder.notification()])
+                    scheduler.add_job(send_message, DateTrigger(run_date=reminder.notify_time, timezone='Australia/Sydney'), [reminder.notification()])
         print(reminders_message)
         print('===================================================================================')
         return reminders_message
@@ -140,7 +142,6 @@ def run_guide(database_service: DatabaseService, guide_list: list['GuideShow'], 
     update_db_flag = compare_dates(latest_guide.date)
     print(update_db_flag)
     
-    clear_imdb_api_results()
     guide_message = compose_message(guide_list, [])
     print(guide_message)
     if update_db_flag:
@@ -149,7 +150,7 @@ def run_guide(database_service: DatabaseService, guide_list: list['GuideShow'], 
         
         for guide_show in guide_list:
             if 'HD' not in guide_show.channel:
-                guide_show.db_event = str(database_service.capture_db_event(guide_show)['result'])
+                database_service.capture_db_event(guide_show)
         database_service.add_guide_data(guide_list, [])
         log_guide_information(guide_list, [])
 
@@ -160,4 +161,4 @@ def revert_database_tvguide(database_service: DatabaseService):
     "Forget sending a message and rollback the database to its previous state"
     delete_latest_entry()
     database_service.rollback_recorded_shows()
-    database_service.remove_guide_data(datetime.today().strftime('%d/%m/%Y'))
+    database_service.remove_guide_data(Validation.get_current_date().strftime('%d/%m/%Y'))
