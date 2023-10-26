@@ -42,8 +42,9 @@ class Guide:
         return cls(guide_details['date'], fta_list, [])
 
     @classmethod
-    def from_runtime(cls, fta_shows: list[GuideShow], bbc_shows: list[GuideShow], date = Validation.get_current_date()):
-        return cls(date.strftime('%d/%m/%Y'), fta_shows, bbc_shows)
+    def from_runtime(cls, fta_shows: list[GuideShow], bbc_shows: list[GuideShow], date: datetime = None):
+        guide_date = date if date is not None else Validation.get_current_date()
+        return cls(guide_date.strftime('%d/%m/%Y'), fta_shows, bbc_shows)
 
     def search_for_show(self, show_title):
         return [show for show in self.fta_shows if show_title in show.title]
