@@ -21,14 +21,14 @@ async def show_list(ctx: Context):
     await ctx.send(show_list_message(database_service.get_search_list()))
 
 @hermes.command()
-async def add_show(ctx: Context, show: str, tvmaze_id: str, season_start: int = None, include_specials: bool = False):
+async def add_show(ctx: Context, show: str, tvmaze_id: str, season_start: int = 0, include_specials: bool = False):
     try:
         new_show_data = get_show_data(show, tvmaze_id, season_start, include_specials)
         new_show = RecordedShow.from_database(new_show_data)
         database_service.insert_recorded_show_document(new_show)
         database_service.insert_into_showlist_collection(show)
         reply = f'{show} has been added to the SearchList. The list now includes:\n{show_list_message(database_service.get_search_list())}'
-    except SearchItemAlreadyExistsError | DatabaseError as err:
+    except (SearchItemAlreadyExistsError, DatabaseError) as err:
         reply = f'Error: {str(err)}. The SearchList has not been modified.'
     await ctx.send(reply)
 
@@ -37,7 +37,7 @@ async def remove_show(ctx: Context, show: str):
     try:
         database_service.remove_show_from_list(show)
         reply = f'{show} has been removed from the SearchList. The list now includes:\n{show_list_message(database_service.get_search_list())}'
-    except DatabaseError | SearchItemNotFoundError as err:
+    except (DatabaseError, SearchItemNotFoundError) as err:
         reply = f'Error: {str(err)}. The list remains as:\n{show_list_message(database_service.get_search_list())}'
     await ctx.send(reply)
 
