@@ -205,7 +205,6 @@ async def send_main_message(database_service: DatabaseService):
         await tvguide_channel.send(guide_message)
         await tvguide_channel.send(reminder_message)
         await ngin.send(compose_events_message())
-        await ngin.send(f"Full - {Validation.get_current_date()}\nSTRF - {Validation.get_current_date().strftime('%d/%m/%Y %H:%M')}")
     except AttributeError:
         await ngin.send('The channel resolved to NoneType so the message could not be sent')
 
