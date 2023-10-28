@@ -15,7 +15,7 @@ def get_show_data(show: str, tvmaze_id: str, season_start: int = 0, include_spec
         'tvmaze_id': tvmaze_id
     }
     for api_episode in api_data:
-        if season_start and api_episode['season'] >= season_start:
+        if api_episode['season'] >= season_start:
             episode = {
                 'season_number': api_episode['season'],
                 'episode_number': api_episode['number'],
