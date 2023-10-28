@@ -142,7 +142,7 @@
                         "alternative_titles": [],
                         "summary": "",
                         "channels": [
-                            "TEN"
+                            "ABC2"
                         ],
                         "air_dates": [
                             "15/04/2020"
@@ -154,10 +154,66 @@
                         "alternative_titles": [],
                         "summary": "",
                         "channels": [
-                            "TEN"
+                            "ABC2"
                         ],
                         "air_dates": [
                             "15/04/2020"
+                        ]
+                    },
+                    {
+                        "episode_number": 4,
+                        "episode_title": "The Sontaran Strategem",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "air_dates": [
+                            "15/04/2020"
+                        ]
+                    },
+                    {
+                        "episode_number": 5,
+                        "episode_title": "The Poison Sky",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "air_dates": [
+                            "15/04/2020"
+                        ]
+                    },
+                    {
+                        "episode_number": 6,
+                        "episode_title": "The Doctor's Daughter",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "air_dates": []
+                    },
+                    {
+                        "episode_number": 8,
+                        "episode_title": "",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "air_dates": []
+                    },
+                    {
+                        "episode_number": 9,
+                        "episode_title": "",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "air_dates": [
+                            "23/09/2022"
                         ]
                     }
                 ]

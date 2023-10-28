@@ -116,5 +116,93 @@
         "season_number": "Unknown",
         "episode_number": 0,
         "episode_title": "End of Time: Part 1"
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "22:29",
+        "season_number": "4",
+        "episode_number": 4,
+        "episode_title": ""
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "22:29",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "The Poison Sky"
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "22:29",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "The Doctor's Daughter"
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "22:29",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "The Unicorn and the Wasp"
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "22:29",
+        "season_number": "4",
+        "episode_number": 8,
+        "episode_title": ""
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "22:29",
+        "season_number": "4",
+        "episode_number": 9,
+        "episode_title": ""
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "22:29",
+        "season_number": "5",
+        "episode_number": 1,
+        "episode_title": "The Eleventh Hour"
+    },
+    {
+        "title": "Lewis: The Quality of Mercy",
+        "channel": "7TWo",
+        "time": "20:45",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": ""
+    },
+    {
+        "title": "Lewis - The Quality of Mercy",
+        "channel": "7TWo",
+        "time": "20:45",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": ""
+    },
+    {
+        "title": "Lewis",
+        "channel": "7TWo",
+        "time": "20:45",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "Lewis - The Quality of Mercy"
+    },
+    {
+        "title": "The Capture",
+        "channel": "7TWo",
+        "time": "20:45",
+        "season_number": "1",
+        "episode_number": 1,
+        "episode_title": ""
     }
 ]
