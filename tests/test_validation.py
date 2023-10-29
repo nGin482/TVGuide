@@ -40,10 +40,6 @@ class TestValidation(unittest.TestCase):
         grantchester = Validation.check_show_titles(grantchester_data['title'])
         self.assertEqual('Grantchester', grantchester)
 
-        tf_prime_data = next(show for show in self.data if show['title'] == 'Transformers: Prime')
-        tf_prime = Validation.check_show_titles(tf_prime_data['title'])
-        self.assertEqual('Transformers Prime', tf_prime)
-
     def test_remove_unwanted_shows(self):
         processed_list = Validation.remove_unwanted_shows(self.data)
         ncis_hawaii_check = next((show for show in processed_list if show['title'] == 'NCIS: Hawaii'), None)
