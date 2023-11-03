@@ -80,7 +80,7 @@ class TestGuide(unittest.TestCase):
         self.assertEqual("", guide_show_episode_title.episode_title)
 
     @patch('guide.get', return_value=guide_data())
-    def test_is_sorted(self, mock_requests):
+    def test_search_is_sorted(self, mock_requests):
         data = search_free_to_air(self.database_service)
 
         self.assertTrue(all(data[i].time <= data[i+1].time for i in range(len(data) - 1)))

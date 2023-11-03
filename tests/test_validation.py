@@ -62,7 +62,7 @@ class TestValidation(unittest.TestCase):
         episode_numbers = []
         for show in self.data:
             if show['season_number'] == 'Unknown':
-                episode_number = Validation.get_unknown_episode_number(shows_on, show['title'], show['episode_title'])
+                episode_number = Validation.get_unknown_episode_number(self.data, show['title'], show['episode_title'])
                 if episode_number is None:
                     episode_number = 1
                 guide_show = GuideShow.unknown_season(
@@ -89,7 +89,7 @@ class TestValidation(unittest.TestCase):
         episode_numbers = []
         for show in self.data:
             if show['season_number'] == 'Unknown':
-                episode_number = Validation.get_unknown_episode_number(shows_on, show['title'], show['episode_title'])
+                episode_number = Validation.get_unknown_episode_number(self.data, show['title'], show['episode_title'])
                 if episode_number is None:
                     episode_number = 1
                 guide_show = GuideShow.unknown_season(
