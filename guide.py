@@ -18,14 +18,13 @@ def search_free_to_air(database_service: DatabaseService):
 
     date = Validation.get_current_date().date()
 
-    new_url = f'https://epg.abctv.net.au/processed/Sydney_{str(date)}.json'
-    shows_on: list[GuideShow] = []
+    new_url = f"https://epg.abctv.net.au/processed/Sydney_{date.strftime('%Y-%m-%d')}.json"
     shows_data: list[dict] = []
 
-    data = find_json(new_url)['schedule']
+    schedule = find_json(new_url)['schedule']
     search_list = database_service.get_search_list()
 
-    for channel_data in data:
+    for channel_data in schedule:
         for guide_show in channel_data['listing']:
             title = guide_show['title']
             for show in search_list:
@@ -53,7 +52,13 @@ def search_free_to_air(database_service: DatabaseService):
 
     shows_data = Validation.remove_unwanted_shows(shows_data)
 
-    for show in shows_data:
+    shows_on = build_guide_shows(shows_data, database_service)
+    
+    return shows_on
+
+def build_guide_shows(show_list: list[dict], database_service: DatabaseService):
+    shows_on: list[GuideShow] = []
+    for show in show_list:
         episode_data = GuideShow.get_show(show['title'], show['season_number'], show['episode_number'], show['episode_title'])
         title, season_number, episode_number, episode_title = episode_data
         recorded_show = database_service.get_one_recorded_show(title)
@@ -66,7 +71,7 @@ def search_free_to_air(database_service: DatabaseService):
                 recorded_show
             )
         else:
-            episode_number = Validation.get_unknown_episode_number(shows_on, title, episode_title)
+            episode_number = Validation.get_unknown_episode_number(show_list, title, episode_title)
             if episode_number is None:
                 episode_number = 0
             guide_show = GuideShow.unknown_season(

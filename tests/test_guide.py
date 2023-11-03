@@ -1,95 +1,89 @@
+from unittest.mock import Mock, patch, MagicMock
+from datetime import datetime
 import unittest
 import json
 
-from database.models.GuideShow import GuideShow
+from database.DatabaseService import DatabaseService
 from database.models.RecordedShow import RecordedShow
+from database.mongo import mongo_client
+from guide import search_free_to_air
 
+requests = Mock()
+# datetime = Mock()
+# https://realpython.com/python-mock-library/
 
 class TestGuide(unittest.TestCase):
 
     def setUp(self):
-        with open('tests/test_data/test_guide_list.json') as fd:
-            self.data = json.load(fd)
-        with open('tests/test_data/recorded_shows.json') as fd:
-            temp_data = json.load(fd)
-            self.recorded_shows: list['RecordedShow'] = []
-            for recorded_show in temp_data:
-                self.recorded_shows.append(RecordedShow.from_database(recorded_show))
+        self.database_service = DatabaseService(mongo_client().get_database('test'))
 
-    def test_season_known_repeat_true(self):
-        dw_episode = self.data[0]
-        dw_recorded_show = next((show for show in self.recorded_shows if show.title == 'Doctor Who'), None)
-        known_episode = GuideShow.known_season(
-            dw_episode['title'],
-            (dw_episode['channel'], dw_episode['time']),
-            (dw_episode['season_number'], dw_episode['episode_number'], dw_episode['episode_title']),
-            dw_recorded_show
-        )
-        self.assertEqual(True, known_episode.repeat)
+    def guide_data():
+        with open('tests/test_data/fta_data.json') as fd:
+            fta_data = json.load(fd)
 
-    def test_season_known_repeat_false(self):
-        episode_data = next(show for show in self.data if show['episode_title'] == 'A Good Man Goes to War')
-        dw_recorded_show = next((show for show in self.recorded_shows if show.title == 'Doctor Who'), None)
-        known_episode = GuideShow.known_season(
-            episode_data['title'],
-            (episode_data['channel'], episode_data['time']),
-            (episode_data['season_number'], episode_data['episode_number'], episode_data['episode_title']),
-            dw_recorded_show
-        )
-        self.assertEqual(False, known_episode.repeat)
+        response_mock = MagicMock()
+        response_mock.status_code = 200
+        response_mock.json.return_value = fta_data
+        
+        return response_mock
+    
+    @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
+    @patch('guide.get', return_value=guide_data())
+    def test_search_fta_finds_all_details(self, mock_requests, mock_datetime):
+        mocked_today = datetime(2023, 10, 30)
+        mock_datetime.now.return_value = mocked_today
+        
+        data = search_free_to_air(self.database_service)
+        
+        guide_show_all_details = data[0]
+        self.assertEqual('4', guide_show_all_details.season_number)
+        self.assertEqual(4, guide_show_all_details.episode_number)
+        self.assertEqual('The Sontaran Strategem', guide_show_all_details.episode_title)
 
-    def test_season_unknown_no_details(self):
-        episode_data = next(show for show in self.data if show['episode_title'] == '')
-        unknown_episode = GuideShow.unknown_season(
-            episode_data['title'],
-            (episode_data['channel'], episode_data['time']),
-            episode_data['episode_title'],
-            None,
-            2
-        )
-        self.assertEqual(2, unknown_episode.episode_number)
-        self.assertEqual('Unknown', unknown_episode.season_number)
+    @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
+    @patch('guide.get', return_value=guide_data())
+    def test_search_fta_finds_season_episode_number(self, mock_requests, mock_datetime):
+        mocked_today = datetime(2023, 10, 30)
+        mock_datetime.now.return_value = mocked_today
+        
+        data = search_free_to_air(self.database_service)
+        
+        guide_show_episode_num = data[1]
+        self.assertEqual('4', guide_show_episode_num.season_number)
+        self.assertEqual(5, guide_show_episode_num.episode_number)
+        self.assertEqual('', guide_show_episode_num.episode_title)
 
-    def test_season_unknown_no_details_2(self):
-        episode_data = next(show for show in self.data if show['episode_title'] == '')
-        dw_recorded_show = next((show for show in self.recorded_shows if show.title == 'Doctor Who'), None)
-        unknown_episode = GuideShow.unknown_season(
-            episode_data['title'],
-            (episode_data['channel'], episode_data['time']),
-            episode_data['episode_title'],
-            dw_recorded_show,
-            2
-        )
-        self.assertEqual(5, unknown_episode.episode_number)
-        self.assertEqual('Unknown', unknown_episode.season_number)
+    @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
+    @patch('guide.get', return_value=guide_data())
+    def test_search_fta_finds_episode_title(self, mock_requests, mock_datetime):
+        mocked_today = datetime(2023, 10, 30)
+        mock_datetime.now.return_value = mocked_today
+        
+        data = search_free_to_air(self.database_service)
+        
+        guide_show_episode_title = data[3]
+        self.assertEqual('Unknown', guide_show_episode_title.season_number)
+        self.assertEqual(1, guide_show_episode_title.episode_number)
+        self.assertEqual("The Doctor's Daughter", guide_show_episode_title.episode_title)
 
-    def test_season_unknown_episode_title_provided_repeat(self):
-        episode_data = next(show for show in self.data if show['episode_title'] == 'The Next Doctor')
-        dw_recorded_show = next((show for show in self.recorded_shows if show.title == 'Doctor Who'), None)
-        unknown_episode = GuideShow.unknown_season(
-            episode_data['title'],
-            (episode_data['channel'], episode_data['time']),
-            episode_data['episode_title'],
-            dw_recorded_show,
-            1
-        )
-        self.assertEqual('Unknown', unknown_episode.season_number)
-        self.assertEqual(1, unknown_episode.episode_number)
-        self.assertEqual(True, unknown_episode.repeat)
+    @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
+    @patch('guide.get', return_value=guide_data())
+    def test_search_fta_finds_no_details(self, mock_requests, mock_datetime):
+        mocked_today = datetime(2023, 10, 30)
+        mock_datetime.now.return_value = mocked_today
+        
+        data = search_free_to_air(self.database_service)
+        
+        guide_show_episode_title = data[4]
+        self.assertEqual('Unknown', guide_show_episode_title.season_number)
+        self.assertEqual(2, guide_show_episode_title.episode_number)
+        self.assertEqual("", guide_show_episode_title.episode_title)
 
-    def test_season_unknown_episode_title_provided_non_repeat(self):
-        episode_data = next(show for show in self.data if show['episode_title'] == 'End of Time: Part 1')
-        dw_recorded_show = next((show for show in self.recorded_shows if show.title == 'Doctor Who'), None)
-        unknown_episode = GuideShow.unknown_season(
-            episode_data['title'],
-            (episode_data['channel'], episode_data['time']),
-            episode_data['episode_title'],
-            dw_recorded_show,
-            1
-        )
-        self.assertEqual('Unknown', unknown_episode.season_number)
-        self.assertEqual(4, unknown_episode.episode_number)
-        self.assertEqual(False, unknown_episode.repeat)
+    @patch('guide.get', return_value=guide_data())
+    def test_is_sorted(self, mock_requests):
+        data = search_free_to_air(self.database_service)
+
+        self.assertTrue(all(data[i].time <= data[i+1].time for i in range(len(data) - 1)))
 
 
 if __name__ == '__main__':
