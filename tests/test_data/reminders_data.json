@@ -1,0 +1,14 @@
+[
+    {
+        "show": "Doctor Who",
+        "reminder_alert": "Before",
+        "warning_time": 3,
+        "occassions": "All"
+    },
+    {
+        "show": "Endeavour",
+        "reminder_alert": "Before",
+        "warning_time": 5,
+        "occassions": "All"
+    }
+]
