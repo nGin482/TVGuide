@@ -136,6 +136,31 @@ class TestGuide(unittest.TestCase):
 
         self.assertIn(expected, message)
     
+    @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
+    @patch('guide.get', return_value=guide_data())
+    def test_empty_reminders_message(self, mock_requests, mock_datetime):
+        mocked_today = datetime(2023, 10, 30)
+        mock_datetime.now.return_value = mocked_today
+
+        reminders_message = reminders([], self.database_service)
+
+        self.assertIn('There are no reminders scheduled for today', reminders_message)
+
+    @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
+    @patch('guide.get', return_value=guide_data())
+    def test_reminders_message_contains_reminder_details(self, mock_requests, mock_datetime):
+        mocked_today = datetime(2023, 10, 30)
+        mock_datetime.now.return_value = mocked_today
+
+        data = search_free_to_air(self.database_service)
+        reminders_message = reminders(data, self.database_service)
+
+        self.assertIn('REMINDER: Doctor Who is on ABC1 at 00:00', reminders_message)
+        self.assertIn('REMINDER: Doctor Who is on ABC1 at 00:45', reminders_message)
+        self.assertIn('REMINDER: Doctor Who is on ABC2 at 01:30', reminders_message)
+        self.assertIn('REMINDER: Doctor Who is on ABC1 at 03:00', reminders_message)
+        self.assertIn('REMINDER: Doctor Who is on ABC1 at 03:45', reminders_message)
+
     def tearDown(self) -> None:
         reminders = self.database_service.get_all_reminders()
         for reminder in reminders:
