@@ -120,7 +120,7 @@ class GuideShow:
         if reminder is not None and reminder.compare_reminder_interval(self):
             reminder.airing_details = (self.channel, self.time)
             reminder.calculate_notification_time()
-        self.reminder = reminder
+            self.reminder = reminder
 
     def message_string(self):
         """
