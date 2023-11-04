@@ -60,14 +60,12 @@ class GuideShow:
             new_show = True
             episode_number = unknown_episodes
         elif episode_title == "":
-            episode_number = 1 if unknown_episodes == 0 else unknown_episodes
+            unknown_season_episodes = recorded_show.get_unknown_episodes_count()
+            episode_number = 1 if unknown_episodes + unknown_season_episodes == 0 else unknown_episodes + unknown_season_episodes
         else:
             episode_search = recorded_show.find_episode_instances(episode_title)
             if episode_search is None:
-                if recorded_show.find_season('Unknown') is not None:
-                    unknown_season_episodes = max(episode.episode_number for episode in recorded_show.find_season('Unknown').episodes)
-                else:
-                    unknown_season_episodes = 0
+                unknown_season_episodes = recorded_show.get_unknown_episodes_count()
                 episode_number = 1 if unknown_season_episodes + unknown_episodes == 0 else unknown_season_episodes + unknown_episodes
             else:
                 season_number, episode = episode_search

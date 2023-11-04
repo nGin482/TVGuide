@@ -8,35 +8,43 @@
                     {
                         "episode_number": 1,
                         "episode_title": "Oracle",
+                        "alternative_titles": [],
+                        "summary": "",
                         "channels": [
                             "ABC1",
                             "ABCHD"
                         ],
-                        "first_air_date": "01-04-2020",
-                        "latest_air_date": "23-09-2022",
-                        "repeat": true
+                        "air_dates": [
+                            "01/04/2020",
+                            "23/09/2022"
+                        ]
                     },
                     {
                         "episode_number": 2,
                         "episode_title": "Raga",
+                        "alternative_titles": [],
+                        "summary": "",
                         "channels": [
                             "ABC1",
                             "ABCHD"
                         ],
-                        "first_air_date": "08-04-2020",
-                        "latest_air_date": "30-09-2022",
-                        "repeat": true
+                        "air_dates": [
+                            "08/04/2020",
+                            "30/09/2022"
+                        ]
                     },
                     {
                         "episode_number": 3,
                         "episode_title": "Zenana",
+                        "alternative_titles": [],
+                        "summary": "",
                         "channels": [
                             "ABC1",
                             "ABCHD"
                         ],
-                        "first_air_date": "15-04-2020",
-                        "latest_air_date": "15-04-2020",
-                        "repeat": false
+                        "air_dates": [
+                            "15/04/2020"
+                        ]
                     }
                 ]
             }
@@ -51,12 +59,203 @@
                     {
                         "episode_number": 1,
                         "episode_title": "Pilot",
+                        "alternative_titles": [],
+                        "summary": "",
                         "channels": [
                             "GEM"
                         ],
-                        "first_air_date": "15-04-2020",
-                        "latest_air_date": "15-04-2020",
-                        "repeat": false
+                        "air_dates": [
+                            "15/04/2020"
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "show": "NCIS",
+        "seasons": [
+            {
+                "season_number": "Unknown",
+                "episodes": [
+                    {
+                        "episode_number": 1,
+                        "episode_title": "Episode D",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "TEN"
+                        ],
+                        "air_dates": [
+                            "15/04/2020"
+                        ]
+                    },
+                    {
+                        "episode_number": 2,
+                        "episode_title": "Episode E",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "TEN"
+                        ],
+                        "air_dates": [
+                            "15/04/2020"
+                        ]
+                    },
+                    {
+                        "episode_number": 3,
+                        "episode_title": "Episode F",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "TEN"
+                        ],
+                        "air_dates": [
+                            "15/04/2020"
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "show": "Doctor Who",
+        "seasons": [
+            {
+                "season_number": "4",
+                "episodes": [
+                    {
+                        "episode_number": 1,
+                        "episode_title": "Partners in Crime",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "air_dates": [
+                            "15/04/2020"
+                        ]
+                    },
+                    {
+                        "episode_number": 2,
+                        "episode_title": "Fires of Pompeii",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "air_dates": [
+                            "15/04/2020"
+                        ]
+                    },
+                    {
+                        "episode_number": 3,
+                        "episode_title": "Planet of the Ood",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "air_dates": [
+                            "15/04/2020"
+                        ]
+                    },
+                    {
+                        "episode_number": 4,
+                        "episode_title": "The Sontaran Strategem",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "air_dates": [
+                            "15/04/2020"
+                        ]
+                    },
+                    {
+                        "episode_number": 5,
+                        "episode_title": "The Poison Sky",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "air_dates": [
+                            "15/04/2020"
+                        ]
+                    },
+                    {
+                        "episode_number": 6,
+                        "episode_title": "The Doctor's Daughter",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "air_dates": []
+                    },
+                    {
+                        "episode_number": 8,
+                        "episode_title": "",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "air_dates": []
+                    },
+                    {
+                        "episode_number": 9,
+                        "episode_title": "",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "air_dates": [
+                            "23/09/2022"
+                        ]
+                    }
+                ]
+            },
+            {
+                "season_number": "Unknown",
+                "episodes": [
+                    {
+                        "episode_number": 1,
+                        "episode_title": "The Next Doctor",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "air_dates": [
+                            "15/04/2020"
+                        ]
+                    },
+                    {
+                        "episode_number": 2,
+                        "episode_title": "Planet of the Dead",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "air_dates": [
+                            "15/04/2020"
+                        ]
+                    },
+                    {
+                        "episode_number": 3,
+                        "episode_title": "Waters of Mars",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "ABC2"
+                        ],
+                        "air_dates": [
+                            "15/04/2020"
+                        ]
                     }
                 ]
             }

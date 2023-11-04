@@ -8,6 +8,14 @@
         "episode_title": "Partners In Crime"
     },
     {
+        "title": "Doctor Who: In London",
+        "channel": "ABC2",
+        "time": "18:29",
+        "season_number": "4",
+        "episode_number": 1,
+        "episode_title": "Partners In Crime"
+    },
+    {
         "title": "Endeavour",
         "channel": "ABC1",
         "time": "18:30",
@@ -16,10 +24,58 @@
         "episode_title": "Icarus"
     },
     {
+        "title": "Transformers",
+        "channel": "9",
+        "time": "19:00",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "Transformers"
+    },
+    {
+        "title": "Transformers: Revenge of the Fallen",
+        "channel": "9",
+        "time": "19:00",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "Revenge of the Fallen"
+    },
+    {
+        "title": "Transformers: Dark of the Moon",
+        "channel": "9",
+        "time": "19:00",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "Dark of the Moon"
+    },
+    {
+        "title": "Transformers: Age of Extinction",
+        "channel": "9",
+        "time": "19:00",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "Age of Extinction"
+    },
+    {
+        "title": "Transformers: The Last Knight",
+        "channel": "9",
+        "time": "19:00",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "The Last Knight"
+    },
+    {
+        "title": "Bumblebee",
+        "channel": "9",
+        "time": "19:00",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "Bumblebee"
+    },
+    {
         "title": "Transformers: Prime",
         "channel": "GO",
         "time": "07:01",
-        "series_num": "1",
+        "season_number": "1",
         "episode_num": "12",
         "episode_title": "Darkness Rising, Part 1"
     },
@@ -28,5 +84,125 @@
         "channel": "GO",
         "time": "07:01",
         "episode_title": "Darkness Rising, Part 1"
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "18:29",
+        "season_number": "6",
+        "episode_number": 7,
+        "episode_title": "A Good Man Goes to War"
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "18:29",
+        "season_number": "6",
+        "episode_number": 7,
+        "episode_title": ""
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "18:29",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "The Next Doctor"
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "18:29",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "End of Time: Part 1"
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "22:29",
+        "season_number": "4",
+        "episode_number": 4,
+        "episode_title": ""
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "22:29",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "The Poison Sky"
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "22:29",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "The Doctor's Daughter"
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "22:29",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "The Unicorn and the Wasp"
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "22:29",
+        "season_number": "4",
+        "episode_number": 8,
+        "episode_title": ""
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "22:29",
+        "season_number": "4",
+        "episode_number": 9,
+        "episode_title": ""
+    },
+    {
+        "title": "Doctor Who",
+        "channel": "ABC2",
+        "time": "22:29",
+        "season_number": "5",
+        "episode_number": 1,
+        "episode_title": "The Eleventh Hour"
+    },
+    {
+        "title": "Lewis: The Quality of Mercy",
+        "channel": "7TWo",
+        "time": "20:45",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": ""
+    },
+    {
+        "title": "Lewis - The Quality of Mercy",
+        "channel": "7TWo",
+        "time": "20:45",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": ""
+    },
+    {
+        "title": "Lewis",
+        "channel": "7TWo",
+        "time": "20:45",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "Lewis - The Quality of Mercy"
+    },
+    {
+        "title": "The Capture",
+        "channel": "7TWo",
+        "time": "20:45",
+        "season_number": "1",
+        "episode_number": 1,
+        "episode_title": ""
     }
 ]
