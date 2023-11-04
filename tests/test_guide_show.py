@@ -2,14 +2,18 @@ from datetime import datetime
 import unittest
 import json
 
+from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
 from database.models.RecordedShow import RecordedShow
+from database.models.Reminders import Reminder
+from database.mongo import mongo_client
 from exceptions.DatabaseError import EpisodeNotFoundError, SeasonNotFoundError, ShowNotFoundError
 
 
 class TestGuideShow(unittest.TestCase):
 
     def setUp(self):
+        self.database_service = DatabaseService(mongo_client().get_database('test'))
         with open('tests/test_data/test_guide_list.json') as fd:
             self.data = json.load(fd)
         with open('tests/test_data/recorded_shows.json') as fd:
@@ -17,6 +21,11 @@ class TestGuideShow(unittest.TestCase):
             self.recorded_shows: list['RecordedShow'] = []
             for recorded_show in temp_data:
                 self.recorded_shows.append(RecordedShow.from_database(recorded_show))
+        with open('tests/test_data/reminders_data.json') as fd:
+            reminders_data = json.load(fd)
+        for reminder in reminders_data:
+            new_reminder = Reminder.from_database(reminder)
+            self.database_service.insert_new_reminder(new_reminder)
 
     def test_season_known_sets_episode_title(self):
         dw_guide_episode = next((show for show in self.data if show['title'] == 'Doctor Who' and show['season_number'] == "4" and show['episode_number'] == 4), None)
@@ -211,6 +220,49 @@ class TestGuideShow(unittest.TestCase):
         self.assertIsNone(the_capture_episode.recorded_show)
         self.assertRaises(ShowNotFoundError, the_capture_episode.find_recorded_episode)
 
+    def test_create_reminder_finds_no_reminder(self):
+        episode_data = next(show for show in self.data if show['title'] == "The Capture")
+        recorded_show = next((show for show in self.recorded_shows if show.title == 'The Capture'), None)
+        the_capture_episode = GuideShow.known_season(
+            episode_data['title'],
+            (episode_data['channel'], datetime.strptime(episode_data['time'], '%H:%M')),
+            (episode_data['season_number'], episode_data['episode_number'], episode_data['episode_title']),
+            recorded_show
+        )
+        the_capture_episode.create_reminder(self.database_service)
+        
+        self.assertIsNone(the_capture_episode.reminder)
+
+    def test_create_reminder_fails_interval_comparison(self):
+        episode_data = next(show for show in self.data if show['title'] == "Lewis")
+        recorded_show = next((show for show in self.recorded_shows if show.title == 'Lewis'), None)
+        lewis_episode = GuideShow.known_season(
+            episode_data['title'],
+            (episode_data['channel'], datetime.strptime(episode_data['time'], '%H:%M')),
+            (episode_data['season_number'], episode_data['episode_number'], episode_data['episode_title']),
+            recorded_show
+        )
+        lewis_episode.create_reminder(self.database_service)
+        
+        self.assertIsNotNone(self.database_service.get_one_reminder(lewis_episode.title))
+        self.assertIsNone(lewis_episode.reminder)
+
+    def test_create_reminder_success(self):
+        episode_data = next(show for show in self.data if show['episode_title'] == "A Good Man Goes to War")
+        recorded_show = next((show for show in self.recorded_shows if show.title == 'Doctor Who'), None)
+        episode = GuideShow.known_season(
+            episode_data['title'],
+            (episode_data['channel'], datetime.strptime(episode_data['time'], '%H:%M')),
+            (episode_data['season_number'], episode_data['episode_number'], episode_data['episode_title']),
+            recorded_show
+        )
+        episode.create_reminder(self.database_service)
+
+        self.assertIsNotNone(self.database_service.get_one_reminder('Doctor Who'))
+        self.assertIsNotNone(episode.reminder)
+        self.assertEqual(('ABC2', datetime(1900, 1, 1, 18, 29)), episode.reminder.airing_details)
+        self.assertEqual(datetime(1900, 1, 1, 18, 26), episode.reminder.notify_time)
+
     def test_message_string_no_episode_title_not_repeat(self):
         episode_data = next(
             show for show in self.data if show['title'] == "Doctor Who" and show['season_number'] == "4" and show['episode_number'] == 8
@@ -261,6 +313,11 @@ class TestGuideShow(unittest.TestCase):
         )
         self.assertEqual("22:29: Doctor Who is on ABC2 (Season 4, Episode 5: The Poison Sky) (Repeat)", dw_episode.message_string())
 
+    def tearDown(self):
+        reminders = self.database_service.get_all_reminders()
+        for reminder in reminders:
+            self.database_service.delete_reminder(reminder.show)
+    
 
 if __name__ == '__main__':
     unittest.main()

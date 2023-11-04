@@ -10,5 +10,11 @@
         "reminder_alert": "Before",
         "warning_time": 5,
         "occassions": "All"
+    },
+    {
+        "show": "Lewis",
+        "reminder_alert": "Before",
+        "warning_time": 5,
+        "occassions": "Once"
     }
 ]
