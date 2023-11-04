@@ -120,14 +120,16 @@ def reminders(guide_list: list['GuideShow'], database_service: DatabaseService, 
     print('Reminders:')
     for guide_show in guide_list:
         guide_show.create_reminder(database_service)
-    reminders_count = len([guide_show.reminder for guide_show in guide_list if guide_show.reminder is not None])
+    reminders = [guide_show.reminder for guide_show in guide_list if guide_show.reminder is not None]
 
-    if reminders_count > 0 and scheduler is not None:
-        from apscheduler.triggers.date import DateTrigger
-        from services.hermes.utilities import send_message
-        for guide_show in guide_list:
-            if guide_show.reminder is not None:
-                scheduler.add_job(send_message, DateTrigger(run_date=guide_show.reminder.notify_time, timezone='Australia/Sydney'), [guide_show.reminder.notification()])
+    if len(reminders) > 0:
+        reminders_message = '\n'.join([reminder.general_message() for reminder in reminders])
+        if scheduler is not None:
+            from apscheduler.triggers.date import DateTrigger
+            from services.hermes.utilities import send_message
+            for reminder in reminders:
+                scheduler.add_job(send_message, DateTrigger(run_date=reminder.notify_time, timezone='Australia/Sydney'), [reminder.notification()])
+        return reminders_message
     else:
         print('There are no reminders scheduled for today')
         print('===================================================================================')

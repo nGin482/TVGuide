@@ -13,6 +13,7 @@ class Reminder:
         self.warning_time = warning_time
         self.occassions = occassions
         self.notify_time: datetime = None
+        self.airing_details: tuple[str, datetime] = ()
 
     @classmethod
     def from_values(cls, title: str, reminder_alert: str, warning_time: int, occassions: str):
@@ -47,13 +48,13 @@ class Reminder:
         else:
             return False
 
-    def calculate_notification_time(self, guide_show: GuideShow):
+    def calculate_notification_time(self):
         if self.reminder_alert == 'On-Start':
-            self.notify_time = guide_show.time
+            self.notify_time = self.airing_details[1]
         elif self.reminder_alert == 'After':            
-            self.notify_time = guide_show.time + timedelta(minutes=self.warning_time)
+            self.notify_time = self.airing_details[1] + timedelta(minutes=self.warning_time)
         else:
-            self.notify_time = guide_show.time - timedelta(minutes=self.warning_time)
+            self.notify_time = self.airing_details[1] - timedelta(minutes=self.warning_time)
 
     def to_dict(self):
         return {
@@ -64,7 +65,7 @@ class Reminder:
         }
 
     def notification(self):
-        return f'REMINDER: {self.show} is on {self.guide_show.channel} at {self.guide_show.time.strftime("%H:%M")}'
+        return f'REMINDER: {self.show} is on {self.airing_details[0]} at {self.airing_details[1].strftime("%H:%M")}'
     
     def general_message(self):
         return f'{self.notification()}\nYou will be reminded at {self.notify_time.strftime("%H:%M")}'

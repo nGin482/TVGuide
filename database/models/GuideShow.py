@@ -1,3 +1,4 @@
+from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -7,7 +8,7 @@ from database.models.RecordedShow import RecordedShow
 from exceptions.DatabaseError import EpisodeNotFoundError, SeasonNotFoundError, ShowNotFoundError
 
 if TYPE_CHECKING:
-    from DatabaseService import DatabaseService
+    from database.DatabaseService import DatabaseService
     from database.models.Reminders import Reminder
 
 class GuideShow:
@@ -117,6 +118,7 @@ class GuideShow:
         """
         reminder = database_service.get_one_reminder(self.title)
         if reminder is not None and reminder.compare_reminder_interval(self):
+            reminder.airing_details = (self.channel, self.time)
             reminder.calculate_notification_time()
         self.reminder = reminder
 
