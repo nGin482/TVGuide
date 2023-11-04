@@ -230,10 +230,10 @@ class DatabaseService:
 
     def get_one_reminder(self, show_title: str):
         """Get the reminder set for the show specified by `show_title`.\n
-        Raises `ReminderNotFoundError` if a remidner for the show does not exist"""
+        Returns `None` if a reminder for the show does not exist"""
         reminder = self.reminders_collection.find_one({'show': show_title})
         if reminder is None:
-            raise ReminderNotFoundError(f'A reminder has not been set for {show_title}')
+            return None
         return Reminder.from_database(reminder)
 
     def get_reminders_for_shows(self, guide_list: list['GuideShow']):

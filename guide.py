@@ -113,19 +113,16 @@ def compose_message(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow'], 
 def reminders(guide_list: list['GuideShow'], database_service: DatabaseService, scheduler: AsyncIOScheduler = None):
     print('===================================================================================')
     print('Reminders:')
-    reminders = database_service.get_reminders_for_shows(guide_list)
-    if len(reminders) > 0:
-        reminders_message = '\n'.join([reminder.general_message() for reminder in reminders if reminder.compare_reminder_interval() and 'HD' not in reminder.guide_show.channel])
-        if scheduler is not None:
-            from apscheduler.triggers.date import DateTrigger
-            from services.hermes.utilities import send_message
-        
-            for reminder in reminders:
-                if reminder.compare_reminder_interval() and 'HD' not in reminder.guide_show.channel:
-                    scheduler.add_job(send_message, DateTrigger(run_date=reminder.notify_time, timezone='Australia/Sydney'), [reminder.notification()])
-        print(reminders_message)
-        print('===================================================================================')
-        return reminders_message
+    for guide_show in guide_list:
+        guide_show.create_reminder(database_service)
+    reminders_count = len([guide_show.reminder for guide_show in guide_list if guide_show.reminder is not None])
+
+    if reminders_count > 0 and scheduler is not None:
+        from apscheduler.triggers.date import DateTrigger
+        from services.hermes.utilities import send_message
+        for guide_show in guide_list:
+            if guide_show.reminder is not None:
+                scheduler.add_job(send_message, DateTrigger(run_date=guide_show.reminder.notify_time, timezone='Australia/Sydney'), [guide_show.reminder.notification()])
     else:
         print('There are no reminders scheduled for today')
         print('===================================================================================')
