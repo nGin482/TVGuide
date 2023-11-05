@@ -110,5 +110,29 @@
         "season_number": "Unknown",
         "episode_number": 0,
         "episode_title": "Episode C"
+    },
+    {
+        "title": "Endeavour",
+        "channel": "TEN",
+        "time": "22:30",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "Lazaretto"
+    },
+    {
+        "title": "Endeavour",
+        "channel": "TEN",
+        "time": "22:30",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "Harvest"
+    },
+    {
+        "title": "Endeavour",
+        "channel": "TEN",
+        "time": "22:30",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": ""
     }
 ]

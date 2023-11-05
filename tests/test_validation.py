@@ -78,10 +78,17 @@ class TestValidation(unittest.TestCase):
         self.assertEqual(1, episode_numbers[0])
         self.assertEqual(2, episode_numbers[1])
         self.assertEqual(3, episode_numbers[2])
-
         self.assertEqual(1, shows_on[0].episode_number)
         self.assertEqual(2, shows_on[1].episode_number)
         self.assertEqual(3, shows_on[2].episode_number)
+        
+        self.assertEqual(1, episode_numbers[3])
+        self.assertEqual(2, episode_numbers[4])
+        self.assertEqual(3, episode_numbers[5])
+        self.assertEqual(1, shows_on[3].episode_number)
+        self.assertEqual(2, shows_on[4].episode_number)
+        self.assertEqual(3, shows_on[5].episode_number)
+
 
     def test_get_unknown_episode_number_recorded_show(self):
         ncis_data = next((show for show in self.recorded_shows if show.title == 'NCIS'), None)
@@ -105,7 +112,6 @@ class TestValidation(unittest.TestCase):
         self.assertEqual(1, episode_numbers[0])
         self.assertEqual(2, episode_numbers[1])
         self.assertEqual(3, episode_numbers[2])
-
         self.assertEqual(4, shows_on[0].episode_number)
         self.assertEqual(5, shows_on[1].episode_number)
         self.assertEqual(6, shows_on[2].episode_number)
