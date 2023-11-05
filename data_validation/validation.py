@@ -139,26 +139,17 @@ class Validation:
         return episodes
 
     @staticmethod
-    def unknown_episodes_check(show_list: list[dict]):
-        shows_with_unknown_episodes: dict[str, list[str]] = {}
-        show_titles_with_unknown_episodes = [show for show in show_list if show['season_number'] == 'Unknown']
-        for show in show_titles_with_unknown_episodes:
-            if show['title'] in shows_with_unknown_episodes.keys():
-                shows_with_unknown_episodes[show['title']].append(show['episode_title'])
-            else:
-                shows_with_unknown_episodes[show['title']] = [show['episode_title']]
-        return shows_with_unknown_episodes
-    
-    @staticmethod
     def get_unknown_episode_number(show_list: list[dict], show_title: str, episode_title: str):
         
-        unknown_episodes_map = Validation.unknown_episodes_check(show_list)
-        if show_title in unknown_episodes_map.keys() and episode_title != '':
-            show = list(unknown_episodes_map[show_title])
-            return show.index(episode_title)+1
-        elif episode_title == '':
-            show = list(unknown_episodes_map[show_title])
-            return len(show)   
+        show_titles_with_unknown_episodes = [
+            show for show in show_list if show['title'] == show_title and show['season_number'] == 'Unknown'
+        ]
+        if episode_title != '':
+            return next(
+                (index +1 for (index, show) in enumerate(show_titles_with_unknown_episodes) if show['episode_title'] == episode_title),
+                len(show_titles_with_unknown_episodes)
+            )
+        return len(show_titles_with_unknown_episodes)
         
     @staticmethod
     def get_current_date():
