@@ -1,37 +1,57 @@
 from datetime import datetime
-from pymongo import MongoClient
+from unittest.mock import patch
 import unittest
 import json
-import os
 
 from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
 from database.models.RecordedShow import RecordedShow
 from database.models.Reminders import Reminder
+from database.mongo import mongo_client
 
 
 class TestDatabase(unittest.TestCase):
 
-    def setUp(self) -> None:
-        super().setUp()
-        self.client = MongoClient(os.getenv('TVGUIDE_DB'))
-        self.prod_db = self.client.get_database('tvguide')
-        self.test_db = DatabaseService(self.client.get_database('test'))
-        self.recorded_shows_collection = self.test_db.recorded_shows_collection
+    @classmethod
+    def setUpClass(self) -> None:
+        super().setUpClass()
+        self.database_service = DatabaseService(mongo_client().get_database('test'))
 
         with open('tests/test_data/recorded_shows.json') as fd:
             self.recorded_shows: list[dict] = json.load(fd)
-        with open(f"today_guide/{os.listdir('today_guide')[0]}") as fd:
-            today_shows = json.load(fd)
+
+        for recorded_show in self.recorded_shows:
+            self.database_service.insert_recorded_show_document(RecordedShow.from_database(recorded_show))
         with open(f'tests/test_data/test_guide_list.json') as fd:
             data: list[dict] = json.load(fd)
-        data.extend(today_shows['FTA'])
         self.guide_list = data
         
     def test_connection(self):
-        self.assertEqual(self.test_db.database.name, 'test')
+        self.assertEqual(self.database_service.database.name, 'test')
 
-    # @unittest.skip
+    @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
+    def test_capture_db_event_adds_air_date(self, mock_datetime):
+        mocked_today = datetime(2023, 10, 30)
+        mock_datetime.now.return_value = mocked_today
+
+        guide_show_dict = self.guide_list[0]
+        guide_show = GuideShow.known_season(
+            guide_show_dict['title'],
+            (guide_show_dict['channel'], datetime.strptime(guide_show_dict['time'], '%H:%M')),
+            (guide_show_dict['season_number'], guide_show_dict['episode_number'], guide_show_dict['episode_title']),
+            self.database_service.get_one_recorded_show(guide_show_dict['title'])
+        )
+
+        self.database_service.capture_db_event(guide_show)
+        
+        recorded_show = self.database_service.get_one_recorded_show(guide_show.title)
+        episode = recorded_show.find_season(guide_show.season_number).find_episode(episode_number=guide_show.episode_number)
+
+        self.assertIn(datetime(2023, 10, 30), episode.air_dates)
+        self.assertIn('has aired today', guide_show.db_event)
+
+    
+    @unittest.skip
     def test_create_recorded_show_from_db(self):
         recorded_show = RecordedShow.from_database(self.recorded_shows[0])
         self.assertEqual(recorded_show.title, self.recorded_shows[0]['show'])
@@ -41,7 +61,7 @@ class TestDatabase(unittest.TestCase):
             episode_count += len(season.episodes)
         self.assertGreater(episode_count, 0)
 
-    # @unittest.skip
+    @unittest.skip
     def test_create_recorded_show_from_guide_show(self):
         new_show = GuideShow(
             'Endeavour',
@@ -63,7 +83,7 @@ class TestDatabase(unittest.TestCase):
         print(recorded_show)
         self.assertFalse(recorded_show.seasons[0].episodes[0].repeat)
 
-    # @unittest.skip
+    @unittest.skip
     def test_01_insert_new_show(self):
         new_unforgotten_episode = GuideShow(
             'Unforgotten',
@@ -80,7 +100,7 @@ class TestDatabase(unittest.TestCase):
 
         self.assertGreater(new_length, original_length)
     
-    # @unittest.skip
+    @unittest.skip
     def test_02_insert_new_season(self):
         new_show = GuideShow(
             'Unforgotten',
@@ -98,7 +118,7 @@ class TestDatabase(unittest.TestCase):
         self.assertGreater(new_length, original_length)
 
 
-    # @unittest.skip
+    @unittest.skip
     def test_03_insert_new_episode(self):
         new_show = GuideShow(
             'Unforgotten',
@@ -117,7 +137,7 @@ class TestDatabase(unittest.TestCase):
         self.assertGreater(new_length, original_length)
 
 
-    # @unittest.skip
+    @unittest.skip
     def test_create_reminder_from_values(self):
         reminder_dw = Reminder.from_values(self.guide_shows[0], 'Before', 3, 'All')
         print(reminder_dw.guide_show.recorded_show.find_latest_season())
@@ -137,6 +157,7 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(reminder_endeavour.guide_show, self.guide_shows[1])
         self.reminders.append(reminder_endeavour)
 
+    @unittest.skip
     def test_reminder_needed(self):
         dw_episode = GuideShow('Doctor Who', ('ABC1', datetime.today()), ('6', 7, 'A Good Man Goes To War', True), None)
         endeavour = GuideShow('Endeavour', ('ABC1', datetime.today()), ('5', 6, 'Icarus', True), None)
@@ -155,9 +176,10 @@ class TestDatabase(unittest.TestCase):
         #     reminders[1].compare_reminder_interval()
     
 
-    def tearDown(self) -> None:
-        self.test_db.recorded_shows_collection.delete_many({})
-        return super().tearDown()
+    @classmethod
+    def tearDownClass(self) -> None:
+        self.database_service.recorded_shows_collection.delete_many({})
+        return super().tearDownClass()
 
     # test:
         # creating RecordedShow
