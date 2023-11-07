@@ -77,18 +77,18 @@ class DatabaseService:
         Provide the `show_title` and the `season_number` that this episode belongs to.\n
         Raises `DatabaseError` if there is a problem updating the episode"""
         try:
-            self.recorded_shows_collection.find_one_and_update(
-            {'show': show_title},
-            {'$set': {'seasons.$[season].episodes.$[episode]': episode.to_dict()}},
-            array_filters = [
-                {'season.season_number': season_number},
-                {'episode.episode_number': episode.episode_number}
-            ],
-            return_document = ReturnDocument.AFTER
-        )
+            ep = self.recorded_shows_collection.find_one_and_update(
+                {'show': show_title},
+                {'$set': {'seasons.$[season].episodes.$[episode]': episode.to_dict()}},
+                array_filters = [
+                    {'season.season_number': season_number},
+                    {'episode.episode_number': episode.episode_number}
+                ],
+                # return_document = ReturnDocument.AFTER
+            )
+            return ep
         except OperationFailure as err:
             raise DatabaseError(f"An error occurred when trying to update this episode of {show_title}. Error: {str(err)}")
-        return True
 
     def remove_episode_from_season(self, show_title: str, season_number: str, episode_number: int):
         """Remove an episode from the given show's specified season.\n
@@ -151,7 +151,7 @@ class DatabaseService:
             result = f"{guide_show.title} has aired today"
             if episode.channel_check(guide_show.channel) is False:
                 result = episode.add_channel(guide_show.channel)
-            self.update_episode_in_database(guide_show.title, int(guide_show.season_number), episode)
+            ep = self.update_episode_in_database(guide_show.title, guide_show.season_number, episode)
             guide_show.db_event = result
             event = {'show': guide_show.to_dict(), 'episode': episode.to_dict()}
         except EpisodeNotFoundError as err:
