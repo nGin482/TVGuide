@@ -49,6 +49,109 @@ class TestDatabase(unittest.TestCase):
 
         self.assertIn(datetime(2023, 10, 30), episode.air_dates)
         self.assertIn('has aired today', guide_show.db_event)
+        self.assertTrue(episode.is_repeat())
+
+    @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
+    def test_capture_db_event_adds_channel(self, mock_datetime):
+        mocked_today = datetime(2023, 10, 30)
+        mock_datetime.now.return_value = mocked_today        
+
+        guide_show = GuideShow.known_season(
+            'Doctor Who',
+            ('ABC3', datetime(2023, 11, 8, 22, 45)),
+            ('4', 2, 'Fires of Pompeii'),
+            self.database_service.get_one_recorded_show('Doctor Who')
+        )
+
+        self.database_service.capture_db_event(guide_show)
+
+        recorded_show = self.database_service.get_one_recorded_show(guide_show.title)
+        episode = recorded_show.find_season(guide_show.season_number).find_episode(episode_number=guide_show.episode_number)
+
+        self.assertIn(datetime(2023, 10, 30), episode.air_dates)
+        self.assertIn('added to the channel list', guide_show.db_event)
+        self.assertIn('ABC3', episode.channels)
+        self.assertTrue(episode.is_repeat())
+
+    @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
+    def test_capture_db_event_adds_episode(self, mock_datetime):
+        mocked_today = datetime(2023, 10, 30)
+        mock_datetime.now.return_value = mocked_today        
+
+        guide_show = GuideShow.known_season(
+            'Person of Interest',
+            ('GEM', datetime(2023, 11, 8, 22, 45)),
+            ('1', 2, 'Ghosts'),
+            self.database_service.get_one_recorded_show('Person of Interest')
+        )
+        
+        self.database_service.capture_db_event(guide_show)
+
+        recorded_show = self.database_service.get_one_recorded_show(guide_show.title)
+        episode = recorded_show.find_season(guide_show.season_number).find_episode(episode_number=guide_show.episode_number)
+
+        self.assertIsNotNone(episode)
+        self.assertIn('GEM', episode.channels)
+        self.assertIn(datetime(2023, 10, 30), episode.air_dates)
+        self.assertFalse(episode.is_repeat())
+
+    @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
+    def test_capture_db_event_adds_season(self, mock_datetime):
+        mocked_today = datetime(2023, 10, 30)
+        mock_datetime.now.return_value = mocked_today        
+
+        guide_show = GuideShow.known_season(
+            'Endeavour',
+            ('ABC1', datetime(2023, 11, 8, 20, 30)),
+            ('5', 6, 'Icarus'),
+            self.database_service.get_one_recorded_show('Endeavour')
+        )
+        
+        before_season = self.database_service.get_one_recorded_show(guide_show.title).find_season(guide_show.season_number)
+        
+        self.database_service.capture_db_event(guide_show)
+
+        recorded_show = self.database_service.get_one_recorded_show(guide_show.title)
+        after_season = self.database_service.get_one_recorded_show(guide_show.title).find_season(guide_show.season_number)
+        episode = recorded_show.find_season(guide_show.season_number).find_episode(episode_number=guide_show.episode_number)
+
+        self.assertIsNone(before_season)
+        self.assertIsNotNone(after_season)
+        self.assertIsNotNone(episode)
+        self.assertIn('ABC1', episode.channels)
+        self.assertIn('ABCHD', episode.channels)
+        self.assertIn(datetime(2023, 10, 30), episode.air_dates)
+        self.assertFalse(episode.is_repeat())
+
+    @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
+    def test_capture_db_event_adds_show(self, mock_datetime):
+        mocked_today = datetime(2023, 10, 30)
+        mock_datetime.now.return_value = mocked_today        
+
+        guide_show = GuideShow.known_season(
+            'Maigret',
+            ('ABC1', datetime(2023, 11, 8, 20, 30)),
+            ('1', 1, 'Maigret Sets A Trap'),
+            self.database_service.get_one_recorded_show('Maigret')
+        )
+        
+        before_show = self.database_service.get_one_recorded_show(guide_show.title)
+        
+        self.database_service.capture_db_event(guide_show)
+
+        recorded_show = self.database_service.get_one_recorded_show(guide_show.title)
+        after_season = self.database_service.get_one_recorded_show(guide_show.title).find_season(guide_show.season_number)
+        episode = recorded_show.find_season(guide_show.season_number).find_episode(episode_number=guide_show.episode_number)
+
+        self.assertIsNone(before_show)
+        self.assertIsNotNone(recorded_show)
+        self.assertIsNotNone(after_season)
+        self.assertIsNotNone(episode)
+        self.assertEqual(after_season.season_number, guide_show.season_number)
+        self.assertEqual(episode.episode_number, guide_show.episode_number)
+        self.assertIn('ABC1', episode.channels)
+        self.assertIn('ABCHD', episode.channels)
+        self.assertIn(datetime(2023, 10, 30), episode.air_dates)
 
     
     @unittest.skip
