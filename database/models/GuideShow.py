@@ -42,9 +42,9 @@ class GuideShow:
                     episode = season.find_episode(episode_number=episode_number)
                 else:
                     episode = season.find_episode(episode_title=episode_title)
-                if episode_title == "":
+                if episode and episode_title == "":
                     episode_title = episode.episode_title
-                if episode.is_repeat() or len(episode.air_dates) == 1:
+                if episode and (episode.is_repeat() or len(episode.air_dates) == 1):
                     repeat = True
         else:
             new_show = True
