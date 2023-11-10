@@ -1,8 +1,10 @@
 from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
+from dotenv import load_dotenv
 from textwrap import dedent
 import unittest
 import json
+import os
 
 from database.DatabaseService import DatabaseService
 from database.models.Reminders import Reminder
@@ -15,6 +17,7 @@ requests = Mock()
 class TestGuide(unittest.TestCase):
 
     def setUp(self):
+        load_dotenv('.env')
         self.database_service = DatabaseService(mongo_client().get_database('test'))
 
         with open('tests/test_data/reminders_data.json') as fd:

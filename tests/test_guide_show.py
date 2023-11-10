@@ -1,4 +1,5 @@
 from datetime import datetime
+from dotenv import load_dotenv
 import unittest
 import json
 
@@ -13,6 +14,7 @@ from exceptions.DatabaseError import EpisodeNotFoundError, SeasonNotFoundError, 
 class TestGuideShow(unittest.TestCase):
 
     def setUp(self):
+        load_dotenv('.env')
         self.database_service = DatabaseService(mongo_client().get_database('test'))
         with open('tests/test_data/test_guide_list.json') as fd:
             self.data = json.load(fd)

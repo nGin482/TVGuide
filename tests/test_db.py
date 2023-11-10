@@ -1,5 +1,6 @@
 from datetime import datetime
 from unittest.mock import patch
+from dotenv import load_dotenv
 import unittest
 import json
 
@@ -15,6 +16,7 @@ class TestDatabase(unittest.TestCase):
     @classmethod
     def setUpClass(self) -> None:
         super().setUpClass()
+        load_dotenv('.env')
         self.database_service = DatabaseService(mongo_client().get_database('test'))
 
         with open('tests/test_data/recorded_shows.json') as fd:
