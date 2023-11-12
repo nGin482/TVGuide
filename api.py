@@ -6,7 +6,10 @@ from database.recorded_shows_collection import get_all_recorded_shows, get_one_r
 from database.reminder_collection import get_all_reminders, get_one_reminder, create_reminder, edit_reminder, remove_reminder_by_title
 from database.users_collection import create_user, check_user_credentials
 from aux_methods.helper_methods import get_today_date, valid_reminder_fields
+from database.models.RecordedShow import RecordedShow
+from exceptions.DatabaseError import SearchItemAlreadyExistsError, DatabaseError
 from config import database_service
+from services.tvmaze.tvmaze_api import get_show_data
 import json
 import os
 
@@ -18,19 +21,25 @@ app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
 # https://www.google.com/search?q=flask-login+react&source=hp&ei=00HmYffoDZKK0AS5sZOYBQ&iflsig=ALs-wAMAAAAAYeZP4_oAIADJhFqmzSf0ow9fxXElhTOc&oq=flask-login+re&gs_lcp=Cgdnd3Mtd2l6EAMYADIFCAAQgAQyBQgAEIAEMgUIABCABDIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeOhEILhCABBCxAxCDARDHARDRAzoOCC4QgAQQsQMQxwEQowI6CAgAELEDEIMBOgsIABCABBCxAxCDAToICAAQgAQQsQM6CAguELEDEIMBOgsILhCABBDHARCjAjoICC4QgAQQsQM6CwguEIAEEMcBEK8BOg4IABCABBCxAxCDARDJA1AAWNAXYN0jaABwAHgBgAGPBIgB6xuSAQswLjYuMy40LjAuMZgBAKABAQ&sclient=gws-wiz
 # https://dev.to/nagatodev/how-to-add-login-authentication-to-a-flask-and-react-application-23i7
 
-@app.route('/show-list', methods=['GET', 'PUT'])
+@app.route('/show-list', methods=['GET', 'POST'])
 def show_list():
     if request.method == 'GET':
         return database_service.get_search_list()
-    elif request.method == 'PUT':
-        insert_status = insert_into_showlist_collection(request.json['show'])
-        if insert_status['status']:
-            return {'show': request.json['show'], 'message': insert_status['message']}
-        else:
-            if 'searched' in insert_status['message']:
-                return {'show': request.json['show'], 'message': insert_status['message']}, 409
-            else:
-                return {'show': request.json['show'], 'message': insert_status['message']}, 500
+    elif request.method == 'POST':
+        if 'show' not in request.json.keys() or 'tvmaze_id' not in request.json.keys():
+            return {'message': "Please provide the show's name and the id from TVMaze"}, 400
+        show: str = request.json['show']
+        tvmaze_id: str = request.json['tvmaze_id']
+        try:
+            database_service.insert_into_showlist_collection(show)
+            new_show_data = get_show_data(show, tvmaze_id)
+            recorded_show = RecordedShow.from_database(new_show_data)
+            database_service.insert_recorded_show_document(recorded_show)
+            return {'message': f'{show} was added to the Search List'}
+        except SearchItemAlreadyExistsError as err:
+            return {'message': str(err)}, 409
+        except DatabaseError as err:
+            return {'message': str(err)}, 500
     else:
         abort(405)
 
