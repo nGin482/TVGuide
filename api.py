@@ -1,32 +1,28 @@
 from flask import Flask, request, abort, jsonify
-from flask_restful import Api, Resource, reqparse
-from flask_cors import CORS
-from flask_jwt_extended import create_access_token, JWTManager
-from database.show_list_collection import get_showlist, find_show, insert_into_showlist_collection, insert_into_showlist_collection, remove_show_from_list
+# from flask_cors import CORS
+# from flask_jwt_extended import create_access_token, JWTManager
+from database.show_list_collection import get_showlist, find_show, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, insert_new_episode, delete_recorded_show
 from database.reminder_collection import get_all_reminders, get_one_reminder, create_reminder, edit_reminder, remove_reminder_by_title
 from database.users_collection import create_user, check_user_credentials
 from aux_methods.helper_methods import get_today_date, valid_reminder_fields
+from config import database_service
+# from data_validation.validation import Validation
 import json
 import os
 
 app = Flask(__name__)
-CORS(app)
+# CORS(app)
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
-JWTManager(app)
-api = Api(app)
+# JWTManager(app)
 
 # https://www.google.com/search?q=flask-login+react&source=hp&ei=00HmYffoDZKK0AS5sZOYBQ&iflsig=ALs-wAMAAAAAYeZP4_oAIADJhFqmzSf0ow9fxXElhTOc&oq=flask-login+re&gs_lcp=Cgdnd3Mtd2l6EAMYADIFCAAQgAQyBQgAEIAEMgUIABCABDIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeOhEILhCABBCxAxCDARDHARDRAzoOCC4QgAQQsQMQxwEQowI6CAgAELEDEIMBOgsIABCABBCxAxCDAToICAAQgAQQsQM6CAguELEDEIMBOgsILhCABBDHARCjAjoICC4QgAQQsQM6CwguEIAEEMcBEK8BOg4IABCABBCxAxCDARDJA1AAWNAXYN0jaABwAHgBgAGPBIgB6xuSAQswLjYuMy40LjAuMZgBAKABAQ&sclient=gws-wiz
 # https://dev.to/nagatodev/how-to-add-login-authentication-to-a-flask-and-react-application-23i7
 
-# show_list_args = reqparse.RequestParser()
-# show_list_args.add_argument('show', type=str, help='A show needs to be given to add to the list.', required=True)
-
 @app.route('/show-list', methods=['GET', 'PUT'])
 def show_list():
     if request.method == 'GET':
-        show_list = get_showlist()
-        return show_list
+        return database_service.get_search_list()
     elif request.method == 'PUT':
         insert_status = insert_into_showlist_collection(request.json['show'])
         if insert_status['status']:
@@ -39,51 +35,23 @@ def show_list():
     else:
         abort(405)
 
-@app.route('/show-list/<string:show>', methods=['GET', 'DELETE'])
-def single_show_from_list(show):
-    if request.method == 'GET':
-        print(show)
-        show_found = find_show(show)
-        if show_found['status']:
-            return find_show(show)['show']
-        else:
-            return {'show': show, 'message': show_found['message']}, 404
-    if request.method == 'DELETE':
-        remove_status = remove_show_from_list(show)
-        if remove_status['status']:
-            return {'show': show, 'message': remove_status['message']}
-        else:
-            return {'show': show, 'message': remove_status['message']}, 500
-
 @app.route('/guide')
 def guide():
-    try:
-        filename = 'today_guide/' + get_today_date('string') + '.json'
-        with open(filename) as fd:
-            guide = json.load(fd)
-        return guide
-    except FileNotFoundError:
-        return {'status': False, 'message': 'There is no guide data to retrieve for ' + get_today_date('string') + '.'}, 404
+    guide = database_service.get_latest_guide()
+    return guide.to_dict()
 
 @app.route('/recorded-shows')
 def recorded_shows():
-    recorded_shows = get_all_recorded_shows()
-    if len(recorded_shows) == 0:
-        return {'status': False, 'message': 'There is not any data about shows tracked.'}, 404
-    else:
-        for show in recorded_shows:
-            del show['_id']
-        return recorded_shows
+    recorded_shows = [recorded_show.to_dict() for recorded_show in database_service.get_all_recorded_shows()]
+    return recorded_shows
 
-@app.route('/recorded-show/<string:show>')
-def recorded_show(show):
+@app.route('/recorded-show/<string:show>', methods=['GET', 'PUT', 'DELETE'])
+def recorded_show(show: str):
     if request.method == 'GET':
-        recorded_show = get_one_recorded_show(show)
-        if not recorded_show['status']:
-            return {'status': False, 'message': recorded_show['message']}, 404
-        else:
-            del recorded_show['show']['_id']
-            return recorded_show
+        recorded_show = database_service.get_one_recorded_show(show)
+        if recorded_show:
+            return recorded_show.to_dict()
+        return {'message': f'{show} was not found'}, 404
     if request.method == 'PUT':
         # add episode to Recorded Show
         recorded_show = get_one_recorded_show(show)
@@ -112,11 +80,7 @@ def recorded_show(show):
 @app.route('/reminders')
 def reminders():
     if request.method == 'GET':
-        reminders = get_all_reminders()
-        if len(reminders) == 0:
-            return {'status': False, 'message': 'There are no reminders currently available'}, 404
-        for reminder in reminders:
-            del reminder['_id']
+        reminders = [reminder.to_dict() for reminder in database_service.get_all_reminders()]
         return reminders
     if request.method == 'PUT':
         reminder_body = request.json['reminder']
@@ -128,13 +92,12 @@ def reminders():
             return reminder_created, 409
 
 @app.route('/reminder/<string:show>', methods=['GET', 'PATCH', 'DELETE'])
-def reminder(show):
+def reminder(show: str):
     if request.method == 'GET':
-        reminder = get_one_reminder(show)
-        if not reminder['status']:
-            return {'status': False, 'message': reminder['message']}, 404
-        del reminder['reminder']['_id']
-        return reminder['reminder']
+        reminder = database_service.get_one_reminder(show)
+        if reminder:
+            return reminder.to_dict()
+        return {'message': f'A reminder for {show} could not be found'}
     if request.method == 'PATCH':
         reminder_check = get_one_reminder(show)
         if not reminder_check['status']:
