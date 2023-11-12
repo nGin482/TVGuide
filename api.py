@@ -93,38 +93,20 @@ def reminders():
 
 @app.route('/reminder/<string:show>', methods=['GET', 'PATCH', 'DELETE'])
 def reminder(show: str):
-    if request.method == 'GET':
-        reminder = database_service.get_one_reminder(show)
-        if reminder:
+    reminder = database_service.get_one_reminder(show)
+    if reminder:
+        if request.method == 'GET':
             return reminder.to_dict()
-        return {'message': f'A reminder for {show} could not be found'}
-    if request.method == 'PATCH':
-        reminder_check = get_one_reminder(show)
-        if not reminder_check['status']:
-            return {'status': False, 'message': reminder_check['message']}, 404
-        body = request.json
-        if body['field'] in valid_reminder_fields():
-            update_reminder_object = {
-                'show': show,
-                'field': body['field'],
-                'value': body['value']
-            }
-            update_reminder_status = edit_reminder(update_reminder_object)
-            if update_reminder_status['status']:
-                del update_reminder_status['reminder']['_id']
-                return update_reminder_status
-            else:
-                return update_reminder_status, 500
-        return {'status': False, 'message': 'Unable to update this reminder because the field given to update is not valid.'}, 400
-    if request.method == 'DELETE':
-        reminder_check = get_one_reminder(show)
-        if not reminder_check['status']:
-            return {'message': 'There is no reminder set for ' + show + '.'}, 404
-        remove_reminder_status = remove_reminder_by_title(show)
-        if not remove_reminder_status['status']:
-            return remove_reminder_status, 500
-        del remove_reminder_status['reminder']['_id']
-        return remove_reminder_status
+        if request.method == 'PATCH':
+            body = dict(request.json)
+            updated_reminder = Reminder.from_database(body)
+            database_service.update_reminder(updated_reminder)
+            return updated_reminder.to_dict()
+        if request.method == 'DELETE':
+            database_service.delete_reminder(show)
+            reminders = [reminder.to_dict() for reminder in database_service.get_all_reminders()]
+            return {'message': f'The reminder for {show} has been deleted', 'reminders': reminders}
+    return {'message': f'A reminder for {show} does not exist'}, 404
    
 @app.route('/auth/register', methods=['PUT'])
 def registerUser():

@@ -111,7 +111,7 @@ class Validation:
         """
         Returns the fields only valid for a reminder document
         """
-        return ['show', 'reminder_alert', 'warning_time', 'ocassions']
+        return ['show', 'reminder_alert', 'warning_time', 'occassions']
     
     @staticmethod
     def build_episode(show_title: str, channel: str, time: datetime, season_number: str, episode_number: int, episode_title: str):
