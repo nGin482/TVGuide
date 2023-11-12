@@ -7,7 +7,6 @@ from database.reminder_collection import get_all_reminders, get_one_reminder, cr
 from database.users_collection import create_user, check_user_credentials
 from aux_methods.helper_methods import get_today_date, valid_reminder_fields
 from config import database_service
-# from data_validation.validation import Validation
 import json
 import os
 
@@ -37,7 +36,11 @@ def show_list():
 
 @app.route('/guide')
 def guide():
-    guide = database_service.get_latest_guide()
+    if request.args.get('date'):
+        date = request.args.get('date')
+        guide = database_service.get_guide_date(date)
+    else:
+        guide = database_service.get_latest_guide()
     return guide.to_dict()
 
 @app.route('/recorded-shows')
@@ -156,12 +159,9 @@ def login():
 @app.route('/events')
 def events():
     if request.method == 'GET':
-        try:
-            with open('log/events.json') as fd:
-                events = json.load(fd)
-            return events
-        except FileNotFoundError:
-            return {'message': 'The logging information can not be retrieved.'}, 404
+        guide = database_service.get_latest_guide()
+        events = [show.to_dict() for show in guide.fta_shows]
+        return events
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port='5000', debug=True)
