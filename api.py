@@ -6,7 +6,7 @@ from database.recorded_shows_collection import get_all_recorded_shows, get_one_r
 from database.reminder_collection import get_all_reminders, get_one_reminder, create_reminder, edit_reminder, remove_reminder_by_title
 from database.users_collection import create_user, check_user_credentials
 from aux_methods.helper_methods import get_today_date, valid_reminder_fields
-from database.models.RecordedShow import RecordedShow
+from database.models.RecordedShow import RecordedShow, Season, Episode
 from exceptions.DatabaseError import SearchItemAlreadyExistsError, DatabaseError
 from config import database_service
 from services.tvmaze.tvmaze_api import get_show_data
@@ -59,35 +59,19 @@ def recorded_shows():
 
 @app.route('/recorded-show/<string:show>', methods=['GET', 'PUT', 'DELETE'])
 def recorded_show(show: str):
-    if request.method == 'GET':
-        recorded_show = database_service.get_one_recorded_show(show)
-        if recorded_show:
+    recorded_show = database_service.get_one_recorded_show(show)
+    if recorded_show:
+        if request.method == 'GET':
             return recorded_show.to_dict()
-        return {'message': f'{show} was not found'}, 404
-    if request.method == 'PUT':
-        # add episode to Recorded Show
-        recorded_show = get_one_recorded_show(show)
-        if not recorded_show['status']:
-            return {'status': False, 'message': recorded_show['message']}, 404
-        else:
-            body = request.json['show']
-            episode_insert_status = insert_new_episode(body)
-            if episode_insert_status['status']:
-                del episode_insert_status['result']['_id']
-                return episode_insert_status
-            else:
-                return episode_insert_status
-    if request.method == 'DELETE':
-        recorded_show = get_one_recorded_show(show)
-        if not recorded_show['status']:
-            return {'status': False, 'message': recorded_show['message']}, 404
-        else:
-            deleted_show = delete_recorded_show(show)
-            del deleted_show['show']['_id']
-            if not deleted_show['status']:
-                return {'status': False, 'message': deleted_show['message']}, 404
-            else:
-                return deleted_show
+        if request.method == 'PUT':
+            # add episode to Recorded Show
+            new_episode = request.json['episode']
+            episode = Episode.from_database(new_episode)
+            season = str(request.json['season'])
+            database_service.add_new_episode_to_season(recorded_show, season, episode)
+        if request.method == 'DELETE':
+            return {'message': 'No action performed'}
+    return {'message': f'A recorded show for {show} could not be found'}, 404
 
 @app.route('/reminders')
 def reminders():
