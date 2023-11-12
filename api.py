@@ -49,6 +49,8 @@ def guide():
     if request.args.get('date'):
         date = request.args.get('date')
         guide = database_service.get_guide_date(date)
+        if not guide:
+            return {'message': f'No guide data has been found for {date}'}, 404
     else:
         guide = database_service.get_latest_guide()
     return guide.to_dict()
@@ -80,11 +82,11 @@ def reminders():
         reminders = [reminder.to_dict() for reminder in database_service.get_all_reminders()]
         return reminders
     if request.method == 'POST':
-        reminder = request.json['reminder']
+        reminder = request.json
         show: str = reminder['show']
         show_check = show in database_service.get_search_list()
         reminder_check = database_service.get_one_reminder(show)
-        if show_check:
+        if not show_check:
             return {'message': f'{show} is not being searched for'}, 400
         if reminder_check:
             return {'message': f'A reminder already exists for {show}'}, 409
