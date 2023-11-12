@@ -1,0 +1,138 @@
+[
+    {
+        "title": "Test Episode Title - The",
+        "channel": "7TWO",
+        "time": "20:30",
+        "season_number": "15",
+        "episode_number": 12,
+        "episode_title": "Black Spot, The"
+    },
+    {
+        "title": "Test Episode Title - A",
+        "channel": "7TWO",
+        "time": "20:30",
+        "season_number": "10",
+        "episode_number": 1,
+        "episode_title": "Black Spot, A"
+    },
+    {
+        "title": "Maigret In Montmartre",
+        "channel": "7TWO",
+        "time": "20:30",
+        "season_number": "2",
+        "episode_number": 2,
+        "episode_title": "Maigret In Montmartre"
+    },
+    {
+        "title": "Death in Paradise",
+        "channel": "7TWO",
+        "time": "20:30",
+        "season_number": "1",
+        "episode_number": 1,
+        "episode_title": ""
+    },
+    {
+        "title": "Grantchester Christmas Special",
+        "channel": "7TWO",
+        "time": "20:30",
+        "season_number": "1",
+        "episode_number": 5,
+        "episode_title": ""
+    },
+    {
+        "title": "Transformers: Prime",
+        "channel": "7TWO",
+        "time": "20:30",
+        "season_number": "1",
+        "episode_number": 20,
+        "episode_title": "Partners"
+    },
+    {
+        "title": "NCIS: Hawaii",
+        "channel": "TEN",
+        "time": "22:35",
+        "season_number": "1",
+        "episode_number": 5,
+        "episode_title": ""
+    },
+    {
+        "title": "NCIS: New Orleans",
+        "channel": "TEN",
+        "time": "22:35",
+        "season_number": "1",
+        "episode_number": 5,
+        "episode_title": ""
+    },
+    {
+        "title": "Verandah Roadshow",
+        "channel": "ABC1",
+        "time": "14:35",
+        "season_number": "1",
+        "episode_number": 2,
+        "episode_title": ""
+    },
+    {
+        "title": "Searching for Endeavour",
+        "channel": "ABC1",
+        "time": "11:15",
+        "season_number": "1",
+        "episode_number": 1,
+        "episode_title": ""
+    },
+    {
+        "title": "Lewisham Alley",
+        "channel": "ABC1",
+        "time": "21:00",
+        "season_number": "1",
+        "episode_number": 1,
+        "episode_title": ""
+    },
+    {
+        "title": "NCIS",
+        "channel": "TEN",
+        "time": "20:30",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "Episode A"
+    },
+    {
+        "title": "NCIS",
+        "channel": "TEN",
+        "time": "21:30",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "Episode B"
+    },
+    {
+        "title": "NCIS",
+        "channel": "TEN",
+        "time": "22:30",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "Episode C"
+    },
+    {
+        "title": "Endeavour",
+        "channel": "TEN",
+        "time": "22:30",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "Lazaretto"
+    },
+    {
+        "title": "Endeavour",
+        "channel": "TEN",
+        "time": "22:30",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": "Harvest"
+    },
+    {
+        "title": "Endeavour",
+        "channel": "TEN",
+        "time": "22:30",
+        "season_number": "Unknown",
+        "episode_number": 0,
+        "episode_title": ""
+    }
+]

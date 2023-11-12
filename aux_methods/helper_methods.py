@@ -1,5 +1,8 @@
 from __future__ import annotations
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
+import re
+
+from log import read_events
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -47,25 +50,23 @@ def remove_doubles(shows_list: list[GuideShow]):
             idx_1 += 1
 
 
-def format_title(title):
+def format_title(title: str):
     """
     Format a show's given title into a more reader-friendly appearance
     """
 
     if ', The' in title:
         idx_the = title.find(', The')
-        title = 'The ' + title[0:idx_the]
+        title = f'The {title[0:idx_the]}'
     if ', A' in title:
         idx_a = title.find(', A')
-        title = 'A ' + title[0:idx_a]
+        title = f'A {title[0:idx_a]}'
 
     return title
 
-def show_list_for_message(shows_list):
-    show_list = ''
-    for show in shows_list:
-        show_list = show_list + show + '\n'
-    return show_list
+def show_list_message(shows_list: list[str]):
+    """Return a message-friendly version of the shows being searched for"""
+    return '\n'.join(shows_list)
 
 def check_show_titles(show):
     if type(show) is str:
@@ -95,7 +96,7 @@ def check_show_titles(show):
         elif show['title'] == 'Transformers':
             return 'Transformers'
         else:
-            title = show['title']
+            title: str = show['title']
             if ':' in title:
                 idx = title.rfind(':')
                 title = title[:idx] + title[idx+1:]
@@ -113,27 +114,45 @@ def get_today_date(return_type):
     else:
         return date.today()
 
-def get_today_date_for_logging():
-    return date.today().strftime('%d-%m-%y')
-
-def convert_date_string_to_object(given_date):
-    return datetime.strptime(given_date, '%d-%m-%y')
-
-def get_current_time(return_type):
-    if return_type == 'string':
-        return datetime.now().strftime('%H:%M')
-
-def show_string(show: dict):
-    message = '{time}: {title} is on {channel}'.format(**show)
-    if 'series_num' in show.keys() and 'episode_title' in show.keys():
-        message = message + ' (Season {series_num}, Episode {episode_num}: {episode_title})'.format(**show)
+def parse_date_from_command(date: str):
+    if re.search(r'\d{1,2}(-|\/)\d{1,2}(-|\/)\d{2,4}', date) is not None:
+        if '-' in date:
+            try:
+                return datetime.strptime(date, '%d-%m-%Y')
+            except ValueError:
+                date_values = date.split('-')
+                date_formatted = f'{date_values[0]}-{date_values[1]}-20{date_values[2]}'
+                return datetime.strptime(date_formatted, '%d-%m-%Y')
+        else:
+            try:
+                return datetime.strptime(date, '%d/%m/%Y')
+            except ValueError:
+                date_values = date.split('/')
+                date_formatted = f'{date_values[0]}/{date_values[1]}/20{date_values[2]}'
+                return datetime.strptime(date_formatted, '%d/%m/%Y')
     else:
-        if 'series_num' in show.keys():
-            message = message + ' (Season {series_num}, Episode {episode_num})'.format(**show)
-        if 'episode_title' in show.keys():
-            message = message + ' ({episode_title})'.format(**show)
-    if show['repeat']:
-        message = message + '(Repeat)'
-    message = message + '\n\n'
+        date_search = re.search(r'\d{1,2}(-|\/| )(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|(Nov|Dec)(?:ember)?)(-|\/| )\d{2,4}', date)
+        print(date_search)
+        if date_search is not None:
+            if '-' in date:
+                date_values = date_search.group().split('-')
+            elif '/' in date:
+                date_values = date_search.group().split('/')
+            else:
+                date_values = date_search.group().split(' ')
+            if len(date_values[1]) == 3:
+                month = datetime.strptime(date_values[1], '%b').month
+            else:
+                month = datetime.strptime(date_values[1], '%B').month
+            if len(date_values[2]) == 2:
+                year = f'20{date_values[2]}'
+            else:
+                year = date_values[2]
+            return datetime(int(year), month, int(date_values[0]))
+        else:
+            raise ValueError('The date provided was not in a valid format.')
+        
+def compose_events_message():
+    events: list[dict[str, dict]] = read_events()
 
-    return message
+    return "\n".join([f"{event['show']['title']} - {event['show']['event']}" for event in events])

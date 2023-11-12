@@ -1,3 +1,10 @@
+from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
+import pytz
+
+if TYPE_CHECKING:
+    from database.models.GuideShow import GuideShow
+
 class Validation:
 
     @staticmethod
@@ -29,19 +36,19 @@ class Validation:
         return time
 
     @staticmethod
-    def format_episode_title(title: str):
+    def format_episode_title(episode_title: str):
         """
-        Format a show's given title into a more reader-friendly appearance
+        Format a show's episode title into a more reader-friendly appearance
         """
 
-        if ', The' in title:
-            idx_the = title.find(', The')
-            title = 'The ' + title[0:idx_the]
-        if ', A' in title:
-            idx_a = title.find(', A')
-            title = 'A ' + title[0:idx_a]
+        if ', The' in episode_title:
+            idx_the = episode_title.find(', The')
+            episode_title = 'The ' + episode_title[0:idx_the]
+        if ', A' in episode_title and episode_title != 'Kolcheck, A.':
+            idx_a = episode_title.find(', A')
+            episode_title = 'A ' + episode_title[0:idx_a]
 
-        return title
+        return episode_title
 
     @staticmethod
     def check_show_titles(show: str):
@@ -51,10 +58,9 @@ class Validation:
             return 'Death In Paradise'
         elif 'Grantchester Christmas Special' in show:
             return 'Grantchester'
-        title = show
-        if ':' in title:
-            title = title.replace(':', '')
-        return title
+        elif 'NCIS Encore' in show:
+            return 'NCIS'
+        return show
 
     @staticmethod
     def remove_unwanted_shows(guide_list: list[dict]):
@@ -105,28 +111,46 @@ class Validation:
         """
         Returns the fields only valid for a reminder document
         """
-        return ['show', 'reminder time', 'interval']
-
-    @staticmethod
-    def unknown_episodes_check(show_list: list):
-        shows_with_unknown_episodes = {}
-        show_titles_with_unknown_episodes = [show for show in show_list if show.season_number == 'Unknown']
-        for show in show_titles_with_unknown_episodes:
-            if show.title in shows_with_unknown_episodes.keys():
-                shows_with_unknown_episodes[show.title].append(show.episode_title)
-            else:
-                shows_with_unknown_episodes[show.title] = [show.episode_title]
-        return shows_with_unknown_episodes
+        return ['show', 'reminder_alert', 'warning_time', 'ocassions']
     
     @staticmethod
-    def get_unknown_episode_number(show_list: list, show_title: str, episode_title: str):
-        if episode_title == '':
-            return None
+    def build_episode(show_title: str, channel: str, time: datetime, season_number: str, episode_number: int, episode_title: str):
+        episodes = []
+        if 'Cyberverse' in show_title and '/' in episode_title:
+            episode_titles = episode_title.split('/')
+            for idx, episode in enumerate(episode_titles):
+                episodes.append({
+                    'title': show_title,
+                    'channel': channel,
+                    'time': time + timedelta(minutes=14) if idx == 1 else time,
+                    'season_number': season_number,
+                    'episode_number': episode_number,
+                    'episode_title': Validation.format_episode_title(episode.title())
+                })
+        else:
+            episodes.append({
+                'title': show_title,
+                'channel': channel,
+                'time': time,
+                'season_number': season_number,
+                'episode_number': episode_number,
+                'episode_title': Validation.format_episode_title(episode_title)
+            })
+        return episodes
+
+    @staticmethod
+    def get_unknown_episode_number(show_list: list[dict], show_title: str, episode_title: str):
         
-        unknown_episodes_map = Validation.unknown_episodes_check(show_list)
-        if show_title in unknown_episodes_map.keys():
-            try:
-                show = list(unknown_episodes_map[show_title])
-                return show.index(episode_title) + 1
-            except ValueError:
-                pass
+        show_titles_with_unknown_episodes = [
+            show for show in show_list if show['title'] == show_title and show['season_number'] == 'Unknown'
+        ]
+        if episode_title != '':
+            return next(
+                (index +1 for (index, show) in enumerate(show_titles_with_unknown_episodes) if show['episode_title'] == episode_title),
+                len(show_titles_with_unknown_episodes)
+            )
+        return len(show_titles_with_unknown_episodes)
+        
+    @staticmethod
+    def get_current_date():
+        return datetime.now(pytz.timezone('Australia/Sydney'))

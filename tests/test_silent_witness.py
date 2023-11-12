@@ -4,9 +4,9 @@ from database.models.GuideShowCases import SilentWitness
 class TestSilentWitness(unittest.TestCase):
 
     def test_silent_witness(self):
-        first_show = SilentWitness.handle('', "Brother's Keeper - Part 1")
-        second_show = SilentWitness.handle('', "Bad Love (Part 2)")
-        fourth_show = SilentWitness.handle('', "Redemption Part 1")
+        first_show = SilentWitness.handle("Brother's Keeper - Part 1")
+        second_show = SilentWitness.handle("Bad Love (Part 2)")
+        fourth_show = SilentWitness.handle("Redemption Part 1")
          
         self.assertIsInstance(first_show, tuple)
         self.assertEqual(4, len(first_show))
@@ -27,7 +27,7 @@ class TestSilentWitness(unittest.TestCase):
         self.assertEqual("Redemption Part 1", fourth_show[3])
 
     def test_silent_witness_return_none(self):
-        self.assertIsNone(SilentWitness.handle("", "Maters of Life, Death Part 1"))
+        self.assertIsNone(SilentWitness.handle("Maters of Life, Death Part 1"))
 
             
         # self.assertEqual('Episode not in Season 24', str(ctx.exception))
