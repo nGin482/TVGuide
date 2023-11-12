@@ -7,6 +7,7 @@ from database.reminder_collection import get_all_reminders, get_one_reminder, cr
 from database.users_collection import create_user, check_user_credentials
 from aux_methods.helper_methods import get_today_date, valid_reminder_fields
 from database.models.RecordedShow import RecordedShow, Season, Episode
+from database.models.Reminders import Reminder
 from exceptions.DatabaseError import SearchItemAlreadyExistsError, DatabaseError
 from config import database_service
 from services.tvmaze.tvmaze_api import get_show_data
@@ -73,19 +74,22 @@ def recorded_show(show: str):
             return {'message': 'No action performed'}
     return {'message': f'A recorded show for {show} could not be found'}, 404
 
-@app.route('/reminders')
+@app.route('/reminders', methods=['GET', 'POST'])
 def reminders():
     if request.method == 'GET':
         reminders = [reminder.to_dict() for reminder in database_service.get_all_reminders()]
         return reminders
-    if request.method == 'PUT':
-        reminder_body = request.json['reminder']
-        reminder_created = create_reminder(reminder_body)
-        if reminder_created['status']:
-            del reminder_created['reminder']['_id']
-            return reminder_created
-        else:
-            return reminder_created, 409
+    if request.method == 'POST':
+        reminder = request.json['reminder']
+        show: str = reminder['show']
+        reminder_check = database_service.get_one_reminder(show)
+        if reminder_check:
+            return {'message': f'A reminder already exists for {show}'}, 409
+        new_reminder = Reminder.from_database(reminder)
+        try:
+            database_service.insert_new_reminder(new_reminder)
+        except DatabaseError as err:
+            return {'message': f'An error occurred creating the reminder for {show}', 'error': str(err)}, 500
 
 @app.route('/reminder/<string:show>', methods=['GET', 'PATCH', 'DELETE'])
 def reminder(show: str):
