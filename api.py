@@ -67,11 +67,19 @@ def recorded_show(show: str):
         if request.method == 'GET':
             return recorded_show.to_dict()
         if request.method == 'PUT':
-            # add episode to Recorded Show
-            new_episode = request.json['episode']
-            episode = Episode.from_database(new_episode)
-            season = str(request.json['season'])
-            database_service.add_new_episode_to_season(recorded_show, season, episode)
+            season_query = request.args.get('season')
+            episode_query = request.args.get('episode')
+            if season_query and episode_query:
+                # update episode
+                episode = Episode.from_database(request.json)
+                database_service.update_episode_in_database(show, season_query, episode)
+            elif season_query:
+                # add episode to Recorded Show
+                episode = Episode.from_database(request.json)
+                database_service.add_new_episode_to_season(recorded_show, season_query, episode)
+            else:
+                # add season
+                pass
         if request.method == 'DELETE':
             return {'message': 'No action performed'}
     return {'message': f'A recorded show for {show} could not be found'}, 404
