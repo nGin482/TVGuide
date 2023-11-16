@@ -194,7 +194,8 @@ class DatabaseService:
             event = {'show': guide_show.to_dict(), 'message': 'Unable to process this episode.', 'error': str(err)}
             hermes.dispatch('show_not_processed', guide_show.message_string(), err)
 
-        log_database_event(event)
+        if os.getenv('ENV') != 'testing':
+            log_database_event(event)
         return event
 
 # SEARCH LIST

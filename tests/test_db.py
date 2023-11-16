@@ -3,6 +3,7 @@ from unittest.mock import patch
 from dotenv import load_dotenv
 import unittest
 import json
+import os
 
 from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
@@ -17,6 +18,7 @@ class TestDatabase(unittest.TestCase):
     def setUpClass(self) -> None:
         super().setUpClass()
         load_dotenv('.env')
+        os.environ['ENV'] = 'testing'
         self.database_service = DatabaseService(mongo_client().get_database('test'))
 
         with open('tests/test_data/recorded_shows.json') as fd:
