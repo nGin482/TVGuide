@@ -279,6 +279,16 @@ class TestDatabase(unittest.TestCase):
         print(reminders[1].notification())
         # with self.assertRaises(IndexError) as exception_context:
         #     reminders[1].compare_reminder_interval()
+
+    def test_delete_recorded_show_succeeds(self):
+
+        shows_count_before = len(self.database_service.get_all_recorded_shows())
+
+        self.database_service.delete_recorded_show('Test Delete')
+
+        shows_count_after = len(self.database_service.get_all_recorded_shows())
+
+        self.assertEqual(shows_count_after, shows_count_before - 1)
     
 
     @classmethod
