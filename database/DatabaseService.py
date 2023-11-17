@@ -103,6 +103,14 @@ class DatabaseService:
             return_document=ReturnDocument.AFTER
         )
 
+    def delete_recorded_show(self, show: str):
+        """
+        Remove the given `show` from the RecordedShow collection
+        """
+        self.recorded_shows_collection.find_one_and_delete(
+            {'show': show}
+        )
+
     def backup_recorded_shows(self):
         """
         Create a local backup of the `RecordedShows` collection by storing data locally in JSON files
@@ -186,7 +194,8 @@ class DatabaseService:
             event = {'show': guide_show.to_dict(), 'message': 'Unable to process this episode.', 'error': str(err)}
             hermes.dispatch('show_not_processed', guide_show.message_string(), err)
 
-        log_database_event(event)
+        if os.getenv('ENV') != 'testing':
+            log_database_event(event)
         return event
 
 # SEARCH LIST

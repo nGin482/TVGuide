@@ -260,5 +260,27 @@
                 ]
             }
         ]
+    },
+    {
+        "show": "Test Delete",
+        "seasons": [
+            {
+                "season_number": "1",
+                "episodes": [
+                    {
+                        "episode_number": 1,
+                        "episode_title": "Pilot",
+                        "alternative_titles": [],
+                        "summary": "",
+                        "channels": [
+                            "GEM"
+                        ],
+                        "air_dates": [
+                            "15/04/2020"
+                        ]
+                    }
+                ]
+            }
+        ]
     }
 ]
