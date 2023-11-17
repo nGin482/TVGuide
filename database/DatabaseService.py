@@ -103,6 +103,14 @@ class DatabaseService:
             return_document=ReturnDocument.AFTER
         )
 
+    def delete_recorded_show(self, show: str):
+        """
+        Remove the given `show` from the RecordedShow collection
+        """
+        self.recorded_shows_collection.find_one_and_delete(
+            {'show': show}
+        )
+
     def backup_recorded_shows(self):
         """
         Create a local backup of the `RecordedShows` collection by storing data locally in JSON files
