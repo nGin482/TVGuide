@@ -93,11 +93,11 @@ def recorded_show(show: str):
                 return {'message': f'Episode {episode_query} has been removed from Season {season_query} of {show}'}
             elif season_query:
                 # delete season
-                pass
+                return {'message': 'No action performed'}
             else:
                 # delete show
-                pass
-            return {'message': 'No action performed'}
+                database_service.delete_recorded_show(show)
+                return {'message': f'{show} has been deleted'}
     return {'message': f'A recorded show for {show} could not be found'}, 404
 
 @app.route('/reminders', methods=['GET', 'POST'])
