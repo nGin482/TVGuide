@@ -164,7 +164,7 @@ class Season:
         if episode_number == 0 and episode_title == '':
             raise ValueError('Please provide a value to either the episode_number or episode_title')
         else:
-            if episode_title == 0:
+            if episode_number == 0:
                 episode = next((ep for ep in self.episodes if ep.episode_title.lower() == episode_title.lower()), None)
                 if episode is None:
                     episode = next((ep for ep in self.episodes if episode_title in ep.alternative_titles), None)
