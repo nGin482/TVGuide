@@ -1,4 +1,4 @@
-from flask import Flask, request, abort, jsonify
+from flask import Flask, request, abort
 # from flask_cors import CORS
 # from flask_jwt_extended import create_access_token, JWTManager
 from database.show_list_collection import get_showlist, find_show, insert_into_showlist_collection, remove_show_from_list
@@ -73,14 +73,30 @@ def recorded_show(show: str):
                 # update episode
                 episode = Episode.from_database(request.json)
                 database_service.update_episode_in_database(show, season_query, episode)
+                return {'message': 'The episode has been updated'}
             elif season_query:
-                # add episode to Recorded Show
+                # add episode to season
                 episode = Episode.from_database(request.json)
                 database_service.add_new_episode_to_season(recorded_show, season_query, episode)
+                return {'message': f'The episode has been added to Season {season_query} of {recorded_show.title}'}
             else:
                 # add season
-                pass
+                season = Season.from_database(request.json)
+                database_service.add_new_season(recorded_show, season)
+                return {'message': f'The season has been added to {recorded_show.title}'}
         if request.method == 'DELETE':
+            season_query = request.args.get('season')
+            episode_query = request.args.get('episode')
+            if season_query and episode_query:
+                # delete episode
+                database_service.remove_episode_from_season(show, season_query, int(episode_query))
+                return {'message': f'Episode {episode_query} has been removed from Season {season_query} of {show}'}
+            elif season_query:
+                # delete season
+                pass
+            else:
+                # delete show
+                pass
             return {'message': 'No action performed'}
     return {'message': f'A recorded show for {show} could not be found'}, 404
 
