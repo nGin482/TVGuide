@@ -4,7 +4,7 @@ import bcrypt
 class User:
 
 
-    def init(self, username: str, password: str, show_subscriptions: list[str], reminder_subscriptions: list[str], role: str):
+    def __init__(self, username: str, password: str, show_subscriptions: list[str], reminder_subscriptions: list[str], role: str):
         self.username = username
         self.password = password
         self.show_subscriptions = show_subscriptions
@@ -13,17 +13,17 @@ class User:
 
     @classmethod
     def from_database(cls, user_details: dict[str, str | list[str]]):
-        username = user_details['username']
-        password = user_details['password']
-        show_subscriptions = user_details['show_subscriptions']
-        reminder_subscriptions = user_details['reminder_subscriptions']
-        role = user_details['role']
+        username: str = user_details['username']
+        password: str = user_details['password']
+        show_subscriptions: list[str] = user_details['show_subscriptions']
+        reminder_subscriptions: list[str] = user_details['reminder_subscriptions']
+        role: str = user_details['role']
 
         return cls(username, password, show_subscriptions, reminder_subscriptions, role)
     
     @classmethod
     def register_new_user(cls, username: str, password: str, show_subscriptions: list[str], reminder_subscriptions: list[str]):
-        hashed_password = bcrypt.hashpw(password, bcrypt.gensalt(14))
+        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt(14))
 
         return cls(username, hashed_password.decode(), show_subscriptions, reminder_subscriptions, 'Standard')
     
@@ -46,13 +46,20 @@ class User:
         new_hashed_pw = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt(14))
         self.password = new_hashed_pw.decode()
 
-    def is_authorised(self):
+    def is_authorised(self, operation: str):
         if self.role == 'Admin':
             return True
-        return False
+        else:
+            if 'delete' in operation and 'own-account' not in operation:
+                return False
+            if 'delete' in operation and 'own-account' in operation:
+                return True
+            if 'recorded_shows' in operation:
+                return False
+            return True
     
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, str | list[str]]:
         return {
             'username': self.username,
             'password': self.password,
