@@ -22,7 +22,7 @@ app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
 # https://www.google.com/search?q=flask-login+react&source=hp&ei=00HmYffoDZKK0AS5sZOYBQ&iflsig=ALs-wAMAAAAAYeZP4_oAIADJhFqmzSf0ow9fxXElhTOc&oq=flask-login+re&gs_lcp=Cgdnd3Mtd2l6EAMYADIFCAAQgAQyBQgAEIAEMgUIABCABDIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeOhEILhCABBCxAxCDARDHARDRAzoOCC4QgAQQsQMQxwEQowI6CAgAELEDEIMBOgsIABCABBCxAxCDAToICAAQgAQQsQM6CAguELEDEIMBOgsILhCABBDHARCjAjoICC4QgAQQsQM6CwguEIAEEMcBEK8BOg4IABCABBCxAxCDARDJA1AAWNAXYN0jaABwAHgBgAGPBIgB6xuSAQswLjYuMy40LjAuMZgBAKABAQ&sclient=gws-wiz
 # https://dev.to/nagatodev/how-to-add-login-authentication-to-a-flask-and-react-application-23i7
 
-@app.route('/show-list', methods=['GET', 'POST'])
+@app.route('/api/show-list', methods=['GET', 'POST'])
 def show_list():
     if request.method == 'GET':
         return database_service.get_search_list()
@@ -44,7 +44,7 @@ def show_list():
     else:
         abort(405)
 
-@app.route('/guide')
+@app.route('/api/guide')
 def guide():
     if request.args.get('date'):
         date = request.args.get('date')
@@ -55,12 +55,12 @@ def guide():
         guide = database_service.get_latest_guide()
     return guide.to_dict()
 
-@app.route('/recorded-shows')
+@app.route('/api/recorded-shows')
 def recorded_shows():
     recorded_shows = [recorded_show.to_dict() for recorded_show in database_service.get_all_recorded_shows()]
     return recorded_shows
 
-@app.route('/recorded-show/<string:show>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/api/recorded-show/<string:show>', methods=['GET', 'PUT', 'DELETE'])
 def recorded_show(show: str):
     recorded_show = database_service.get_one_recorded_show(show)
     if recorded_show:
@@ -100,7 +100,7 @@ def recorded_show(show: str):
                 return {'message': f'{show} has been deleted'}
     return {'message': f'A recorded show for {show} could not be found'}, 404
 
-@app.route('/reminders', methods=['GET', 'POST'])
+@app.route('/api/reminders', methods=['GET', 'POST'])
 def reminders():
     if request.method == 'GET':
         reminders = [reminder.to_dict() for reminder in database_service.get_all_reminders()]
@@ -121,7 +121,7 @@ def reminders():
         except DatabaseError as err:
             return {'message': f'An error occurred creating the reminder for {show}', 'error': str(err)}, 500
 
-@app.route('/reminder/<string:show>', methods=['GET', 'PATCH', 'DELETE'])
+@app.route('/api/reminder/<string:show>', methods=['GET', 'PATCH', 'DELETE'])
 def reminder(show: str):
     reminder = database_service.get_one_reminder(show)
     if reminder:
@@ -138,7 +138,7 @@ def reminder(show: str):
             return {'message': f'The reminder for {show} has been deleted', 'reminders': reminders}
     return {'message': f'A reminder for {show} does not exist'}, 404
    
-@app.route('/auth/register', methods=['PUT'])
+@app.route('/api/auth/register', methods=['PUT'])
 def registerUser():
     if request.method == 'PUT':
         new_user = request.json
@@ -149,7 +149,7 @@ def registerUser():
         else:
             return insert_new_user, 500
 
-@app.route('/auth/login', methods=['POST'])
+@app.route('/api/auth/login', methods=['POST'])
 def login():
     if request.method == 'POST':
         given_credentials = request.json
@@ -165,7 +165,7 @@ def login():
         else:
             return {'status': False, 'message': 'Incorrect username or password'}, 401
 
-@app.route('/events')
+@app.route('/api/events')
 def events():
     if request.method == 'GET':
         guide = database_service.get_latest_guide()
