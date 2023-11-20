@@ -10,6 +10,7 @@ from database.models.Guide import Guide
 from database.models.GuideShow import GuideShow
 from database.models.RecordedShow import RecordedShow, Season, Episode
 from database.models.Reminders import Reminder
+from database.models.Users import User
 from exceptions.DatabaseError import DatabaseError, EpisodeNotFoundError, ReminderNotFoundError, SearchItemAlreadyExistsError, SearchItemNotFoundError, SeasonNotFoundError, ShowNotFoundError
 from log import log_database_event
 
@@ -22,6 +23,7 @@ class DatabaseService:
         self.reminders_collection = self.database.get_collection('Reminders')
         self.search_list_collection = self.database.get_collection('ShowList')
         self.guide_collection = self.database.get_collection('Guide')
+        self.users_collection = self.database.get_collection('Users')
     
 # RECORDED SHOWS
     def get_all_recorded_shows(self):
@@ -347,6 +349,31 @@ class DatabaseService:
         })
         if delete_result is None:
             raise DatabaseError(f"The Guide data for {date} could not be found")
+        
+    # Users
+    def get_user(self, username: str):
+        user_document = self.users_collection.find_one({'username': username})
+        if user_document:
+            return User.from_database(user_document)
+        return None
+    
+    def register_user(self, username: str, password: str, shows: list[str], reminders: list[str]):
+        new_user = User.register_new_user(username, password, shows, reminders)
+
+        self.users_collection.insert_one(new_user.to_dict())
+    
+    def update_user_details(self, user: User):
+        self.users_collection.find_one_and_update(
+            {'username': user.username},
+            user.to_dict()
+        )
+
+    def delete_user(self, username: str):
+        user = self.get_user(username)
+        if user:
+            self.users_collection.find_one_and_delete({'username': username})
+            return True
+        return False
 
 
     def __repr__(self) -> str:
