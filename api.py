@@ -140,30 +140,25 @@ def reminder(show: str):
    
 @app.route('/api/auth/register', methods=['PUT'])
 def registerUser():
-    if request.method == 'PUT':
-        new_user = request.json
-        print(new_user)
-        insert_new_user = create_user(new_user)
-        if insert_new_user['status']:
-            return insert_new_user
-        else:
-            return insert_new_user, 500
+    body = request.json
+    print(body)
+    database_service.register_user(body['username'], body['password'], body['show_subscriptions'], body['reminder_subscriptions'])
+    return {'message': 'You have successfully been registered'}
 
 @app.route('/api/auth/login', methods=['POST'])
 def login():
-    if request.method == 'POST':
-        given_credentials = request.json
-        cred_check = check_user_credentials(given_credentials)
-        if cred_check['status']:
-            return {
-                'user': given_credentials['username'],
-                'searchList': cred_check['user']['searchList'],
-                'reminders': cred_check['user']['reminders'],
-                'token': create_access_token(identity=given_credentials['username']),
-                'role': cred_check['user']['role']
-            }
-        else:
-            return {'status': False, 'message': 'Incorrect username or password'}, 401
+    given_credentials = request.json
+    user = database_service.get_user(given_credentials['username'])
+    if user and user.check_password(given_credentials['password']):
+        return {
+            'user': user.username,
+            'searchList': user.show_subscriptions,
+            'reminders': user.reminder_subscriptions,
+            'token': create_access_token(identity=given_credentials['username']),
+            'role': user.role
+        }
+    else:
+        return {'message': 'Incorrect username or password'}, 401
 
 @app.route('/api/events')
 def events():
