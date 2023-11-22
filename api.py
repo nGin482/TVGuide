@@ -1,6 +1,6 @@
-from flask import Flask, request, abort
+from flask import Flask, request
 # from flask_cors import CORS
-from flask_jwt_extended import create_access_token, JWTManager
+from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_current_user
 from database.show_list_collection import get_showlist, find_show, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, insert_new_episode, delete_recorded_show
 from database.reminder_collection import get_all_reminders, get_one_reminder, create_reminder, edit_reminder, remove_reminder_by_title
@@ -8,6 +8,7 @@ from database.users_collection import create_user, check_user_credentials
 from aux_methods.helper_methods import get_today_date, valid_reminder_fields
 from database.models.RecordedShow import RecordedShow, Season, Episode
 from database.models.Reminders import Reminder
+from database.models.Users import User
 from exceptions.DatabaseError import SearchItemAlreadyExistsError, DatabaseError
 from config import database_service
 from services.tvmaze.tvmaze_api import get_show_data
@@ -17,32 +18,38 @@ import os
 app = Flask(__name__)
 # CORS(app)
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
-JWTManager(app)
+jwt = JWTManager(app)
 
 # https://www.google.com/search?q=flask-login+react&source=hp&ei=00HmYffoDZKK0AS5sZOYBQ&iflsig=ALs-wAMAAAAAYeZP4_oAIADJhFqmzSf0ow9fxXElhTOc&oq=flask-login+re&gs_lcp=Cgdnd3Mtd2l6EAMYADIFCAAQgAQyBQgAEIAEMgUIABCABDIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeOhEILhCABBCxAxCDARDHARDRAzoOCC4QgAQQsQMQxwEQowI6CAgAELEDEIMBOgsIABCABBCxAxCDAToICAAQgAQQsQM6CAguELEDEIMBOgsILhCABBDHARCjAjoICC4QgAQQsQM6CwguEIAEEMcBEK8BOg4IABCABBCxAxCDARDJA1AAWNAXYN0jaABwAHgBgAGPBIgB6xuSAQswLjYuMy40LjAuMZgBAKABAQ&sclient=gws-wiz
 # https://dev.to/nagatodev/how-to-add-login-authentication-to-a-flask-and-react-application-23i7
 
-@app.route('/api/show-list', methods=['GET', 'POST'])
+@jwt.user_lookup_loader
+def user_lookup_callback(_jwt_header, jwt_data):
+    return database_service.get_user(jwt_data['sub'])
+
+@app.route('/api/show-list', methods=['GET'])
 def show_list():
-    if request.method == 'GET':
-        return database_service.get_search_list()
-    elif request.method == 'POST':
-        if 'show' not in request.json.keys() or 'tvmaze_id' not in request.json.keys():
-            return {'message': "Please provide the show's name and the id from TVMaze"}, 400
-        show: str = request.json['show']
-        tvmaze_id: str = request.json['tvmaze_id']
-        try:
-            database_service.insert_into_showlist_collection(show)
-            new_show_data = get_show_data(show, tvmaze_id)
-            recorded_show = RecordedShow.from_database(new_show_data)
-            database_service.insert_recorded_show_document(recorded_show)
-            return {'message': f'{show} was added to the Search List'}
-        except SearchItemAlreadyExistsError as err:
-            return {'message': str(err)}, 409
-        except DatabaseError as err:
-            return {'message': str(err)}, 500
-    else:
-        abort(405)
+    return database_service.get_search_list()
+
+@app.route('/api/show-list', methods=['POST'])
+@jwt_required()
+def add_show_list():
+    user: User = get_current_user()
+    print(user.username)
+    if 'show' not in request.json.keys() or 'tvmaze_id' not in request.json.keys():
+        return {'message': "Please provide the show's name and the id from TVMaze"}, 400
+    show: str = request.json['show']
+    tvmaze_id: str = request.json['tvmaze_id']
+    try:
+        database_service.insert_into_showlist_collection(show)
+        new_show_data = get_show_data(show, tvmaze_id)
+        recorded_show = RecordedShow.from_database(new_show_data)
+        database_service.insert_recorded_show_document(recorded_show)
+        return {'message': f'{show} was added to the Search List'}
+    except SearchItemAlreadyExistsError as err:
+        return {'message': str(err)}, 409
+    except DatabaseError as err:
+        return {'message': str(err)}, 500
 
 @app.route('/api/guide')
 def guide():
@@ -157,8 +164,7 @@ def login():
             'token': create_access_token(identity=user.username),
             'role': user.role
         }
-    else:
-        return {'message': 'Incorrect username or password'}, 401
+    return {'message': 'Incorrect username or password'}, 401
 
 @app.route('/api/events')
 def events():
