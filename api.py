@@ -1,6 +1,6 @@
 from flask import Flask, request, abort
 # from flask_cors import CORS
-# from flask_jwt_extended import create_access_token, JWTManager
+from flask_jwt_extended import create_access_token, JWTManager
 from database.show_list_collection import get_showlist, find_show, insert_into_showlist_collection, remove_show_from_list
 from database.recorded_shows_collection import get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, insert_new_episode, delete_recorded_show
 from database.reminder_collection import get_all_reminders, get_one_reminder, create_reminder, edit_reminder, remove_reminder_by_title
@@ -17,7 +17,7 @@ import os
 app = Flask(__name__)
 # CORS(app)
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
-# JWTManager(app)
+JWTManager(app)
 
 # https://www.google.com/search?q=flask-login+react&source=hp&ei=00HmYffoDZKK0AS5sZOYBQ&iflsig=ALs-wAMAAAAAYeZP4_oAIADJhFqmzSf0ow9fxXElhTOc&oq=flask-login+re&gs_lcp=Cgdnd3Mtd2l6EAMYADIFCAAQgAQyBQgAEIAEMgUIABCABDIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeOhEILhCABBCxAxCDARDHARDRAzoOCC4QgAQQsQMQxwEQowI6CAgAELEDEIMBOgsIABCABBCxAxCDAToICAAQgAQQsQM6CAguELEDEIMBOgsILhCABBDHARCjAjoICC4QgAQQsQM6CwguEIAEEMcBEK8BOg4IABCABBCxAxCDARDJA1AAWNAXYN0jaABwAHgBgAGPBIgB6xuSAQswLjYuMy40LjAuMZgBAKABAQ&sclient=gws-wiz
 # https://dev.to/nagatodev/how-to-add-login-authentication-to-a-flask-and-react-application-23i7
@@ -138,7 +138,7 @@ def reminder(show: str):
             return {'message': f'The reminder for {show} has been deleted', 'reminders': reminders}
     return {'message': f'A reminder for {show} does not exist'}, 404
    
-@app.route('/api/auth/register', methods=['PUT'])
+@app.route('/api/auth/register', methods=['POST'])
 def registerUser():
     body = request.json
     print(body)
@@ -154,7 +154,7 @@ def login():
             'user': user.username,
             'searchList': user.show_subscriptions,
             'reminders': user.reminder_subscriptions,
-            'token': create_access_token(identity=given_credentials['username']),
+            'token': create_access_token(identity=user.username),
             'role': user.role
         }
     else:
