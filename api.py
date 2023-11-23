@@ -167,11 +167,14 @@ def login():
     return {'message': 'Incorrect username or password'}, 401
 
 @app.route('/api/events')
+@jwt_required()
 def events():
-    if request.method == 'GET':
-        guide = database_service.get_latest_guide()
-        events = [show.to_dict() for show in guide.fta_shows]
-        return events
+    user: User = get_current_user()
+    if user.role != 'Admin':
+        return {'message': 'You are not authorised to retrieve events'}, 403
+    guide = database_service.get_latest_guide()
+    events = [show.to_dict() for show in guide.fta_shows]
+    return events
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port='5000', debug=True)
