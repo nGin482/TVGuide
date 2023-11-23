@@ -168,6 +168,9 @@ def reminder(show: str):
 @app.route('/api/auth/register', methods=['POST'])
 def registerUser():
     body = request.json
+    check_user = database_service.get_user(body['username'])
+    if check_user:
+        return {'message': 'This username is already in use'}, 409
     print(body)
     database_service.register_user(body['username'], body['password'], body['show_subscriptions'], body['reminder_subscriptions'])
     return {'message': 'You have successfully been registered'}
