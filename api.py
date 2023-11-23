@@ -67,12 +67,18 @@ def recorded_shows():
     recorded_shows = [recorded_show.to_dict() for recorded_show in database_service.get_all_recorded_shows()]
     return recorded_shows
 
-@app.route('/api/recorded-show/<string:show>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/api/recorded-shows/<string:show>')
+def get_recorded_show(show: str):
+    recorded_show = database_service.get_one_recorded_show(show)
+    if recorded_show:
+        return recorded_show.to_dict()
+    return {'message': f'A recorded show for {show} could not be found'}, 404
+
+@app.route('/api/recorded-show/<string:show>', methods=['PUT', 'DELETE'])
+@jwt_required()
 def recorded_show(show: str):
     recorded_show = database_service.get_one_recorded_show(show)
     if recorded_show:
-        if request.method == 'GET':
-            return recorded_show.to_dict()
         if request.method == 'PUT':
             season_query = request.args.get('season')
             episode_query = request.args.get('episode')
@@ -92,6 +98,9 @@ def recorded_show(show: str):
                 database_service.add_new_season(recorded_show, season)
                 return {'message': f'The season has been added to {recorded_show.title}'}
         if request.method == 'DELETE':
+            current_user: User = get_current_user()
+            if current_user.role != 'Admin':
+                return {'message': f'You are not authorised to delete {show}. Please make a request to delete it'}, 403
             season_query = request.args.get('season')
             episode_query = request.args.get('episode')
             if season_query and episode_query:
@@ -107,39 +116,50 @@ def recorded_show(show: str):
                 return {'message': f'{show} has been deleted'}
     return {'message': f'A recorded show for {show} could not be found'}, 404
 
-@app.route('/api/reminders', methods=['GET', 'POST'])
-def reminders():
-    if request.method == 'GET':
-        reminders = [reminder.to_dict() for reminder in database_service.get_all_reminders()]
-        return reminders
-    if request.method == 'POST':
-        reminder = request.json
-        show: str = reminder['show']
-        show_check = show in database_service.get_search_list()
-        reminder_check = database_service.get_one_reminder(show)
-        if not show_check:
-            return {'message': f'{show} is not being searched for'}, 400
-        if reminder_check:
-            return {'message': f'A reminder already exists for {show}'}, 409
-        new_reminder = Reminder.from_database(reminder)
-        try:
-            database_service.insert_new_reminder(new_reminder)
-            return [reminder.to_dict() for reminder in database_service.get_all_reminders()]
-        except DatabaseError as err:
-            return {'message': f'An error occurred creating the reminder for {show}', 'error': str(err)}, 500
+@app.route('/api/reminders')
+def get_reminders():
+    reminders = [reminder.to_dict() for reminder in database_service.get_all_reminders()]
+    return reminders
 
-@app.route('/api/reminder/<string:show>', methods=['GET', 'PATCH', 'DELETE'])
+@app.route('/api/reminders', methods=['POST'])
+@jwt_required()
+def reminders():
+    reminder = request.json
+    show: str = reminder['show']
+    show_check = show in database_service.get_search_list()
+    reminder_check = database_service.get_one_reminder(show)
+    if not show_check:
+        return {'message': f'{show} is not being searched for'}, 400
+    if reminder_check:
+        return {'message': f'A reminder already exists for {show}'}, 409
+    new_reminder = Reminder.from_database(reminder)
+    try:
+        database_service.insert_new_reminder(new_reminder)
+        return [reminder.to_dict() for reminder in database_service.get_all_reminders()]
+    except DatabaseError as err:
+        return {'message': f'An error occurred creating the reminder for {show}', 'error': str(err)}, 500
+    
+@app.route('/api/reminder/<string:show>')
+def get_reminder(show: str):
+    reminder = database_service.get_one_reminder(show)
+    if reminder:
+        return reminder.to_dict()
+    return {'message': f'A reminder for {show} does not exist'}, 404
+    
+@app.route('/api/reminder/<string:show>', methods=['PATCH', 'DELETE'])
+@jwt_required()
 def reminder(show: str):
     reminder = database_service.get_one_reminder(show)
     if reminder:
-        if request.method == 'GET':
-            return reminder.to_dict()
         if request.method == 'PATCH':
             body = dict(request.json)
             updated_reminder = Reminder.from_database(body)
             database_service.update_reminder(updated_reminder)
             return updated_reminder.to_dict()
         if request.method == 'DELETE':
+            current_user: User = get_current_user()
+            if current_user.role != 'Admin':
+                return {'message': f'You are not authorised to delete this reminder. Please make a request to delete it'}, 403
             database_service.delete_reminder(show)
             reminders = [reminder.to_dict() for reminder in database_service.get_all_reminders()]
             return {'message': f'The reminder for {show} has been deleted', 'reminders': reminders}
