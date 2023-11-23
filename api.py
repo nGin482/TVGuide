@@ -146,12 +146,12 @@ def get_reminder(show: str):
         return reminder.to_dict()
     return {'message': f'A reminder for {show} does not exist'}, 404
     
-@app.route('/api/reminder/<string:show>', methods=['PATCH', 'DELETE'])
+@app.route('/api/reminder/<string:show>', methods=['PUT', 'DELETE'])
 @jwt_required()
 def reminder(show: str):
     reminder = database_service.get_one_reminder(show)
     if reminder:
-        if request.method == 'PATCH':
+        if request.method == 'PUT':
             body = dict(request.json)
             updated_reminder = Reminder.from_database(body)
             database_service.update_reminder(updated_reminder)
