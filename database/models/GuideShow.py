@@ -117,7 +117,7 @@ class GuideShow:
         Returns `None` if no reminder has been set for the show.
         """
         reminder = database_service.get_one_reminder(self.title)
-        if reminder is not None and reminder.compare_reminder_interval(self):
+        if reminder is not None and reminder.compare_reminder_interval(self) and 'HD' not in self.channel:
             reminder.airing_details = (self.channel, self.time)
             reminder.calculate_notification_time()
             self.reminder = reminder
