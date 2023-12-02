@@ -1,5 +1,6 @@
 from __future__ import annotations
 from datetime import date, datetime, timedelta
+import pytz
 import re
 
 from log import read_events
@@ -156,3 +157,33 @@ def compose_events_message():
     events: list[dict[str, dict]] = read_events()
 
     return "\n".join([f"{event['show']['title']} - {event['show']['event']}" for event in events])
+
+def convert_utc_to_local(utc_timestamp: datetime):
+    utc_timestamp = utc_timestamp.replace(tzinfo=pytz.utc)
+    local_time = utc_timestamp.astimezone(pytz.timezone('Australia/Sydney'))
+    return local_time
+
+def build_episode(show_title: str, channel: str, time: datetime, season_number: str, episode_number: int, episode_title: str):
+    from data_validation.validation import Validation
+    episodes = []
+    if 'Cyberverse' in show_title and '/' in episode_title:
+        episode_titles = episode_title.split('/')
+        for idx, episode in enumerate(episode_titles):
+            episodes.append({
+                'title': show_title,
+                'channel': channel,
+                'time': time + timedelta(minutes=14) if idx == 1 else time,
+                'season_number': season_number,
+                'episode_number': episode_number,
+                'episode_title': Validation.format_episode_title(episode.title())
+            })
+    else:
+        episodes.append({
+            'title': show_title,
+            'channel': channel,
+            'time': time,
+            'season_number': season_number,
+            'episode_number': episode_number,
+            'episode_title': Validation.format_episode_title(episode_title)
+        })
+    return episodes
