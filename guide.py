@@ -2,13 +2,19 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
 from requests import get
 
+from aux_methods.helper_methods import build_episode, convert_utc_to_local
 from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
 from log import clear_events_log, compare_dates, delete_latest_entry, log_guide_information
 
 def find_json(url):
-    return dict(get(url).json())
+    headers = {
+        'User-Agent': 'Chrome/119.0.0.0'
+    }
+    request = get(url, headers=headers)
+    
+    return request.json()
 
 def search_free_to_air(database_service: DatabaseService):
     """
@@ -21,7 +27,7 @@ def search_free_to_air(database_service: DatabaseService):
     new_url = f"https://epg.abctv.net.au/processed/Sydney_{date.strftime('%Y-%m-%d')}.json"
     shows_data: list[dict] = []
 
-    schedule = find_json(new_url)['schedule']
+    schedule = dict(find_json(new_url))['schedule']
     search_list = database_service.get_search_list()
 
     for channel_data in schedule:
@@ -39,7 +45,7 @@ def search_free_to_air(database_service: DatabaseService):
                             episode_number = int(guide_show['episode_num'])
                         if 'episode_title' in guide_show.keys():
                             episode_title = guide_show['episode_title']
-                        episodes = Validation.build_episode(
+                        episodes = build_episode(
                             guide_show['title'],
                             channel_data['channel'],
                             show_date,
@@ -47,13 +53,56 @@ def search_free_to_air(database_service: DatabaseService):
                             episode_number,
                             episode_title
                         )
-                        for episode in episodes:
-                            shows_data.append(episode)
+                        shows_data.extend(episodes)
 
     shows_data = Validation.remove_unwanted_shows(shows_data)
 
     shows_on = build_guide_shows(shows_data, database_service)
     
+    return shows_on
+
+def search_bbc_australia(database_service: DatabaseService):
+
+    current_date = Validation.get_current_date().date()
+    search_date = current_date.strftime('%Y-%m-%d')
+    
+    bbc_first_data = find_json(f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-first?timezone=Australia%2FSydney&date={search_date}')
+    bbc_uktv_data = find_json(f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-uktv?timezone=Australia%2FSydney&date={search_date}')
+
+    search_list = database_service.get_search_list()
+
+    show_list = []
+
+    def search_channel_data(channel_data: list, channel: str):
+        for show in channel_data:
+            for search_item in search_list:
+                title = show['show']['title']
+                if title == search_item:
+                    guide_start = datetime.strptime(show['start'], '%Y-%m-%d %H:%M:%S')
+                    start_time = convert_utc_to_local(guide_start)
+                    series_num = show['episode']['series']['number']
+                    episode_num = show['episode']['number']
+                    episode_title = show['episode']['title']
+                    print(f'{title} - Season {series_num} Episode {episode_num}: {episode_title}')
+
+                    episodes = build_episode(
+                        title,
+                        channel,
+                        start_time.time(),
+                        series_num,
+                        episode_num,
+                        episode_title
+                    )
+                    show_list.extend(episodes)
+    
+    search_channel_data(bbc_first_data, 'BBC First')
+    search_channel_data(bbc_uktv_data, 'BBC UKTV')
+
+    show_list = Validation.remove_unwanted_shows(show_list)
+    shows_on = build_guide_shows(show_list, database_service)
+
+    for show in shows_on:
+        print(show)
     return shows_on
 
 def build_guide_shows(show_list: list[dict], database_service: DatabaseService):
