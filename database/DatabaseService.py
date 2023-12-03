@@ -201,7 +201,7 @@ class DatabaseService:
         return event
 
 # SEARCH LIST
-    def get_search_list(self):
+    def get_search_list(self) -> list[str]:
         "Get the list of shows being searched for."
         documents: list[dict] = list(self.search_list_collection.find({}))
         return [document['show'] for document in documents]
