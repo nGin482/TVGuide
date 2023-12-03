@@ -83,7 +83,6 @@ def search_bbc_australia(database_service: DatabaseService):
                     series_num = show['episode']['series']['number']
                     episode_num = show['episode']['number']
                     episode_title = show['episode']['title']
-                    print(f'{title} - Season {series_num} Episode {episode_num}: {episode_title}')
 
                     episodes = build_episode(
                         title,
@@ -101,8 +100,6 @@ def search_bbc_australia(database_service: DatabaseService):
     show_list = Validation.remove_unwanted_shows(show_list)
     shows_on = build_guide_shows(show_list, database_service)
 
-    for show in shows_on:
-        print(show)
     return shows_on
 
 def build_guide_shows(show_list: list[dict], database_service: DatabaseService):
@@ -184,7 +181,7 @@ def reminders(guide_list: list['GuideShow'], database_service: DatabaseService, 
         print('===================================================================================')
         return 'There are no reminders scheduled for today'
 
-def run_guide(database_service: DatabaseService, guide_list: list['GuideShow'], scheduler: AsyncIOScheduler=None):
+def run_guide(database_service: DatabaseService, fta_list: list['GuideShow'], bbc_list: list['GuideShow'], scheduler: AsyncIOScheduler=None):
 
     latest_guide = database_service.get_latest_guide()
     print(latest_guide.date)
@@ -192,7 +189,9 @@ def run_guide(database_service: DatabaseService, guide_list: list['GuideShow'], 
     update_db_flag = compare_dates(latest_guide.date)
     print(update_db_flag)
     
-    guide_message = compose_message(guide_list, [])
+    guide_list = fta_list + bbc_list
+    
+    guide_message = compose_message(fta_list, bbc_list)
     print(guide_message)
     if update_db_flag:
         clear_events_log()
@@ -201,8 +200,8 @@ def run_guide(database_service: DatabaseService, guide_list: list['GuideShow'], 
         for guide_show in guide_list:
             if 'HD' not in guide_show.channel:
                 database_service.capture_db_event(guide_show)
-        database_service.add_guide_data(guide_list, [])
-        log_guide_information(guide_list, [])
+        database_service.add_guide_data(fta_list, bbc_list)
+        log_guide_information(fta_list, bbc_list)
 
     reminders_message = reminders(guide_list, database_service, scheduler)
     return guide_message, reminders_message

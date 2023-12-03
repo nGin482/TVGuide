@@ -1,18 +1,13 @@
 from apscheduler.triggers.cron import CronTrigger
-from bs4 import BeautifulSoup
-from datetime import datetime
 from discord import TextChannel
 from dotenv import load_dotenv
 from requests import get
 import os
 
-from aux_methods.helper_methods import format_time, check_show_titles, compose_events_message
+from aux_methods.helper_methods import compose_events_message
 from config import database_service, scheduler
-from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
-from exceptions.tvguide_errors import BBCNotCollectedException
-from guide import run_guide, search_free_to_air
-from repeat_handler import get_today_shows_data
+from guide import run_guide, search_free_to_air, search_bbc_australia
 from services.hermes.hermes import hermes
 
 load_dotenv('.env')
@@ -49,7 +44,8 @@ async def send_main_message(database_service: DatabaseService):
     :return: n/a
     """
     fta_list = search_free_to_air(database_service)
-    guide_message, reminder_message = run_guide(database_service, fta_list, scheduler)
+    bbc_list = search_bbc_australia(database_service)
+    guide_message, reminder_message = run_guide(database_service, fta_list, bbc_list, scheduler)
     
     await hermes.wait_until_ready()
     tvguide_channel: TextChannel = hermes.get_channel(int(os.getenv('TVGUIDE_CHANNEL')))
