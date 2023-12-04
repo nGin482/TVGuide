@@ -157,7 +157,7 @@ def compose_message(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow'], 
         message = message + "Nothing on BBC today\n"
     else:
         for show in bbc_shows:
-            message += show.message_string()
+            message += f'{show.message_string()}\n'
 
     return message
 
