@@ -1,212 +1,197 @@
-from flask import Flask, request, Response
-from flask_restful import Api, Resource, reqparse
+from flask import Flask, request
 from flask_cors import CORS
-from flask_jwt_extended import create_access_token, JWTManager
-from database.show_list_collection import get_showlist, find_show, insert_into_showlist_collection, insert_into_showlist_collection, remove_show_from_list
-from database.recorded_shows_collection import get_all_recorded_shows, get_one_recorded_show, insert_new_recorded_show, insert_new_episode, delete_recorded_show
-from database.reminder_collection import get_all_reminders, get_one_reminder, create_reminder, edit_reminder, remove_reminder_by_title
-from database.users_collection import create_user, check_user_credentials
-from aux_methods.helper_methods import get_today_date, valid_reminder_fields
-import json
+from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_current_user
+from database.models.RecordedShow import RecordedShow, Season, Episode
+from database.models.Reminders import Reminder
+from database.models.Users import User
+from exceptions.DatabaseError import SearchItemAlreadyExistsError, DatabaseError
+from config import database_service
+from services.tvmaze.tvmaze_api import get_show_data
 import os
 
 app = Flask(__name__)
 CORS(app)
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
-JWTManager(app)
-api = Api(app)
+jwt = JWTManager(app)
 
-show_list_args = reqparse.RequestParser()
-show_list_args.add_argument('show', type=str, help='A show needs to be given to add to the list.', required=True)
+# https://www.google.com/search?q=flask-login+react&source=hp&ei=00HmYffoDZKK0AS5sZOYBQ&iflsig=ALs-wAMAAAAAYeZP4_oAIADJhFqmzSf0ow9fxXElhTOc&oq=flask-login+re&gs_lcp=Cgdnd3Mtd2l6EAMYADIFCAAQgAQyBQgAEIAEMgUIABCABDIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeOhEILhCABBCxAxCDARDHARDRAzoOCC4QgAQQsQMQxwEQowI6CAgAELEDEIMBOgsIABCABBCxAxCDAToICAAQgAQQsQM6CAguELEDEIMBOgsILhCABBDHARCjAjoICC4QgAQQsQM6CwguEIAEEMcBEK8BOg4IABCABBCxAxCDARDJA1AAWNAXYN0jaABwAHgBgAGPBIgB6xuSAQswLjYuMy40LjAuMZgBAKABAQ&sclient=gws-wiz
+# https://dev.to/nagatodev/how-to-add-login-authentication-to-a-flask-and-react-application-23i7
 
-class ShowList(Resource):
-    def get(self):
-        show_list = get_showlist()
-        if len(show_list) == 0:
-            return {'message': 'There are no shows being searched for.'}, 404
-        else:
-            return show_list
-            
-    def put(self):
-        request_args = show_list_args.parse_args()
-        insert_status = insert_into_showlist_collection(request_args['show'])
-        if insert_status['status']:
-            return {'show': request_args['show'], 'message': insert_status['message']}
-        else:
-            if 'searched' in insert_status['message']:
-                return {'show': request_args['show'], 'message': insert_status['message']}, 409
+@jwt.user_lookup_loader
+def user_lookup_callback(_jwt_header, jwt_data):
+    return database_service.get_user(jwt_data['sub'])
+
+@app.route('/api/show-list', methods=['GET'])
+def show_list():
+    return database_service.get_search_list()
+
+@app.route('/api/show-list', methods=['POST'])
+@jwt_required()
+def add_show_list():
+    user: User = get_current_user()
+    print(user.username)
+    if 'show' not in request.json.keys() or 'tvmaze_id' not in request.json.keys():
+        return {'message': "Please provide the show's name and the id from TVMaze"}, 400
+    show: str = request.json['show']
+    tvmaze_id: str = request.json['tvmaze_id']
+    try:
+        database_service.insert_into_showlist_collection(show)
+        new_show_data = get_show_data(show, tvmaze_id)
+        recorded_show = RecordedShow.from_database(new_show_data)
+        database_service.insert_recorded_show_document(recorded_show)
+        return {'message': f'{show} was added to the Search List'}
+    except SearchItemAlreadyExistsError as err:
+        return {'message': str(err)}, 409
+    except DatabaseError as err:
+        return {'message': str(err)}, 500
+
+@app.route('/api/guide')
+def guide():
+    if request.args.get('date'):
+        date = request.args.get('date')
+        guide = database_service.get_guide_date(date)
+        if not guide:
+            return {'message': f'No guide data has been found for {date}'}, 404
+    else:
+        guide = database_service.get_latest_guide()
+    return guide.to_dict()
+
+@app.route('/api/recorded-shows')
+def recorded_shows():
+    recorded_shows = [recorded_show.to_dict() for recorded_show in database_service.get_all_recorded_shows()]
+    return recorded_shows
+
+@app.route('/api/recorded-shows/<string:show>')
+def get_recorded_show(show: str):
+    recorded_show = database_service.get_one_recorded_show(show)
+    if recorded_show:
+        return recorded_show.to_dict()
+    return {'message': f'A recorded show for {show} could not be found'}, 404
+
+@app.route('/api/recorded-show/<string:show>', methods=['PUT', 'DELETE'])
+@jwt_required()
+def recorded_show(show: str):
+    recorded_show = database_service.get_one_recorded_show(show)
+    if recorded_show:
+        if request.method == 'PUT':
+            season_query = request.args.get('season')
+            episode_query = request.args.get('episode')
+            if season_query and episode_query:
+                # update episode
+                episode = Episode.from_database(request.json)
+                database_service.update_episode_in_database(show, season_query, episode)
+                return {'message': 'The episode has been updated'}
+            elif season_query:
+                # add episode to season
+                episode = Episode.from_database(request.json)
+                database_service.add_new_episode_to_season(recorded_show, season_query, episode)
+                return {'message': f'The episode has been added to Season {season_query} of {recorded_show.title}'}
             else:
-                return {'show': request_args['show'], 'message': insert_status['message']}, 500
-api.add_resource(ShowList, '/show-list')
-
-class SingleShowFromList(Resource):
-    def get(self, show):
-        print(show)
-        show_found = find_show(show)
-        if show_found['status']:
-            return find_show(show)['show']
-        else:
-            return {'show': show, 'message': show_found['message']}, 404
-            
-    def delete(self, show):
-        remove_status = remove_show_from_list(show)
-        if remove_status['status']:
-            return {'show': show, 'message': remove_status['message']}
-        else:
-            return {'show': show, 'message': remove_status['message']}, 500
-api.add_resource(SingleShowFromList, '/show-list/<string:show>')
-
-class Guide(Resource):
-    def get(self):
-        try:
-            filename = 'today_guide/' + get_today_date('string') + '.json'
-            with open(filename) as fd:
-                guide = json.load(fd)
-            return guide
-        except FileNotFoundError:
-            return {'status': False, 'message': 'There is no guide data to retrieve for ' + get_today_date('string') + '.'}, 404
-api.add_resource(Guide, '/guide')
-
-class RecordedShows(Resource):
-    def get(self):
-        recorded_shows = get_all_recorded_shows()
-        if len(recorded_shows) == 0:
-            return {'status': False, 'message': 'There is not any data about shows tracked.'}, 404
-        else:
-            for show in recorded_shows:
-                del show['_id']
-            return recorded_shows
-api.add_resource(RecordedShows, '/recorded-shows')
-
-class RecordedShow(Resource):
-    def get(self, show):
-        recorded_show = get_one_recorded_show(show)
-        if not recorded_show['status']:
-            return {'status': False, 'message': recorded_show['message']}, 404
-        else:
-            del recorded_show['show']['_id']
-            return recorded_show
-
-    def put(self, show):
-        # add episode to Recorded Show
-        recorded_show = get_one_recorded_show(show)
-        if not recorded_show['status']:
-            return {'status': False, 'message': recorded_show['message']}, 404
-        else:
-            body = request.get_json()
-            episode_insert_status = insert_new_episode(body)
-            if episode_insert_status['status']:
-                del episode_insert_status['result']['_id']
-                return episode_insert_status
+                # add season
+                season = Season.from_database(request.json)
+                database_service.add_new_season(recorded_show, season)
+                return {'message': f'The season has been added to {recorded_show.title}'}
+        if request.method == 'DELETE':
+            current_user: User = get_current_user()
+            if current_user.role != 'Admin':
+                return {'message': f'You are not authorised to delete {show}. Please make a request to delete it'}, 403
+            season_query = request.args.get('season')
+            episode_query = request.args.get('episode')
+            if season_query and episode_query:
+                # delete episode
+                database_service.remove_episode_from_season(show, season_query, int(episode_query))
+                return {'message': f'Episode {episode_query} has been removed from Season {season_query} of {show}'}
+            elif season_query:
+                # delete season
+                return {'message': 'No action performed'}
             else:
-                return episode_insert_status
+                # delete show
+                database_service.delete_recorded_show(show)
+                return {'message': f'{show} has been deleted'}
+    return {'message': f'A recorded show for {show} could not be found'}, 404
+
+@app.route('/api/reminders')
+def get_reminders():
+    reminders = [reminder.to_dict() for reminder in database_service.get_all_reminders()]
+    return reminders
+
+@app.route('/api/reminders', methods=['POST'])
+@jwt_required()
+def reminders():
+    reminder = request.json
+    show: str = reminder['show']
+    show_check = show in database_service.get_search_list()
+    reminder_check = database_service.get_one_reminder(show)
+    if not show_check:
+        return {'message': f'{show} is not being searched for'}, 400
+    if reminder_check:
+        return {'message': f'A reminder already exists for {show}'}, 409
+    new_reminder = Reminder.from_database(reminder)
+    try:
+        database_service.insert_new_reminder(new_reminder)
+        return [reminder.to_dict() for reminder in database_service.get_all_reminders()]
+    except DatabaseError as err:
+        return {'message': f'An error occurred creating the reminder for {show}', 'error': str(err)}, 500
     
-    def delete(self, show):
-        recorded_show = get_one_recorded_show(show)
-        if not recorded_show['status']:
-            return {'status': False, 'message': recorded_show['message']}, 404
-        else:
-            deleted_show = delete_recorded_show(show)
-            del deleted_show['show']['_id']
-            if not deleted_show['status']:
-                return {'status': False, 'message': deleted_show['message']}, 404
-            else:
-                return deleted_show
-api.add_resource(RecordedShow, '/recorded-show/<string:show>')
-
-class Reminders(Resource):
-    def get(self):
-        reminders = get_all_reminders()
-        if len(reminders) == 0:
-            return {'status': False, 'message': 'There are no reminders currently available'}, 404
-        for reminder in reminders:
-            del reminder['_id']
-        return reminders
+@app.route('/api/reminder/<string:show>')
+def get_reminder(show: str):
+    reminder = database_service.get_one_reminder(show)
+    if reminder:
+        return reminder.to_dict()
+    return {'message': f'A reminder for {show} does not exist'}, 404
     
-    def put(self):
-        reminder_body = request.get_json()
-        reminder_created = create_reminder(reminder_body)
-        if reminder_created['status']:
-            del reminder_created['reminder']['_id']
-            return reminder_created
-        else:
-            return reminder_created, 409
-api.add_resource(Reminders, '/reminders')
-
-class Reminder(Resource):
-    def get(self, show):
-        reminder = get_one_reminder(show)
-        if not reminder['status']:
-            return {'status': False, 'message': reminder['message']}, 404
-        del reminder['reminder']['_id']
-        return reminder['reminder']
-    
-    def patch(self, show):
-        reminder_check = get_one_reminder(show)
-        if not reminder_check['status']:
-            return {'status': False, 'message': reminder_check['message']}, 404
-        body = request.get_json()
-        if body['field'] in valid_reminder_fields():
-            update_reminder_object = {
-                'show': show,
-                'field': body['field'],
-                'value': body['value']
-            }
-            update_reminder_status = edit_reminder(update_reminder_object)
-            if update_reminder_status['status']:
-                del update_reminder_status['reminder']['_id']
-                return update_reminder_status
-            else:
-                return update_reminder_status, 500
-        return {'status': False, 'message': 'Unable to update this reminder because the field given to update is not valid.'}, 400
-
-    def delete(self, show):
-        reminder_check = get_one_reminder(show)
-        if not reminder_check['status']:
-            return {'message': 'There is no reminder set for ' + show + '.'}, 404
-        remove_reminder_status = remove_reminder_by_title(show)
-        if not remove_reminder_status['status']:
-            return remove_reminder_status, 500
-        del remove_reminder_status['reminder']['_id']
-        return remove_reminder_status
-api.add_resource(Reminder, '/reminder/<string:show>')
+@app.route('/api/reminder/<string:show>', methods=['PUT', 'DELETE'])
+@jwt_required()
+def reminder(show: str):
+    reminder = database_service.get_one_reminder(show)
+    if reminder:
+        if request.method == 'PUT':
+            body = dict(request.json)
+            updated_reminder = Reminder.from_database(body)
+            database_service.update_reminder(updated_reminder)
+            return updated_reminder.to_dict()
+        if request.method == 'DELETE':
+            current_user: User = get_current_user()
+            if current_user.role != 'Admin':
+                return {'message': f'You are not authorised to delete this reminder. Please make a request to delete it'}, 403
+            database_service.delete_reminder(show)
+            reminders = [reminder.to_dict() for reminder in database_service.get_all_reminders()]
+            return {'message': f'The reminder for {show} has been deleted', 'reminders': reminders}
+    return {'message': f'A reminder for {show} does not exist'}, 404
    
-class RegisterUser(Resource):
-    def put(self):
-        new_user = request.get_json()
-        print(new_user)
-        insert_new_user = create_user(new_user)
-        if insert_new_user['status']:
-            return insert_new_user
-        else:
-            return insert_new_user, 500
-api.add_resource(RegisterUser, '/register')
+@app.route('/api/auth/register', methods=['POST'])
+def registerUser():
+    body = request.json
+    check_user = database_service.get_user(body['username'])
+    if check_user:
+        return {'message': 'This username is already in use'}, 409
+    print(body)
+    database_service.register_user(body['username'], body['password'], body['show_subscriptions'], body['reminder_subscriptions'])
+    return {'message': 'You have successfully been registered'}
 
-class Login(Resource):
-    def post(self):
-        given_credentials = request.get_json()
-        cred_check = check_user_credentials(given_credentials)
-        if cred_check['status']:
-            return {
-                'user': given_credentials['username'],
-                'searchList': cred_check['user']['searchList'],
-                'reminders': cred_check['user']['reminders'],
-                'token': create_access_token(identity=given_credentials['username']),
-                'role': cred_check['user']['role']
-            }
-        else:
-            return {'status': False, 'message': 'Incorrect username or password'}, 401
-api.add_resource(Login, '/login')
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    given_credentials = request.json
+    user = database_service.get_user(given_credentials['username'])
+    if user and user.check_password(given_credentials['password']):
+        return {
+            'user': user.username,
+            'searchList': user.show_subscriptions,
+            'reminders': user.reminder_subscriptions,
+            'token': create_access_token(identity=user.username),
+            'role': user.role
+        }
+    return {'message': 'Incorrect username or password'}, 401
 
-class Events(Resource):
-    def get(self):
-        try:
-            with open('log/events.json') as fd:
-                events = json.load(fd)
-            return events
-        except FileNotFoundError:
-            return {'message': 'The logging information can not be retrieved.'}, 404
-api.add_resource(Events, '/events')
+@app.route('/api/events')
+@jwt_required()
+def events():
+    user: User = get_current_user()
+    if user.role != 'Admin':
+        return {'message': 'You are not authorised to retrieve events'}, 403
+    guide = database_service.get_latest_guide()
+    events = [show.to_dict() for show in guide.fta_shows]
+    return events
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port='5000', debug=True)
