@@ -29,6 +29,7 @@ class Guide:
                     (show['season_number'], show['episode_number'], show['episode_title']),
                     database_service.get_one_recorded_show(show['title'])
                 )
+                guide_show.db_event = show['event']
             else:
                 guide_show = GuideShow.unknown_season(
                     show['title'],
@@ -37,6 +38,7 @@ class Guide:
                     database_service.get_one_recorded_show(show['title']),
                     show['episode_number']
                 )
+                guide_show.db_event = show['event']
             fta_list.append(guide_show)
 
         return cls(guide_details['date'], fta_list, [])
