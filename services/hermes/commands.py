@@ -108,14 +108,14 @@ async def season_details(ctx: Context, show: str, season: str):
         await ctx.send(f'{show} could not be found in the database')
 
 @hermes.command()
-async def create_reminder(ctx: Context, show: str, reminder_alert: str = 'Before', warning_time: str = '3', occassions: str = 'All'):
+async def create_reminder(ctx: Context, show: str, reminder_alert: str = 'Before', warning_time: str = '3', occasions: str = 'All'):
     try:
         reminder_exists = database_service.get_one_reminder(show)
         if reminder_exists is not None:
             await ctx.send(f'A reminder already exists for {show}')
     except ReminderNotFoundError:
         if show in database_service.get_search_list():
-            reminder = Reminder.from_values(show, reminder_alert, int(warning_time), occassions)
+            reminder = Reminder.from_values(show, reminder_alert, int(warning_time), occasions)
             database_service.insert_new_reminder(reminder)
         else:
             await ctx.send(f'A reminder cannot be created for {show} as it is not being searched for.')
