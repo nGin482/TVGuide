@@ -12,11 +12,3 @@ class SearchItem:
     def from_database(cls, search_item: dict[str]):
         return cls(search_item['show'], search_item['image'], search_item['conditions'], search_item['search_active'])
 
-    
-    def to_dict(self):
-        return {
-            'show': self.show,
-            'image': self.image,
-            'conditions': self.conditions,
-            'search_active': self.search_active
-        }
