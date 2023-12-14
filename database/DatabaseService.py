@@ -10,6 +10,7 @@ from database.models.Guide import Guide
 from database.models.GuideShow import GuideShow
 from database.models.RecordedShow import RecordedShow, Season, Episode
 from database.models.Reminders import Reminder
+from database.models.SearchItem import SearchItem
 from database.models.Users import User
 from exceptions.DatabaseError import DatabaseError, EpisodeNotFoundError, ReminderNotFoundError, SearchItemAlreadyExistsError, SearchItemNotFoundError, SeasonNotFoundError, ShowNotFoundError
 from log import log_database_event
@@ -201,10 +202,10 @@ class DatabaseService:
         return event
 
 # SEARCH LIST
-    def get_search_list(self) -> list[str]:
+    def get_search_list(self):
         "Get the list of shows being searched for."
         documents: list[dict] = list(self.search_list_collection.find({}))
-        return [document['show'] for document in documents]
+        return [SearchItem.from_database(document) for document in documents]
 
     def insert_into_showlist_collection(self, show: str):
         """Insert the given `show` into the SearchList collection.\n
