@@ -10,7 +10,7 @@ from data_validation.validation import Validation
 from database.models.RecordedShow import RecordedShow
 from database.models.Reminders import Reminder
 from exceptions.DatabaseError import DatabaseError, ReminderNotFoundError, SearchItemAlreadyExistsError, SearchItemNotFoundError, ShowNotFoundError
-from guide import compose_message, revert_database_tvguide, run_guide, search_free_to_air
+from guide import compose_message, revert_database_tvguide, run_guide, search_free_to_air, search_bbc_australia
 from log import get_date_from_tvguide_message
 from services.hermes.hermes import hermes
 from services.tvmaze.tvmaze_api import get_show_data
@@ -44,7 +44,8 @@ async def remove_show(ctx: Context, show: str):
 @hermes.command()
 async def send_guide(ctx: Context):
     fta_list = search_free_to_air(database_service)
-    guide_message, reminders_message = run_guide(database_service, fta_list, scheduler)
+    bbc_list = search_bbc_australia(database_service)
+    guide_message, reminders_message = run_guide(database_service, fta_list, bbc_list, scheduler)
     await ctx.send(guide_message)
     await ctx.send(reminders_message)
 
