@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_current_user
 from database.models.RecordedShow import RecordedShow, Season, Episode
 from database.models.Reminders import Reminder
+from database.models.SearchItem import SearchItem
 from database.models.Users import User
 from exceptions.DatabaseError import SearchItemAlreadyExistsError, DatabaseError
 from config import database_service
@@ -30,16 +31,18 @@ def show_list():
 def add_show_list():
     user: User = get_current_user()
     print(user.username)
-    if 'show' not in request.json.keys() or 'tvmaze_id' not in request.json.keys():
+    body = request.json
+    if 'show' not in body.keys() or 'tvmaze_id' not in body.keys() or 'conditions' not in body.keys() or 'image' not in body.keys():
         return {'message': "Please provide the show's name and the id from TVMaze"}, 400
-    show: str = request.json['show']
-    tvmaze_id: str = request.json['tvmaze_id']
+    if body['show'] == '' or body['tvmaze_id'] == '' or body['conditions'] == {} or body['image'] == '':
+        return {'message': "Please provide the show's name and the id from TVMaze"}, 400
     try:
-        database_service.insert_into_showlist_collection(show)
-        new_show_data = get_show_data(show, tvmaze_id)
+        search_item = SearchItem(body['show'], body['image'], body['conditions'], True)
+        database_service.add_search_item(search_item)
+        new_show_data = get_show_data(body['show'], body['tvmaze_id'])
         recorded_show = RecordedShow.from_database(new_show_data)
         database_service.insert_recorded_show_document(recorded_show)
-        return {'message': f'{show} was added to the Search List'}
+        return {'message': f'{body["show"]} was added to the Search List'}
     except SearchItemAlreadyExistsError as err:
         return {'message': str(err)}, 409
     except DatabaseError as err:
