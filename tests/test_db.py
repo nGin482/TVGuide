@@ -251,7 +251,7 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(reminder_dw.show, self.guide_shows[0].title)
         self.assertEqual(reminder_dw.reminder_alert, 'Before')
         self.assertEqual(reminder_dw.warning_time, 3)
-        self.assertEqual(reminder_dw.occassions, 'All')
+        self.assertEqual(reminder_dw.occasions, 'All')
         self.assertEqual(reminder_dw.guide_show, self.guide_shows[0])
         self.reminders.append(reminder_dw)
 
@@ -260,7 +260,7 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(reminder_endeavour.show, self.guide_shows[1].title)
         self.assertEqual(reminder_endeavour.reminder_alert, 'Before')
         self.assertEqual(reminder_endeavour.warning_time, 3)
-        self.assertEqual(reminder_endeavour.occassions, 'All')
+        self.assertEqual(reminder_endeavour.occasions, 'All')
         self.assertEqual(reminder_endeavour.guide_show, self.guide_shows[1])
         self.reminders.append(reminder_endeavour)
 

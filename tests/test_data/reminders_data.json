@@ -3,18 +3,18 @@
         "show": "Doctor Who",
         "reminder_alert": "Before",
         "warning_time": 3,
-        "occassions": "All"
+        "occasions": "All"
     },
     {
         "show": "Endeavour",
         "reminder_alert": "Before",
         "warning_time": 5,
-        "occassions": "All"
+        "occasions": "All"
     },
     {
         "show": "Lewis",
         "reminder_alert": "Before",
         "warning_time": 5,
-        "occassions": "Once"
+        "occasions": "Once"
     }
 ]

@@ -33,8 +33,8 @@ def search_free_to_air(database_service: DatabaseService):
     for channel_data in schedule:
         for guide_show in channel_data['listing']:
             title = guide_show['title']
-            for show in search_list:
-                if show in title:
+            for search_item in search_list:
+                if search_item.show in title:
                     show_date = datetime.strptime(guide_show['start_time'], '%Y-%m-%dT%H:%M:%S')
                     if show_date.day == date.day:
                         season_number = 'Unknown'
@@ -77,7 +77,7 @@ def search_bbc_australia(database_service: DatabaseService):
         for show in channel_data:
             for search_item in search_list:
                 title = show['show']['title']
-                if title == search_item:
+                if title == search_item.show:
                     guide_start = datetime.strptime(show['start'], '%Y-%m-%d %H:%M:%S')
                     start_time = convert_utc_to_local(guide_start)
                     series_num = show['episode']['series']['number']
