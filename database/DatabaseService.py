@@ -212,7 +212,7 @@ class DatabaseService:
         if show_exists:
             raise SearchItemAlreadyExistsError(f'The show {search_item.show} is already being searched for')
         try:
-            pass
+            self.search_list_collection.insert_one(search_item.to_dict())
         except OperationFailure as err:
             raise DatabaseError(f'There was a problem adding {search_item.show} to the search list. Error: {str(err)}')
 
