@@ -32,17 +32,18 @@ def add_show_list():
     user: User = get_current_user()
     print(user.username)
     body = request.json
-    if 'show' not in body.keys() or 'tvmaze_id' not in body.keys() or 'conditions' not in body.keys() or 'image' not in body.keys():
-        return {'message': "Please provide the show's name and the id from TVMaze"}, 400
-    if body['show'] == '' or body['tvmaze_id'] == '' or body['conditions'] == {} or body['image'] == '':
-        return {'message': "Please provide the show's name and the id from TVMaze"}, 400
+    if 'show' not in body or 'tvmaze_id' not in body or 'image' not in body or 'conditions' not in body:
+        return {'message': "Please provide the show's name, the search conditions and the id and image from TVMaze"}, 400
+    show, image, tvmaze_id, conditions = body
+    if show == '' or image == '' or tvmaze_id == '' or conditions == {}:
+        return {'message': "Please provide the show's name, the search conditions and the id and image from TVMaze"}, 400
     try:
-        search_item = SearchItem(body['show'], body['image'], body['conditions'], True)
-        database_service.add_search_item(search_item)
-        new_show_data = get_show_data(body['show'], body['tvmaze_id'])
+        new_search_item = SearchItem(show, image, conditions, True)
+        database_service.add_search_item(new_search_item)
+        new_show_data = get_show_data(show, tvmaze_id)
         recorded_show = RecordedShow.from_database(new_show_data)
         database_service.insert_recorded_show_document(recorded_show)
-        return {'message': f'{body["show"]} was added to the Search List'}
+        return {'message': f'{show} was added to the Search List'}
     except SearchItemAlreadyExistsError as err:
         return {'message': str(err)}, 409
     except DatabaseError as err:
@@ -115,8 +116,12 @@ def recorded_show(show: str):
 
 @app.route('/api/reminders')
 def get_reminders():
-    reminders = [reminder.to_dict() for reminder in database_service.get_all_reminders()]
-    return reminders
+    try:
+        reminders = [reminder.to_dict() for reminder in database_service.get_all_reminders()]
+        return reminders
+    except (KeyError, ValueError) as error:
+        return {'message': 'There was a problem retrieving the reminders', 'error': str(error)}, 500
+
 
 @app.route('/api/reminders', methods=['POST'])
 @jwt_required()
