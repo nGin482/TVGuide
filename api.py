@@ -23,7 +23,7 @@ def user_lookup_callback(_jwt_header, jwt_data):
 
 @app.route('/api/show-list', methods=['GET'])
 def show_list():
-    return database_service.get_search_list()
+    return [item.to_dict() for item in database_service.get_search_list()]
 
 @app.route('/api/show-list', methods=['POST'])
 @jwt_required()
