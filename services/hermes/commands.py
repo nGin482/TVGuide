@@ -6,7 +6,7 @@ from zipfile import ZipFile
 import os
 import re
 
-from aux_methods.helper_methods import show_list_message, parse_date_from_command, compose_events_message
+from aux_methods.helper_methods import show_list_message, parse_date_from_command, compose_events_message, split_message_by_time
 from config import database_service, scheduler
 from data_validation.validation import Validation
 from database.models.RecordedShow import RecordedShow
@@ -57,11 +57,15 @@ async def send_guide(ctx: Context):
             fta_message = guide_message[0:bbc_index]
             bbc_message = guide_message[bbc_index+1]
 
-            await ctx.send(fta_message)
+            if len(fta_message) > 2000:
+                fta_am_message, fta_pm_message = split_message_by_time(fta_message)
+                await ctx.send(fta_am_message)
+                await ctx.send(fta_pm_message)
+            else:
+                await ctx.send(fta_message)
+
             if len(bbc_message) > 2000:
-                bbc_am_index = re.search(r"12:[0-5][0-9]", bbc_message).start()
-                bbc_am_message = bbc_message[0:bbc_am_index]
-                bbc_pm_message = bbc_message[bbc_am_index+1:]
+                bbc_am_message, bbc_pm_message = split_message_by_time(bbc_message)
                 await ctx.send(bbc_am_message)
                 await ctx.send(bbc_pm_message)
             else:

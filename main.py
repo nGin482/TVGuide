@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from requests import get
 import os
 
-from aux_methods.helper_methods import compose_events_message
+from aux_methods.helper_methods import compose_events_message, split_message_by_time
 from config import database_service, scheduler
 from database.DatabaseService import DatabaseService
 from guide import run_guide, search_free_to_air, search_bbc_australia
@@ -41,7 +41,7 @@ def search_vera_series():
 async def send_main_message(database_service: DatabaseService):
     """
 
-    :param send_status:
+    :param `database_service`: The service handler for database operations
     :return: n/a
     """
     fta_list = search_free_to_air(database_service)
@@ -53,20 +53,30 @@ async def send_main_message(database_service: DatabaseService):
     ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
     try:
         await tvguide_channel.send(guide_message)
-        await tvguide_channel.send(reminder_message)
-        await ngin.send(compose_events_message())
     except HTTPException as error:
         if 'In content: Must be 2000 or fewer in length' in error.text:
             bbc_index = guide_message.find('\nBBC:\n')
             fta_message = guide_message[0:bbc_index]
             bbc_message = guide_message[bbc_index+1]
             
-            await tvguide_channel.send(fta_message)
-            await tvguide_channel.send(bbc_message)
-            await tvguide_channel.send(reminder_message)
-            await ngin.send(compose_events_message())
+            if len(fta_message) > 2000:
+                fta_am_message, fta_pm_message = split_message_by_time(fta_message)
+                await tvguide_channel.send(fta_am_message)
+                await tvguide_channel.send(fta_pm_message)
+            else:
+                await tvguide_channel.send(fta_message)
+
+            if len(bbc_message) > 2000:
+                bbc_am_message, bbc_pm_message = split_message_by_time(bbc_message)
+                await tvguide_channel.send(bbc_am_message)
+                await tvguide_channel.send(bbc_pm_message)
+            else:
+                await tvguide_channel.send(bbc_message)
     except AttributeError:
         await ngin.send('The channel resolved to NoneType so the message could not be sent')
+    finally:
+        await tvguide_channel.send(reminder_message)
+        await ngin.send(compose_events_message())
 
 
 if __name__ == '__main__':

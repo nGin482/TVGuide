@@ -187,3 +187,17 @@ def build_episode(show_title: str, channel: str, time: datetime, season_number: 
             'episode_title': Validation.format_episode_title(episode_title)
         })
     return episodes
+
+def split_message_by_time(message: str):
+    """
+    Use regex to search for any show starting between 12:00 and 13:00 in the given `message`.
+    Split the given message into two substrings:\n
+    all shows from 00:00 to 12:59\n
+    all shows from 13:00 to 23:59.
+    """
+
+    am_index = re.search(r"12:[0-5][0-9]", message).start()
+    am_message = message[0:am_index]
+    pm_message = message[am_index+1:]
+
+    return [am_message, pm_message]
