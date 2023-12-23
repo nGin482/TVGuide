@@ -25,6 +25,7 @@ class DatabaseService:
         self.search_list_collection = self.database.get_collection('ShowList')
         self.guide_collection = self.database.get_collection('Guide')
         self.users_collection = self.database.get_collection('Users')
+        self.source_data = self.database.get_collection('SourceData')
     
 # RECORDED SHOWS
     def get_all_recorded_shows(self):
@@ -375,6 +376,17 @@ class DatabaseService:
             self.users_collection.find_one_and_delete({'username': username})
             return True
         return False
+    
+
+    # Source Data - Development Environment
+    def get_source_data(self):
+        fta_document = {
+            'channel': 'ABC1',
+            'listing': []
+        }
+
+        source_data = self.source_data.find({})
+        return [source for source in source_data]
 
 
     def __repr__(self) -> str:

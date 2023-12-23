@@ -1,6 +1,7 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
 from requests import get
+import os
 
 from aux_methods.helper_methods import build_episode, convert_utc_to_local
 from data_validation.validation import Validation
@@ -27,7 +28,8 @@ def search_free_to_air(database_service: DatabaseService):
     new_url = f"https://epg.abctv.net.au/processed/Sydney_{date.strftime('%Y-%m-%d')}.json"
     shows_data: list[dict] = []
 
-    schedule = dict(find_json(new_url))['schedule']
+    environment = os.getenv('PYTHON_ENV')
+    schedule = dict(find_json(new_url))['schedule'] if environment == 'production' else None
     search_list = database_service.get_search_list()
 
     for channel_data in schedule:
