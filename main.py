@@ -1,5 +1,6 @@
 from apscheduler.triggers.cron import CronTrigger
 from discord import TextChannel
+from discord.errors import HTTPException
 from dotenv import load_dotenv
 from requests import get
 import os
@@ -54,6 +55,16 @@ async def send_main_message(database_service: DatabaseService):
         await tvguide_channel.send(guide_message)
         await tvguide_channel.send(reminder_message)
         await ngin.send(compose_events_message())
+    except HTTPException as error:
+        if 'In content: Must be 2000 or fewer in length' in error.text:
+            bbc_index = guide_message.find('\nBBC:\n')
+            fta_message = guide_message[0:bbc_index]
+            bbc_message = guide_message[bbc_index+1]
+            
+            await tvguide_channel.send(fta_message)
+            await tvguide_channel.send(bbc_message)
+            await tvguide_channel.send(reminder_message)
+            await ngin.send(compose_events_message())
     except AttributeError:
         await ngin.send('The channel resolved to NoneType so the message could not be sent')
 
