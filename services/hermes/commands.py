@@ -1,8 +1,10 @@
 from datetime import datetime
 from discord import Message, File
 from discord.ext.commands import Context
+from discord.errors import HTTPException
 from zipfile import ZipFile
 import os
+import re
 
 from aux_methods.helper_methods import show_list_message, parse_date_from_command, compose_events_message
 from config import database_service, scheduler
@@ -46,8 +48,27 @@ async def send_guide(ctx: Context):
     fta_list = search_free_to_air(database_service)
     bbc_list = search_bbc_australia(database_service)
     guide_message, reminders_message = run_guide(database_service, fta_list, bbc_list, scheduler)
-    await ctx.send(guide_message)
-    await ctx.send(reminders_message)
+    ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
+    try:
+        await ctx.send(guide_message)
+    except HTTPException as error:
+        if 'In content: Must be 2000 or fewer in length' in error.text:
+            bbc_index = guide_message.find('\nBBC:\n')
+            fta_message = guide_message[0:bbc_index]
+            bbc_message = guide_message[bbc_index+1]
+
+            await ctx.send(fta_message)
+            if len(bbc_message) > 2000:
+                bbc_am_index = re.search(r"12:[0-5][0-9]", bbc_message).start()
+                bbc_am_message = bbc_message[0:bbc_am_index]
+                bbc_pm_message = bbc_message[bbc_am_index+1:]
+                await ctx.send(bbc_am_message)
+                await ctx.send(bbc_pm_message)
+            else:
+                await ctx.send(bbc_message)
+    finally:
+        await ctx.send(reminders_message)
+        await ngin.send(compose_events_message())
 
 @hermes.command()
 async def send_guide_record(ctx: Context, date_to_send: str):
