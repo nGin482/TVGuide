@@ -55,7 +55,7 @@ async def send_guide(ctx: Context):
         if 'In content: Must be 2000 or fewer in length' in error.text:
             bbc_index = guide_message.find('\nBBC:\n')
             fta_message = guide_message[0:bbc_index]
-            bbc_message = guide_message[bbc_index+1]
+            bbc_message = guide_message[bbc_index:]
 
             if len(fta_message) > 2000:
                 fta_am_message, fta_pm_message = split_message_by_time(fta_message)
@@ -90,7 +90,7 @@ async def revert_tvguide(ctx: Context, date_to_delete: str = None):
     # else, search for today's date
     # if none found, send message "could not find TVGuide message"
     
-    revert_database_tvguide(database_service)
+    # revert_database_tvguide(database_service)
     message_to_delete = None
     messages: list[Message] = await ctx.history(limit=5).flatten()
     for message in messages:
