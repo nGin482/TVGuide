@@ -8,6 +8,7 @@ from log import read_events
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from database.models.GuideShow import GuideShow
+    from database.models.SearchItem import SearchItem
 
 def format_time(time):
     """
@@ -65,9 +66,9 @@ def format_title(title: str):
 
     return title
 
-def show_list_message(shows_list: list[str]):
+def show_list_message(search_list: list[SearchItem]):
     """Return a message-friendly version of the shows being searched for"""
-    return '\n'.join(shows_list)
+    return '\n'.join([search_item.show for search_item in search_list])
 
 def check_show_titles(show):
     if type(show) is str:
@@ -198,6 +199,6 @@ def split_message_by_time(message: str):
 
     am_index = re.search(r"12:[0-5][0-9]", message).start()
     am_message = message[0:am_index]
-    pm_message = message[am_index+1:]
+    pm_message = message[am_index:]
 
-    return [am_message, pm_message]
+    return am_message, pm_message

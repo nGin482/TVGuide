@@ -57,7 +57,7 @@ async def send_main_message(database_service: DatabaseService):
         if 'In content: Must be 2000 or fewer in length' in error.text:
             bbc_index = guide_message.find('\nBBC:\n')
             fta_message = guide_message[0:bbc_index]
-            bbc_message = guide_message[bbc_index+1]
+            bbc_message = guide_message[bbc_index:]
             
             if len(fta_message) > 2000:
                 fta_am_message, fta_pm_message = split_message_by_time(fta_message)
