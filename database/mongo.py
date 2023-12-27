@@ -4,7 +4,7 @@ import os
 def mongo_client():
     try:
         return MongoClient(os.getenv('TVGUIDE_DB'))
-    except errors.ConfigurationError | errors.ServerSelectionTimeoutError as e:
+    except (errors.ConfigurationError, errors.ServerSelectionTimeoutError) as e:
         from services.hermes.hermes import hermes
         print('Having trouble connecting to the database.')
         print(e)
