@@ -29,7 +29,7 @@ def search_free_to_air(database_service: DatabaseService):
     shows_data: list[dict] = []
 
     environment = os.getenv('PYTHON_ENV')
-    schedule = dict(find_json(new_url))['schedule'] if environment == 'production' else None
+    schedule = dict(find_json(new_url))['schedule'] if environment == 'production' else database_service.get_source_data('FTA')
     search_list = database_service.get_search_list()
 
     for channel_data in schedule:
@@ -68,8 +68,13 @@ def search_bbc_australia(database_service: DatabaseService):
     current_date = Validation.get_current_date().date()
     search_date = current_date.strftime('%Y-%m-%d')
     
-    bbc_first_data = find_json(f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-first?timezone=Australia%2FSydney&date={search_date}')
-    bbc_uktv_data = find_json(f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-uktv?timezone=Australia%2FSydney&date={search_date}')
+    environment = os.getenv('PYTHON_ENV')
+    if environment == 'production':
+        bbc_first_data = find_json(f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-first?timezone=Australia%2FSydney&date={search_date}')
+        bbc_uktv_data = find_json(f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-uktv?timezone=Australia%2FSydney&date={search_date}')
+    else:
+        bbc_first_data = database_service.get_source_data('BBC First')
+        bbc_uktv_data = database_service.get_source_data('BBC UKTV')
 
     search_list = database_service.get_search_list()
 
@@ -186,9 +191,11 @@ def reminders(guide_list: list['GuideShow'], database_service: DatabaseService, 
 def run_guide(database_service: DatabaseService, fta_list: list['GuideShow'], bbc_list: list['GuideShow'], scheduler: AsyncIOScheduler=None):
 
     latest_guide = database_service.get_latest_guide()
-    print(latest_guide.date)
-    
-    update_db_flag = compare_dates(latest_guide.date)
+    if latest_guide:
+        print(latest_guide.date)
+        update_db_flag = compare_dates(latest_guide.date)
+    else:
+        update_db_flag = True
     print(update_db_flag)
     
     guide_list = fta_list + bbc_list

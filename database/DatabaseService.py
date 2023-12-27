@@ -320,8 +320,10 @@ class DatabaseService:
     def get_latest_guide(self):
         """Return the latest `Guide` record from the collection"""
         guide_results = list(self.guide_collection.find({}).sort('_id', DESCENDING).limit(1))
-        latest_guide = dict(guide_results[0])
-        return Guide.from_database(latest_guide, self)
+        if len(guide_results) > 0:
+            latest_guide = dict(guide_results[0])
+            return Guide.from_database(latest_guide, self)
+        return None
 
     def search_guides_for_show(self, show_title: str):
         """Search all guide data for when the given show_title has been aired"""
@@ -379,13 +381,8 @@ class DatabaseService:
     
 
     # Source Data - Development Environment
-    def get_source_data(self):
-        fta_document = {
-            'channel': 'ABC1',
-            'listing': []
-        }
-
-        source_data = self.source_data.find({})
+    def get_source_data(self, service: str = 'All'):
+        source_data = self.source_data.find({ 'service': service })
         return [source for source in source_data]
 
 
