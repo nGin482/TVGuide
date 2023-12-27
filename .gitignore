@@ -16,6 +16,7 @@
 /misc_working
 /database/backups
 /database/restore
+/dev-data/mongo_data
 
 # files
 *.pyc
