@@ -150,15 +150,16 @@ class DatabaseService:
         hermes.dispatch('db_rollback')
 
 
-    def capture_db_event(self, guide_show: GuideShow):
+    def capture_db_event(self, guide_show: GuideShow, date: str = None):
         from services.hermes.hermes import hermes
         
         recorded_show = guide_show.recorded_show
+        event_date = datetime.strptime(date, '%d/%m/%Y') if date is not None else Validation.get_current_date().date()
         
         try:
             episode = guide_show.find_recorded_episode()
             print(f'{guide_show.title} happening on channel/repeat')
-            episode.air_dates.append(Validation.get_current_date().date())
+            episode.air_dates.append(event_date)
             episode.channels = list(set(episode.channels))
             result = f"{guide_show.title} has aired today"
             if episode.channel_check(guide_show.channel) is False:
@@ -384,6 +385,38 @@ class DatabaseService:
     def get_source_data(self, service: str = 'All'):
         source_data = self.source_data.find({ 'service': service })
         return [source for source in source_data]
+    
+    def import_data(self):
+        self.source_data.delete_many({})
+        self.search_list_collection.delete_many({})
+
+        with open('dev-data/search_list.json') as fd:
+            search_list = json.load(fd)
+        result = self.search_list_collection.insert_many(search_list)
+        print(len(result.inserted_ids), 'documents inserted in the Search List collection')
+
+        with open('dev-data/fta_source_data.json') as fd:
+            fta_data = list(json.load(fd))
+        with open('dev-data/bbc_first_source_data.json') as fd:
+            bbc_first_data = list(json.load(fd))
+        with open('dev-data/bbc_uktv_source_data.json') as fd:
+            bbc_uktv_data = list(json.load(fd))
+        
+        fta_result = self.source_data.insert_one({
+            'service': "FTA",
+            'schedule': fta_data
+        })
+        bbc_first_result = self.source_data.insert_one({
+            'service': "BBC First",
+            'schedule': bbc_first_data
+        })
+        bbc_uktv_result = self.source_data.insert_one({
+            'service': "BBC UKTV",
+            'schedule': bbc_uktv_data
+        })
+        print(fta_result.inserted_id, 'added to SourceData collection')
+        print(bbc_first_result.inserted_id, 'added to SourceData collection')
+        print(bbc_uktv_result.inserted_id, 'added to SourceData collection')
 
 
     def __repr__(self) -> str:

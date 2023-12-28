@@ -42,18 +42,23 @@ def local_message():
 
 if __name__ == '__main__':
     from config import database_service
-    if len(sys.argv):
-        if '--revert-tvguide' in sys.argv[1]:
-            from config import database_service
-            revert_database_tvguide(database_service)
-        elif '--no-discord' in sys.argv[1]:
+    if '--local-db' in sys.argv:
+        print(database_service)
+        if '--no-discord' in sys.argv:
             local_message()
+        elif '--import' in sys.argv:
+            database_service.import_data()
+        else:
+            guide_message, reminder_message = get_guide_data()
+            try:
+                hermes.loop.create_task(send_main_message())
+                hermes.run(getenv('HERMES'))
+            except ClientConnectorError:
+                print(guide_message)
+                print(reminder_message)
+    elif '--revert-tvguide' in sys.argv:
+        revert_database_tvguide(database_service)
     else:
-        guide_message, reminder_message = get_guide_data()
-        try:
-            hermes.loop.create_task(send_main_message())
-            hermes.run(getenv('HERMES'))
-        except ClientConnectorError:
-            print(guide_message)
-            print(reminder_message)
+        print('Invalid options have been provided')
+        print('\n'.join(sys.argv))
             
