@@ -20,7 +20,7 @@ async def send_main_message():
     :return: n/a
     """
     await hermes.wait_until_ready()
-    tvguide_channel: TextChannel = hermes.get_channel(int(getenv('TVGUIDE_CHANNEL')))
+    tvguide_channel: TextChannel = hermes.get_channel(int(getenv('DEV_CHANNEL')))
     try:
         await tvguide_channel.send(guide_message)
         await tvguide_channel.send(reminder_message)
@@ -33,9 +33,7 @@ async def send_main_message():
     await hermes.close()
 
 def local_message():
-    fta_list = search_free_to_air(database_service)
-    bbc_list = search_bbc_australia(database_service)
-    guide_message, reminder_message = run_guide(database_service, fta_list, bbc_list)
+    guide_message, reminder_message = get_guide_data()
 
     print(guide_message)
     print(reminder_message)
