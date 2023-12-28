@@ -25,7 +25,7 @@ class DatabaseService:
         self.search_list_collection = self.database.get_collection('ShowList')
         self.guide_collection = self.database.get_collection('Guide')
         self.users_collection = self.database.get_collection('Users')
-        self.source_data = self.database.get_collection('SourceData')
+        self.source_data_collection = self.database.get_collection('SourceData')
     
 # RECORDED SHOWS
     def get_all_recorded_shows(self):
@@ -383,11 +383,11 @@ class DatabaseService:
 
     # Source Data - Development Environment
     def get_source_data(self, service: str = 'All'):
-        source_data = self.source_data.find_one({ 'service': service })
+        source_data = self.source_data_collection.find_one({ 'service': service })
         return dict(source_data)
     
     def import_data(self):
-        self.source_data.delete_many({})
+        self.source_data_collection.delete_many({})
         self.search_list_collection.delete_many({})
 
         with open('dev-data/search_list.json') as fd:
@@ -402,15 +402,15 @@ class DatabaseService:
         with open('dev-data/bbc_uktv_source_data.json') as fd:
             bbc_uktv_data = list(json.load(fd))
         
-        fta_result = self.source_data.insert_one({
+        fta_result = self.source_data_collection.insert_one({
             'service': "FTA",
             'schedule': fta_data
         })
-        bbc_first_result = self.source_data.insert_one({
+        bbc_first_result = self.source_data_collection.insert_one({
             'service': "BBC First",
             'schedule': bbc_first_data
         })
-        bbc_uktv_result = self.source_data.insert_one({
+        bbc_uktv_result = self.source_data_collection.insert_one({
             'service': "BBC UKTV",
             'schedule': bbc_uktv_data
         })
