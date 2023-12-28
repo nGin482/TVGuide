@@ -1,0 +1,61 @@
+[
+    {
+        "channel": "ABC1",
+        "listing": [
+            {
+                "title": "Silent Witness",
+                "start_time": "2023-12-26T18:30:00",
+                "series_num": "18",
+                "episode_num": "7"
+            },
+            {
+                "title": "Endeavour",
+                "start_time": "2023-12-26T20:30:00",
+                "series_num": "5",
+                "episode_num": "1",
+                "episode_title": "Muse"
+            }
+        ]
+    },
+    {
+        "channel": "ABCHD",
+        "listing": [
+            {
+                "title": "Silent Witness",
+                "start_time": "2023-12-26T18:30:00",
+                "series_num": "18",
+                "episode_num": "7"
+            },
+            {
+                "title": "Endeavour",
+                "start_time": "2023-12-26T20:30:00",
+                "series_num": "5",
+                "episode_num": "1",
+                "episode_title": "Muse"
+            }
+        ]
+    },
+    {
+        "channel": "7TWO",
+        "listing": [
+            {
+                "title": "Lewis",
+                "start_time": "2023-12-26T20:30:00",
+                "series_num": "2",
+                "episode_num": "1"
+            }
+        ]
+    },
+    {
+        "channel": "10",
+        "listing": [
+            {
+                "title": "NCIS: Los Angeles",
+                "start_time": "2023-12-26T20:30:00",
+                "series_num": "1",
+                "episode_num": "3",
+                "episode_title": "Predator"
+            }
+        ]
+    }
+]
