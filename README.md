@@ -8,29 +8,36 @@ If one is found, the following information is collected:
   - The channel it is shown on
   - Any available episode information
 
-## List of Shows
-  - Vera
-  - Endeavour
-  - Lewis
-  - Maigret
-  - Unforgotten
-  - Death in Paradise
-  - Shetland
-  - NCIS
-  - NCIS: Los Angeles
-  - Mock The Week
-  - No Offence
-  - Mad As Hell
-  - Grantchester
-  - Doctor Who
-  - Transformers
-  - Inspector Morse
-  - Baptiste
 
-## To Do List
-1. Web UI
-2. Reminders work
-3. Users Collection
-4. IMDB API handle to clarify episodes
-5. Actors from IMDB API
-6. Deploy
+## Environment Variables
+- `HERMES`: The token to connect to the Discord bot
+- `TVGUIDE_CHANNEL`: The id for the TVGuide channel (used for production)
+- `DEV_CHANNEL`: The id for the development channel (used during development)
+- `NGIN`: The user id to send direct messages (used for production)
+
+- `PYTHON_ENV`: The runtime environment
+- `TVGUIDE_DB`: The connection string to connect to MongoDB Atlas
+- `LOCAL_DB`: The connection string for the development database
+- `JWT_SECRET`: The JWT secret for the Flask API
+
+
+## Running the TVGuide Locally
+Running the TVGuide locally can be done by running the `local_guide.py` file.
+The following arguments can be passed when running `local_guide.py`:
+  - `--local-db`                //  runs a local version of the TVGuide using the local database
+    - `--no-discord`            //  runs the TVGuide without using Discord - the guide will be printed to the console
+    - `--import`                //  adds data to the local database
+  - `--revert_tvguide`          //  revert the tvguide database to a previous state
+If the `--local-db` argument is provided, MongoDB will need to be running locally first before running `local_guide.py`. See Local Database below for details
+If no arguments are passed when running `local_guide.py`, the `development` database in MongoDB Atlas will be used.
+
+When the TVGuide is run using Discord, the `development` channel will be used (as specified by the `DEV_CHANNEL` environment variable).
+
+### Local Database
+To use the local database, you will need to have MongoDB installed locally.
+Version 7.0 of the Community Edition has been used in setting up the development environment.
+MongoDB Compass can also be optionally installed.
+
+To run the local database, first start the server by running: `mongod --dbpath="C:\Users\nicho\OneDrive\Desktop\PycharmProjects\TVGuide\dev-data\mongo_data"`.
+It may be beneficial to add the `C:\Program Files\MongoDB\Server\7.0\bin\` folder where MongoDB was installed to the PATH variable, if this has not already been done.
+Adding the `--db-path` argument tells MongoDB where to store the data on disk. This currently points to `./dev-data/mongo_data`.
