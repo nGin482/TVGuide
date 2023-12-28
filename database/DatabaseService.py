@@ -383,8 +383,8 @@ class DatabaseService:
 
     # Source Data - Development Environment
     def get_source_data(self, service: str = 'All'):
-        source_data = self.source_data.find({ 'service': service })
-        return [source for source in source_data]
+        source_data = self.source_data.find_one({ 'service': service })
+        return dict(source_data)
     
     def import_data(self):
         self.source_data.delete_many({})

@@ -29,7 +29,10 @@ def search_free_to_air(database_service: DatabaseService):
     shows_data: list[dict] = []
 
     environment = os.getenv('PYTHON_ENV')
-    schedule = dict(find_json(new_url))['schedule'] if environment == 'production' else database_service.get_source_data('FTA')
+    if environment == 'production':
+        schedule = dict(find_json(new_url))['schedule']
+    else:
+        schedule = database_service.get_source_data('FTA')['schedule']
     search_list = database_service.get_search_list()
 
     for channel_data in schedule:
@@ -73,8 +76,8 @@ def search_bbc_australia(database_service: DatabaseService):
         bbc_first_data = find_json(f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-first?timezone=Australia%2FSydney&date={search_date}')
         bbc_uktv_data = find_json(f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-uktv?timezone=Australia%2FSydney&date={search_date}')
     else:
-        bbc_first_data = database_service.get_source_data('BBC First')
-        bbc_uktv_data = database_service.get_source_data('BBC UKTV')
+        bbc_first_data = database_service.get_source_data('BBC First')['schedule']
+        bbc_uktv_data = database_service.get_source_data('BBC UKTV')['schedule']
 
     search_list = database_service.get_search_list()
 
