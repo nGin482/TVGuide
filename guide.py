@@ -29,7 +29,7 @@ def search_free_to_air(database_service: DatabaseService):
     shows_data: list[dict] = []
 
     environment = os.getenv('PYTHON_ENV')
-    if environment == 'production':
+    if environment == 'production' or environment == 'testing':
         schedule = dict(find_json(new_url))['schedule']
     else:
         schedule = database_service.get_source_data('FTA')['schedule']
