@@ -389,6 +389,7 @@ class DatabaseService:
     def import_data(self):
         self.source_data_collection.delete_many({})
         self.search_list_collection.delete_many({})
+        self.recorded_shows_collection.delete_many({})
 
         with open('dev-data/search_list.json') as fd:
             search_list = json.load(fd)
@@ -401,6 +402,8 @@ class DatabaseService:
             bbc_first_data = list(json.load(fd))
         with open('dev-data/bbc_uktv_source_data.json') as fd:
             bbc_uktv_data = list(json.load(fd))
+        with open('dev-data/recorded_shows.json') as fd:
+            recorded_shows = list(json.load(fd))
         
         fta_result = self.source_data_collection.insert_one({
             'service': "FTA",
@@ -417,6 +420,8 @@ class DatabaseService:
         print(fta_result.inserted_id, 'added to SourceData collection')
         print(bbc_first_result.inserted_id, 'added to SourceData collection')
         print(bbc_uktv_result.inserted_id, 'added to SourceData collection')
+
+        self.recorded_shows_collection.insert_many(recorded_shows)
 
 
     def __repr__(self) -> str:
