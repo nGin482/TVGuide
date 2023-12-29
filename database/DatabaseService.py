@@ -423,6 +423,10 @@ class DatabaseService:
 
         self.recorded_shows_collection.insert_many(recorded_shows)
 
+    def tear_down_data(self):
+        self.source_data_collection.delete_many({})
+        self.search_list_collection.delete_many({})
+        self.recorded_shows_collection.delete_many({})
 
     def __repr__(self) -> str:
         return f'DatabaseService [Client: {self.database.client} | Database: {self.database}]'

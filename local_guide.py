@@ -46,6 +46,8 @@ if __name__ == '__main__':
             local_message()
         elif '--import' in sys.argv:
             database_service.import_data()
+        elif '--tear-down' in sys.argv:
+            database_service.tear_down_data()
         else:
             guide_message, reminder_message = get_guide_data()
             try:
@@ -56,6 +58,8 @@ if __name__ == '__main__':
                 print(reminder_message)
     elif '--import' in sys.argv:
         database_service.import_data()
+    elif '--tear-down' in sys.argv:
+        database_service.tear_down_data()
     elif '--revert-tvguide' in sys.argv:
         revert_database_tvguide(database_service)
     else:
