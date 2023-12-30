@@ -39,3 +39,9 @@ class SearchItemAlreadyExistsError(Exception):
     Raised when the given show already exists in the `SearchList` collection
     """
     pass
+
+class InvalidSubscriptions(Exception):
+    """
+    Raised when no subscriptions have been provided
+    """
+    pass
