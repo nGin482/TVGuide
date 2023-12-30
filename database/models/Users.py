@@ -40,7 +40,7 @@ class User:
         if len(reminders) > 0:
             for reminder in reminders:
                 if reminder not in self.show_subscriptions:
-                    raise InvalidSubscriptions('You have not subscribed to this show. Please subscrive to the show first before subscribing to the remidner')
+                    raise InvalidSubscriptions('You have not subscribed to this show. Please subscribe to the show first before subscribing to the remidner')
             self.reminder_subscriptions.extend(reminders)
         raise InvalidSubscriptions('Please provide a list of reminders to subscribe to')
     
