@@ -20,6 +20,7 @@ from exceptions.DatabaseError import (
     SearchItemNotFoundError,
     SeasonNotFoundError,
     ShowNotFoundError,
+    UserNotFoundError,
     InvalidSubscriptions
 )
 from log import log_database_event
@@ -400,6 +401,19 @@ class DatabaseService:
             return updated_user
         else:
             raise InvalidSubscriptions('Please provide an updated list of subscriptions')
+        
+    def promote_user(self, username: str):
+        user = self.get_user(username)
+        if user:
+            updated_user = self.users_collection.find_one_and_update(
+                { 'username': username },
+                { '$set': { 'role': 'Admin' } },
+                { '_id': False, 'password': False },
+                return_document=ReturnDocument.AFTER
+            )
+            return updated_user
+        else:
+            raise UserNotFoundError(f'No user can be found with the username {username}')
 
     def delete_user(self, username: str):
         user = self.get_user(username)

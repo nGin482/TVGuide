@@ -67,6 +67,9 @@ class User:
                     raise InvalidSubscriptions(f'The reminder for {reminder} does not appear in your reminder subscriptions')
         else:
             raise InvalidSubscriptions('Please provide a list of reminders to unsubscribe from')
+        
+    def promote_role(self):
+        self.role = 'Admin'
     
     def change_password(self, new_password: str):
         new_hashed_pw = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt(14))

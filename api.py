@@ -7,7 +7,7 @@ from config import database_service
 from database.models.RecordedShow import RecordedShow, Season, Episode
 from database.models.Reminders import Reminder
 from database.models.Users import User
-from exceptions.DatabaseError import SearchItemAlreadyExistsError, DatabaseError, InvalidSubscriptions
+from exceptions.DatabaseError import SearchItemAlreadyExistsError, DatabaseError, UserNotFoundError, InvalidSubscriptions
 from services.tvmaze.tvmaze_api import get_show_data
 
 app = Flask(__name__)
@@ -187,6 +187,19 @@ def edit_user_subscriptions(username: str):
         except InvalidSubscriptions as err:
             return {'message': str(err)}, 400            
     return {'message': f'A user with the username {username} could not be found'}, 404
+
+@app.route('/api/user/<string:username>/promote', methods=['PATCH'])
+@jwt_required()
+def promote_user(username: str):
+    current_user: User = get_current_user()
+    if current_user.role == 'Admin':
+        try:
+            promoted_user = database_service.promote_user(username)
+            return promoted_user
+        except UserNotFoundError as err:
+            return { 'message': str(err) }, 404
+    else:
+        return { 'message': 'You are not authorised to promote this user to an admin role' }
    
 @app.route('/api/auth/register', methods=['POST'])
 def registerUser():
