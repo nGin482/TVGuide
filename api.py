@@ -1,13 +1,14 @@
 from flask import Flask, request
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_current_user
+import os
+
+from config import database_service
 from database.models.RecordedShow import RecordedShow, Season, Episode
 from database.models.Reminders import Reminder
 from database.models.Users import User
-from exceptions.DatabaseError import SearchItemAlreadyExistsError, DatabaseError
-from config import database_service
+from exceptions.DatabaseError import SearchItemAlreadyExistsError, DatabaseError, InvalidSubscriptions
 from services.tvmaze.tvmaze_api import get_show_data
-import os
 
 app = Flask(__name__)
 CORS(app)
@@ -158,6 +159,34 @@ def reminder(show: str):
             reminders = [reminder.to_dict() for reminder in database_service.get_all_reminders()]
             return {'message': f'The reminder for {show} has been deleted', 'reminders': reminders}
     return {'message': f'A reminder for {show} does not exist'}, 404
+
+@app.route('/api/user/<string:username>', methods=['GET'])
+def get_user(username: str):
+    user = database_service.get_user(username)
+    if user:
+        return user.to_dict()
+    return {'message': f'A user with the username {username} could not be found'}, 404
+
+@app.route('/api/user/<string:username>/subscriptions', methods=['PUT'])
+@jwt_required()
+def edit_user_subscriptions(username: str):
+    user = database_service.get_user(username)
+    if user:
+        current_user: User = get_current_user()
+        if current_user.username != username:
+            return {'message': "You are not authorised to update this user's details"}, 403
+        body = request.json
+        try:
+            user_was_updated = database_service.update_user_subscriptions(
+                username,
+                body['show_subscriptions'] if 'show_subscriptions' in body.keys() else None,
+                body['reminder_subscriptions'] if 'reminder_subscriptions' in body.keys() else None
+            )
+            if user_was_updated:
+                return {'message': 'Your subscriptions were updated', 'user': user_was_updated}
+        except InvalidSubscriptions as err:
+            return {'message': str(err)}, 400            
+    return {'message': f'A user with the username {username} could not be found'}, 404
    
 @app.route('/api/auth/register', methods=['POST'])
 def registerUser():
