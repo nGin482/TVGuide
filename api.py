@@ -164,7 +164,9 @@ def reminder(show: str):
 def get_user(username: str):
     user = database_service.get_user(username)
     if user:
-        return user.to_dict()
+        user_data = user.to_dict()
+        del user_data['password']
+        return user_data
     return {'message': f'A user with the username {username} could not be found'}, 404
 
 @app.route('/api/user/<string:username>/subscriptions', methods=['PUT'])
@@ -208,7 +210,7 @@ def change_password(username: str):
         database_service.change_user_password(username, request.json['password'])
         return { 'message': 'Your password has been updated' }
     return { 'message': "You are not authorised to change this user's password" }, 403
-   
+
 @app.route('/api/auth/register', methods=['POST'])
 def registerUser():
     body = request.json

@@ -91,6 +91,7 @@ class User:
     def to_dict(self) -> dict[str, str | list[str]]:
         return {
             'username': self.username,
+            'password': self.password,
             'show_subscriptions': self.show_subscriptions,
             'reminder_subscriptions': self.reminder_subscriptions,
             'role': self.role
