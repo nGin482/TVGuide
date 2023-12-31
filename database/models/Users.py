@@ -34,15 +34,19 @@ class User:
     def subscribe_to_shows(self, shows: list[str]):
         if len(shows) > 0:
             self.show_subscriptions.extend(shows)
-        raise InvalidSubscriptions('Please provide a list of show subscriptions')
+            self.show_subscriptions.sort()
+        else:
+            raise InvalidSubscriptions('Please provide a list of show subscriptions')
 
     def subscribe_to_reminders(self, reminders: list[str]):
         if len(reminders) > 0:
             for reminder in reminders:
                 if reminder not in self.show_subscriptions:
-                    raise InvalidSubscriptions('You have not subscribed to this show. Please subscribe to the show first before subscribing to the remidner')
+                    raise InvalidSubscriptions('You have not subscribed to this show. Please subscribe to the show first before subscribing to the reminder')
             self.reminder_subscriptions.extend(reminders)
-        raise InvalidSubscriptions('Please provide a list of reminders to subscribe to')
+            self.reminder_subscriptions.sort()
+        else:
+            raise InvalidSubscriptions('Please provide a list of reminders to subscribe to')
     
     def remove_show_subscriptions(self, shows: list[str]):
         if len(shows) > 0:
@@ -51,7 +55,8 @@ class User:
                     self.show_subscriptions.remove(show)
                 except ValueError:
                     raise InvalidSubscriptions(f'The show {show} does not appear in your show subscriptions')
-        raise InvalidSubscriptions('Please provide a list of shows to unsubscribe from')
+        else:
+            raise InvalidSubscriptions('Please provide a list of shows to unsubscribe from')
 
     def remove_reminder_subscriptions(self, reminders: list[str]):
         if len(reminders) > 0:
@@ -60,7 +65,8 @@ class User:
                     self.reminder_subscriptions.remove(reminder)
                 except ValueError:
                     raise InvalidSubscriptions(f'The reminder for {reminder} does not appear in your reminder subscriptions')
-        raise InvalidSubscriptions('Please provide a list of reminders to unsubscribe from')
+        else:
+            raise InvalidSubscriptions('Please provide a list of reminders to unsubscribe from')
     
     def change_password(self, new_password: str):
         new_hashed_pw = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt(14))
