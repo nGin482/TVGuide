@@ -198,8 +198,16 @@ def promote_user(username: str):
             return promoted_user
         except UserNotFoundError as err:
             return { 'message': str(err) }, 404
-    else:
-        return { 'message': 'You are not authorised to promote this user to an admin role' }
+    return { 'message': 'You are not authorised to promote this user to an admin role' }, 403
+    
+@app.route('/api/user/<string:username>/change_password', methods=['POST'])
+@jwt_required()
+def change_password(username: str):
+    current_user: User = get_current_user()
+    if current_user.username == username:
+        database_service.change_user_password(username, request.json['password'])
+        return { 'message': 'Your password has been updated' }
+    return { 'message': "You are not authorised to change this user's password" }, 403
    
 @app.route('/api/auth/register', methods=['POST'])
 def registerUser():

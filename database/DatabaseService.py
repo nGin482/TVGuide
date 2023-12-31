@@ -414,6 +414,20 @@ class DatabaseService:
             return updated_user
         else:
             raise UserNotFoundError(f'No user can be found with the username {username}')
+        
+    def change_user_password(self, username: str, new_password: str):
+        user = self.get_user(username)
+        if user:
+            user.change_password(new_password)
+            updated_user = self.users_collection.find_one_and_update(
+                { 'username': username },
+                { '$set': { 'password': user.password } },
+                { '_id': False, 'password': False },
+                return_document=ReturnDocument.AFTER
+            )
+            return updated_user
+        else:
+            raise UserNotFoundError(f'No user can be found with the username {username}')
 
     def delete_user(self, username: str):
         user = self.get_user(username)
