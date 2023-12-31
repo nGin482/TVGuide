@@ -40,6 +40,12 @@ class SearchItemAlreadyExistsError(Exception):
     """
     pass
 
+class UserNotFoundError(Exception):
+    """
+    Raised when no user can be found with the given username
+    """
+    pass
+
 class InvalidSubscriptions(Exception):
     """
     Raised when no subscriptions have been provided
