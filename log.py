@@ -36,21 +36,6 @@ def compare_dates(date: datetime):
         return False
 
 
-def read_events():
-    try:
-        with open('log/events.json') as fd:
-            events = json.load(fd)
-        return events
-    except FileNotFoundError:
-        return []
-
-def clear_events_log():
-    try:
-        with open('log/events.json', 'w') as fd:
-            json.dump([], fd)
-    except FileNotFoundError:
-        return
-
 def log_guide_information(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
     """
     Organise the guide into a JSON format and write this to the current day's guide and to the BackUp directory
@@ -72,15 +57,6 @@ def log_guide_information(fta_shows: list['GuideShow'], bbc_shows: list['GuideSh
         json.dump(today_guide, fd, ensure_ascii=False, indent=4)
     
     # guide = organise_guide(fta_shows, bbc_shows)
-
-def log_database_event(event: dict):
-    "Log the database event to the events.json file"
-    events = read_events()
-    
-    events.append(event)
-
-    with open('log/events.json', 'w+') as fd:
-        json.dump(events, fd, indent='\t')
 
 def log_discord_message_too_long(message_length, fta_length):
 
