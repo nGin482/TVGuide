@@ -6,6 +6,7 @@ import os
 from config import database_service
 from database.models.RecordedShow import RecordedShow, Season, Episode
 from database.models.Reminders import Reminder
+from database.models.SearchItem import SearchItem
 from database.models.Users import User
 from exceptions.DatabaseError import SearchItemAlreadyExistsError, DatabaseError, UserNotFoundError, InvalidSubscriptions
 from services.tvmaze.tvmaze_api import get_show_data
@@ -31,12 +32,15 @@ def show_list():
 def add_show_list():
     user: User = get_current_user()
     print(user.username)
-    if 'show' not in request.json.keys() or 'tvmaze_id' not in request.json.keys():
-        return {'message': "Please provide the show's name and the id from TVMaze"}, 400
-    show: str = request.json['show']
-    tvmaze_id: str = request.json['tvmaze_id']
+    body = request.json
+    if 'show' not in body or 'tvmaze_id' not in body or 'image' not in body or 'conditions' not in body:
+        return {'message': "Please provide the show's name, the search conditions and the id and image from TVMaze"}, 400
+    show, image, tvmaze_id, conditions = body
+    if show == '' or image == '' or tvmaze_id == '' or conditions == {}:
+        return {'message': "Please provide the show's name, the search conditions and the id and image from TVMaze"}, 400
     try:
-        database_service.insert_into_showlist_collection(show)
+        new_search_item = SearchItem(show, image, conditions, True)
+        database_service.add_search_item(new_search_item)
         new_show_data = get_show_data(show, tvmaze_id)
         recorded_show = RecordedShow.from_database(new_show_data)
         database_service.insert_recorded_show_document(recorded_show)
@@ -113,8 +117,12 @@ def recorded_show(show: str):
 
 @app.route('/api/reminders')
 def get_reminders():
-    reminders = [reminder.to_dict() for reminder in database_service.get_all_reminders()]
-    return reminders
+    try:
+        reminders = [reminder.to_dict() for reminder in database_service.get_all_reminders()]
+        return reminders
+    except (KeyError, ValueError) as error:
+        return {'message': 'There was a problem retrieving the reminders', 'error': str(error)}, 500
+
 
 @app.route('/api/reminders', methods=['POST'])
 @jwt_required()

@@ -207,20 +207,15 @@ class DatabaseService:
         "Get the list of shows being searched for."
         documents: list[dict] = list(self.search_list_collection.find({}))
         return [SearchItem.from_database(document) for document in documents]
-
-    def insert_into_showlist_collection(self, show: str):
-        """Insert the given `show` into the SearchList collection.\n
-        Raises `SearchItemAlreadyExistsError` if the given show already exists in the collection,
-        or `DatabaseError` if there is a problem adding the show."""
-        show_exists = self.search_list_collection.find_one({'show': show})
+    
+    def add_search_item(self, search_item: SearchItem):
+        show_exists = self.search_list_collection.find_one({ 'show': search_item.show })
         if show_exists:
-            raise SearchItemAlreadyExistsError(f'The show {show} is already being searched for')
-        else:
-            try:
-                self.search_list_collection.insert_one({"show": show})
-                return True
-            except OperationFailure as err:
-                raise DatabaseError(f'There was a problem adding {show} to the Search List. Error: {str(err)}')
+            raise SearchItemAlreadyExistsError(f'The show {search_item.show} is already being searched for')
+        try:
+            self.search_list_collection.insert_one(search_item.to_dict())
+        except OperationFailure as err:
+            raise DatabaseError(f'There was a problem adding {search_item.show} to the search list. Error: {str(err)}')
 
     def remove_show_from_list(self, show_to_remove: str):
         """Remove the given show from the SearchList collection.\n
