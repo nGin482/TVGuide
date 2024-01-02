@@ -129,7 +129,10 @@ def reminders():
     new_reminder = Reminder.from_database(reminder)
     try:
         database_service.insert_new_reminder(new_reminder)
-        return [reminder.to_dict() for reminder in database_service.get_all_reminders()]
+        return {
+            'message': f'Your reminder for {show} has been created',
+            'reminders': [reminder.to_dict() for reminder in database_service.get_all_reminders()]
+        }
     except DatabaseError as err:
         return {'message': f'An error occurred creating the reminder for {show}', 'error': str(err)}, 500
     
