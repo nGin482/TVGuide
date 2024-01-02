@@ -57,7 +57,7 @@ async def send_main_message(database_service: DatabaseService):
         if 'In content: Must be 2000 or fewer in length' in error.text:
             bbc_index = guide_message.find('\nBBC:\n')
             fta_message = guide_message[0:bbc_index]
-            bbc_message = guide_message[bbc_index+1]
+            bbc_message = guide_message[bbc_index:]
             
             if len(fta_message) > 2000:
                 fta_am_message, fta_pm_message = split_message_by_time(fta_message)
@@ -76,7 +76,7 @@ async def send_main_message(database_service: DatabaseService):
         await ngin.send('The channel resolved to NoneType so the message could not be sent')
     finally:
         await tvguide_channel.send(reminder_message)
-        await ngin.send(compose_events_message())
+        await ngin.send(compose_events_message(fta_list.extend(bbc_list)))
 
 
 if __name__ == '__main__':

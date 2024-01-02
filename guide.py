@@ -6,7 +6,7 @@ from aux_methods.helper_methods import build_episode, convert_utc_to_local
 from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
-from log import clear_events_log, compare_dates, delete_latest_entry, log_guide_information
+from log import compare_dates
 
 def find_json(url):
     headers = {
@@ -194,20 +194,17 @@ def run_guide(database_service: DatabaseService, fta_list: list['GuideShow'], bb
     guide_message = compose_message(fta_list, bbc_list)
     print(guide_message)
     if update_db_flag:
-        clear_events_log()
         database_service.backup_recorded_shows()
         
         for guide_show in guide_list:
             if 'HD' not in guide_show.channel:
                 database_service.capture_db_event(guide_show)
         database_service.add_guide_data(fta_list, bbc_list)
-        log_guide_information(fta_list, bbc_list)
 
     reminders_message = reminders(guide_list, database_service, scheduler)
     return guide_message, reminders_message
 
 def revert_database_tvguide(database_service: DatabaseService):
     "Forget sending a message and rollback the database to its previous state"
-    delete_latest_entry()
     database_service.rollback_recorded_shows()
     database_service.remove_guide_data(Validation.get_current_date().strftime('%d/%m/%Y'))
