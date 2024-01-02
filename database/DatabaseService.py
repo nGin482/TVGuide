@@ -23,10 +23,8 @@ from exceptions.DatabaseError import (
     UserNotFoundError,
     InvalidSubscriptions
 )
-from log import log_database_event
 
 class DatabaseService:
-
 
     def __init__(self, database: Database) -> None:
         self.database = database
