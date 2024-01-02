@@ -121,7 +121,7 @@ def get_reminders():
 def reminders():
     reminder = request.json
     show: str = reminder['show']
-    show_check = show in database_service.get_search_list()
+    show_check = show in [show.title for show in database_service.get_all_recorded_shows()]
     reminder_check = database_service.get_one_reminder(show)
     if not show_check:
         return {'message': f'{show} is not being searched for'}, 400
@@ -130,7 +130,10 @@ def reminders():
     new_reminder = Reminder.from_database(reminder)
     try:
         database_service.insert_new_reminder(new_reminder)
-        return [reminder.to_dict() for reminder in database_service.get_all_reminders()]
+        return {
+            'message': f'Your reminder for {show} has been created',
+            'reminders': [reminder.to_dict() for reminder in database_service.get_all_reminders()]
+        }
     except DatabaseError as err:
         return {'message': f'An error occurred creating the reminder for {show}', 'error': str(err)}, 500
     

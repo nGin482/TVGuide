@@ -9,6 +9,7 @@ fly.toml
 /.github
 /Project-BackUp
 /tests/misc
+/dev-data
 /txt
 /log
 /episode_search_results
