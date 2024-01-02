@@ -3,7 +3,6 @@ from os import getenv
 
 from config import database_service
 from guide import run_guide, search_free_to_air, revert_database_tvguide
-from log import log_message_sent
 from services.hermes.hermes import hermes
 
 
@@ -24,7 +23,6 @@ async def send_main_message():
     except AttributeError:
         ngin = await hermes.fetch_user(int(getenv('NGIN')))
         await ngin.send('The channel resolved to NoneType so the message could not be sent')
-    log_message_sent()
     # log_guide(fta_shows, bbc_shows)
     
     await hermes.close()

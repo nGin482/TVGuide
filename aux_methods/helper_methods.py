@@ -3,8 +3,6 @@ from datetime import date, datetime, timedelta
 import pytz
 import re
 
-from log import read_events
-
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from database.models.GuideShow import GuideShow
@@ -154,10 +152,8 @@ def parse_date_from_command(date: str):
         else:
             raise ValueError('The date provided was not in a valid format.')
         
-def compose_events_message():
-    events: list[dict[str, dict]] = read_events()
-
-    return "\n".join([f"{event['show']['title']} - {event['show']['event']}" for event in events])
+def compose_events_message(guide_list: list['GuideShow']):
+    return "\n".join([f"{show.title} - {show.db_event}" for show in guide_list])
 
 def convert_utc_to_local(utc_timestamp: datetime):
     utc_timestamp = utc_timestamp.replace(tzinfo=pytz.utc)
