@@ -266,4 +266,5 @@ def events():
     return events
 
 if __name__ == '__main__':
+    os.environ['PYTHON_ENV'] = 'production'
     app.run(host='0.0.0.0', port='5000', debug=True)

@@ -10,7 +10,7 @@ on:
 
 env:
   TVGUIDE_DB: ${{ secrets.TVGUIDE_DB }}
-  ENV: testing
+  PYTHON_ENV: testing
 
 jobs:
   Run-Tests:

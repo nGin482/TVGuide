@@ -1,0 +1,34 @@
+[
+    {
+        "show": "Endeavour",
+        "image": "",
+        "conditions": {
+
+        },
+        "search_active": true
+    },
+    {
+        "show": "NCIS",
+        "image": "",
+        "conditions": {
+
+        },
+        "search_active": true
+    },
+    {
+        "show": "Silent Witness",
+        "image": "",
+        "conditions": {
+
+        },
+        "search_active": true
+    },
+    {
+        "show": "Lewis",
+        "image": "",
+        "conditions": {
+
+        },
+        "search_active": true
+    }
+]

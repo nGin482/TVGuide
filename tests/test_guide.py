@@ -18,6 +18,7 @@ class TestGuide(unittest.TestCase):
 
     def setUp(self):
         load_dotenv('.env')
+        os.environ['PYTHON_ENV'] = 'testing'
         self.database_service = DatabaseService(mongo_client().get_database('test'))
 
         with open('tests/test_data/reminders_data.json') as fd:

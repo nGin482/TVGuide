@@ -33,6 +33,7 @@ class DatabaseService:
         self.search_list_collection = self.database.get_collection('ShowList')
         self.guide_collection = self.database.get_collection('Guide')
         self.users_collection = self.database.get_collection('Users')
+        self.source_data_collection = self.database.get_collection('SourceData')
     
 # RECORDED SHOWS
     def get_all_recorded_shows(self):
@@ -157,15 +158,16 @@ class DatabaseService:
         hermes.dispatch('db_rollback')
 
 
-    def capture_db_event(self, guide_show: GuideShow):
+    def capture_db_event(self, guide_show: GuideShow, date: str = None):
         from services.hermes.hermes import hermes
         
         recorded_show = guide_show.recorded_show
+        event_date = datetime.strptime(date, '%d/%m/%Y') if date is not None else Validation.get_current_date().date()
         
         try:
             episode = guide_show.find_recorded_episode()
             print(f'{guide_show.title} happening on channel/repeat')
-            episode.air_dates.append(Validation.get_current_date().date())
+            episode.air_dates.append(event_date)
             episode.channels = list(set(episode.channels))
             result = f"{guide_show.title} has aired today"
             if episode.channel_check(guide_show.channel) is False:
@@ -318,8 +320,10 @@ class DatabaseService:
     def get_latest_guide(self):
         """Return the latest `Guide` record from the collection"""
         guide_results = list(self.guide_collection.find({}).sort('_id', DESCENDING).limit(1))
-        latest_guide = dict(guide_results[0])
-        return Guide.from_database(latest_guide, self)
+        if len(guide_results) > 0:
+            latest_guide = dict(guide_results[0])
+            return Guide.from_database(latest_guide, self)
+        return None
 
     def search_guides_for_show(self, show_title: str):
         """Search all guide data for when the given show_title has been aired"""
@@ -424,7 +428,54 @@ class DatabaseService:
             self.users_collection.find_one_and_delete({'username': username})
             return True
         return False
+    
 
+    # Source Data - Development Environment
+    def get_source_data(self, service: str = 'All'):
+        source_data = self.source_data_collection.find_one({ 'service': service })
+        return dict(source_data)
+    
+    def import_data(self):
+        self.source_data_collection.delete_many({})
+        self.search_list_collection.delete_many({})
+        self.recorded_shows_collection.delete_many({})
+
+        with open('dev-data/search_list.json') as fd:
+            search_list = json.load(fd)
+        result = self.search_list_collection.insert_many(search_list)
+        print(len(result.inserted_ids), 'documents inserted in the Search List collection')
+
+        with open('dev-data/fta_source_data.json') as fd:
+            fta_data = list(json.load(fd))
+        with open('dev-data/bbc_first_source_data.json') as fd:
+            bbc_first_data = list(json.load(fd))
+        with open('dev-data/bbc_uktv_source_data.json') as fd:
+            bbc_uktv_data = list(json.load(fd))
+        with open('dev-data/recorded_shows.json') as fd:
+            recorded_shows = list(json.load(fd))
+        
+        fta_result = self.source_data_collection.insert_one({
+            'service': "FTA",
+            'schedule': fta_data
+        })
+        bbc_first_result = self.source_data_collection.insert_one({
+            'service': "BBC First",
+            'schedule': bbc_first_data
+        })
+        bbc_uktv_result = self.source_data_collection.insert_one({
+            'service': "BBC UKTV",
+            'schedule': bbc_uktv_data
+        })
+        print(fta_result.inserted_id, 'added to SourceData collection')
+        print(bbc_first_result.inserted_id, 'added to SourceData collection')
+        print(bbc_uktv_result.inserted_id, 'added to SourceData collection')
+
+        self.recorded_shows_collection.insert_many(recorded_shows)
+
+    def tear_down_data(self):
+        self.source_data_collection.delete_many({})
+        self.search_list_collection.delete_many({})
+        self.recorded_shows_collection.delete_many({})
 
     def __repr__(self) -> str:
         return f'DatabaseService [Client: {self.database.client} | Database: {self.database}]'
