@@ -3,11 +3,10 @@ from datetime import date, datetime, timedelta
 import pytz
 import re
 
-from log import read_events
-
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from database.models.GuideShow import GuideShow
+    from database.models.SearchItem import SearchItem
 
 def format_time(time):
     """
@@ -65,9 +64,9 @@ def format_title(title: str):
 
     return title
 
-def show_list_message(shows_list: list[str]):
+def show_list_message(search_list: list[SearchItem]):
     """Return a message-friendly version of the shows being searched for"""
-    return '\n'.join(shows_list)
+    return '\n'.join([search_item.show for search_item in search_list])
 
 def check_show_titles(show):
     if type(show) is str:
@@ -153,10 +152,8 @@ def parse_date_from_command(date: str):
         else:
             raise ValueError('The date provided was not in a valid format.')
         
-def compose_events_message():
-    events: list[dict[str, dict]] = read_events()
-
-    return "\n".join([f"{event['show']['title']} - {event['show']['event']}" for event in events])
+def compose_events_message(guide_list: list['GuideShow']):
+    return "\n".join([f"{show.title} - {show.db_event}" for show in guide_list])
 
 def convert_utc_to_local(utc_timestamp: datetime):
     utc_timestamp = utc_timestamp.replace(tzinfo=pytz.utc)
@@ -187,3 +184,17 @@ def build_episode(show_title: str, channel: str, time: datetime, season_number: 
             'episode_title': Validation.format_episode_title(episode_title)
         })
     return episodes
+
+def split_message_by_time(message: str):
+    """
+    Use regex to search for any show starting between 12:00 and 13:00 in the given `message`.
+    Split the given message into two substrings:\n
+    all shows from 00:00 to 12:59\n
+    all shows from 13:00 to 23:59.
+    """
+
+    am_index = re.search(r"12:[0-5][0-9]", message).start()
+    am_message = message[0:am_index]
+    pm_message = message[am_index:]
+
+    return am_message, pm_message

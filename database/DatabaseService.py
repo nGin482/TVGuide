@@ -12,11 +12,19 @@ from database.models.RecordedShow import RecordedShow, Season, Episode
 from database.models.Reminders import Reminder
 from database.models.SearchItem import SearchItem
 from database.models.Users import User
-from exceptions.DatabaseError import DatabaseError, EpisodeNotFoundError, ReminderNotFoundError, SearchItemAlreadyExistsError, SearchItemNotFoundError, SeasonNotFoundError, ShowNotFoundError
-from log import log_database_event
+from exceptions.DatabaseError import (
+    DatabaseError,
+    EpisodeNotFoundError,
+    ReminderNotFoundError,
+    SearchItemAlreadyExistsError,
+    SearchItemNotFoundError,
+    SeasonNotFoundError,
+    ShowNotFoundError,
+    UserNotFoundError,
+    InvalidSubscriptions
+)
 
 class DatabaseService:
-
 
     def __init__(self, database: Database) -> None:
         self.database = database
@@ -166,17 +174,15 @@ class DatabaseService:
                 result = episode.add_channel(guide_show.channel)
             ep = self.update_episode_in_database(guide_show.title, guide_show.season_number, episode)
             guide_show.db_event = result
-            event = {'show': guide_show.to_dict(), 'episode': episode.to_dict()}
         except EpisodeNotFoundError as err:
             try:
                 new_episode = Episode.from_guide_show(guide_show)
                 self.add_new_episode_to_season(recorded_show, guide_show.season_number, new_episode)
-                add_episode_status = f'{new_episode} has been added to Season {guide_show.season_number}'
+                add_episode_status = f'Episode {new_episode.episode_number} {new_episode.episode_title} has been added to Season {guide_show.season_number}'
             except DatabaseError as err:
                 add_episode_status = str(err)
             print(f'{guide_show.title} happening on episode')
             guide_show.db_event = add_episode_status
-            event = {'show': guide_show.to_dict()}
         except SeasonNotFoundError as err:
             new_season = Season.from_guide_show(guide_show)
             try:
@@ -185,7 +191,6 @@ class DatabaseService:
                 insert_season = str(err)
             print(f'{guide_show.title} happening on season')
             guide_show.db_event = insert_season
-            event = {'show': guide_show.to_dict()}
         except ShowNotFoundError as err:
             recorded_show = RecordedShow.from_guide_show(guide_show)
             try:
@@ -194,14 +199,8 @@ class DatabaseService:
                 insert_show = str(err)
             print(f'{guide_show.title} happening on show')
             guide_show.db_event = insert_show
-            event = {'show': guide_show.to_dict()}
         except Exception as err:
-            event = {'show': guide_show.to_dict(), 'message': 'Unable to process this episode.', 'error': str(err)}
             hermes.dispatch('show_not_processed', guide_show.message_string(), err)
-
-        if os.getenv('ENV') != 'testing':
-            log_database_event(event)
-        return event
 
 # SEARCH LIST
     def get_search_list(self):
@@ -367,11 +366,61 @@ class DatabaseService:
 
         self.users_collection.insert_one(new_user.to_dict())
     
-    def update_user_details(self, user: User):
-        self.users_collection.find_one_and_update(
-            {'username': user.username},
-            user.to_dict()
-        )
+    def update_user_subscriptions(self, username: str, show_subscriptions: list[str] = None, reminder_subscriptions: list[str] = None):
+        user = self.get_user(username)
+        if show_subscriptions and len(show_subscriptions) > 0:
+            if show_subscriptions > user.show_subscriptions:
+                user.subscribe_to_shows(show_subscriptions)
+            if show_subscriptions < user.show_subscriptions:
+                user.remove_show_subscriptions(show_subscriptions)
+            updated_user = self.users_collection.find_one_and_update(
+                {'username': user.username},
+                {'$set': {'show_subscriptions': sorted(show_subscriptions)}},
+                projection={ '_id': False, 'password': False },
+                return_document=ReturnDocument.AFTER
+            )
+            return updated_user
+        elif reminder_subscriptions and len(reminder_subscriptions) > 0:
+            if reminder_subscriptions > user.reminder_subscriptions:
+                user.subscribe_to_reminders(reminder_subscriptions)
+            if reminder_subscriptions < user.reminder_subscriptions:
+                user.remove_reminder_subscriptions(reminder_subscriptions)
+            updated_user = self.users_collection.find_one_and_update(
+                {'username': user.username},
+                {'$set': {'reminder_subscriptions': sorted(reminder_subscriptions)}},
+                projection={ '_id': False, 'password': False },
+                return_document=ReturnDocument.AFTER
+            )
+            return updated_user
+        else:
+            raise InvalidSubscriptions('Please provide an updated list of subscriptions')
+        
+    def promote_user(self, username: str):
+        user = self.get_user(username)
+        if user:
+            updated_user = self.users_collection.find_one_and_update(
+                { 'username': username },
+                { '$set': { 'role': 'Admin' } },
+                { '_id': False, 'password': False },
+                return_document=ReturnDocument.AFTER
+            )
+            return updated_user
+        else:
+            raise UserNotFoundError(f'No user can be found with the username {username}')
+        
+    def change_user_password(self, username: str, new_password: str):
+        user = self.get_user(username)
+        if user:
+            user.change_password(new_password)
+            updated_user = self.users_collection.find_one_and_update(
+                { 'username': username },
+                { '$set': { 'password': user.password } },
+                { '_id': False, 'password': False },
+                return_document=ReturnDocument.AFTER
+            )
+            return updated_user
+        else:
+            raise UserNotFoundError(f'No user can be found with the username {username}')
 
     def delete_user(self, username: str):
         user = self.get_user(username)

@@ -39,3 +39,15 @@ class SearchItemAlreadyExistsError(Exception):
     Raised when the given show already exists in the `SearchList` collection
     """
     pass
+
+class UserNotFoundError(Exception):
+    """
+    Raised when no user can be found with the given username
+    """
+    pass
+
+class InvalidSubscriptions(Exception):
+    """
+    Raised when no subscriptions have been provided
+    """
+    pass

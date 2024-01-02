@@ -9,7 +9,9 @@ from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
 from database.models.RecordedShow import RecordedShow
 from database.models.Reminders import Reminder
+from database.models.Users import User
 from database.mongo import mongo_client
+from exceptions.DatabaseError import UserNotFoundError, InvalidSubscriptions
 
 
 class TestDatabase(unittest.TestCase):
@@ -24,8 +26,12 @@ class TestDatabase(unittest.TestCase):
         with open('tests/test_data/recorded_shows.json') as fd:
             self.recorded_shows: list[dict] = json.load(fd)
 
+        with open('tests/test_data/users.json') as fd:
+            self.users: list[dict] = json.load(fd)
+
         for recorded_show in self.recorded_shows:
             self.database_service.insert_recorded_show_document(RecordedShow.from_database(recorded_show))
+        self.database_service.users_collection.insert_many([User.from_database(user).to_dict() for user in self.users])
         with open(f'tests/test_data/test_guide_list.json') as fd:
             data: list[dict] = json.load(fd)
         self.guide_list = data
@@ -291,11 +297,160 @@ class TestDatabase(unittest.TestCase):
         shows_count_after = len(self.database_service.get_all_recorded_shows())
 
         self.assertEqual(shows_count_after, shows_count_before - 1)
+
+    def test_get_user_returns_user_if_found(self):
+        user = self.database_service.get_user('Splintax')
+        
+        self.assertIsInstance(user, User)
+        self.assertEqual('Splintax', user.username)
+
+    def test_get_user_returns_none_if_not_found(self):
+        user = self.database_service.get_user('Random')
+        self.assertIsNone(user)
+
+    def test_create_user_succeeds(self):
+        initial_user_count = self.database_service.users_collection.count_documents({})
+        new_user = {
+            'username': 'Wallaby',
+            'password': 'SOCOM Tactical Strike',
+            'show_subscriptions': [
+                'Doctor Who',
+                'Shetland',
+                'Maigret'
+            ],
+            'reminder_subscriptions': [],
+        }
+        self.database_service.register_user(
+            new_user['username'], new_user['password'], new_user['show_subscriptions'], new_user['reminder_subscriptions']
+        )
+        new_user_count = self.database_service.users_collection.count_documents({})
+        new_user_doc = self.database_service.get_user('Wallaby')
+
+        self.assertEqual(6, initial_user_count)
+        self.assertEqual(7, new_user_count)
+        self.assertEqual('Wallaby', new_user_doc.username)
+        self.assertNotEqual(new_user['password'], new_user_doc.password)
+        self.assertEqual('Standard', new_user_doc.role)
+
+    def test_change_user_password_succeeds(self):
+        initial_user = self.database_service.get_user('Splintax')
+
+        self.database_service.change_user_password('Splintax', 'changing to a new password')
+
+        post_user = self.database_service.get_user('Splintax')
+
+        self.assertNotEqual(initial_user.password, post_user.password)
+        self.assertNotEqual('changing to a new password', post_user.password)
+
+    def test_change_user_password_raises_error(self):
+        initial_user = self.database_service.get_user('Random')
+
+        with self.assertRaises(UserNotFoundError) as context:
+            self.database_service.change_user_password('Random', 'changing to another password')
+
+        self.assertIsNone(initial_user)
+        self.assertIn('Random', str(context.exception))
+
+    def test_add_show_subscriptions(self):
+        intial_user = self.database_service.get_user('Splintax')
+
+        self.database_service.update_user_subscriptions('Splintax', ['Maigret', 'Vera', 'Transformers: Prime', 'Shetland'])
+
+        post_user = self.database_service.get_user('Splintax')
+
+        self.assertEqual(2, len(intial_user.show_subscriptions))
+        self.assertEqual(4, len(post_user.show_subscriptions))
+        self.assertIn('Transformers: Prime', post_user.show_subscriptions)
+        self.assertIn('Shetland', post_user.show_subscriptions)
+        
+    def test_remove_show_subscriptions(self):
+        intial_user = self.database_service.get_user('Crux')
+
+        self.database_service.update_user_subscriptions('Crux', ['Transformers: Prime'])
+
+        post_user = self.database_service.get_user('Crux')
+
+        self.assertEqual(2, len(intial_user.show_subscriptions))
+        self.assertEqual(1, len(post_user.show_subscriptions))
+        self.assertIn('Transformers: Prime', post_user.show_subscriptions)
+        self.assertNotIn('Transformers: Cyberverse', post_user.show_subscriptions)
+
+    def test_add_reminder_subscriptions(self):
+        intial_user = self.database_service.get_user('Sulejmani')
+
+        self.database_service.update_user_subscriptions('Sulejmani', reminder_subscriptions=['Transformers: Prime'])
+
+        post_user = self.database_service.get_user('Sulejmani')
+
+        self.assertEqual(0, len(intial_user.reminder_subscriptions))
+        self.assertEqual(1, len(post_user.reminder_subscriptions))
+        self.assertIn('Transformers: Prime', post_user.reminder_subscriptions)
+
+    def test_remove_reminder_subscriptions(self):
+        intial_user = self.database_service.get_user('Jazz')
+
+        self.database_service.update_user_subscriptions('Jazz', reminder_subscriptions=['Doctor Who'])
+
+        post_user = self.database_service.get_user('Jazz')
+
+        self.assertEqual(3, len(intial_user.reminder_subscriptions))
+        self.assertEqual(1, len(post_user.reminder_subscriptions))
+        self.assertIn('Doctor Who', post_user.reminder_subscriptions)
+        self.assertNotIn('Endeavour', post_user.reminder_subscriptions)
+        self.assertNotIn('Shetland', post_user.reminder_subscriptions)
+
+    def test_updating_subscriptions_raises_error(self):
+        with self.assertRaises(InvalidSubscriptions) as context:
+            self.database_service.update_user_subscriptions('Crux')
+        self.assertIn('updated list of subscriptions', str(context.exception))
+
+    def test_promote_user_succeeds(self):
+        user_initial = self.database_service.get_user('Splintax')
+        self.database_service.promote_user('Splintax')
+        promoted_user = self.database_service.get_user('Splintax')
+
+        self.assertEqual('Standard', user_initial.role)
+        self.assertEqual('Admin', promoted_user.role)
+
+    def test_promote_user_raises_error(self):
+
+        with self.assertRaises(UserNotFoundError) as context:
+            self.database_service.promote_user('Random')
+        self.assertIn('Random', str(context.exception))
+
+    def test_delete_user_succeeds(self):
+        initial_user_count = self.database_service.users_collection.count_documents({})
+        user_initial = self.database_service.get_user('John Smith')
+
+        result = self.database_service.delete_user('John Smith')
+        post_user_count = self.database_service.users_collection.count_documents({})
+        post_user = self.database_service.get_user('John Smith')
+
+        self.assertEqual(7, initial_user_count)
+        self.assertIsNotNone(user_initial)
+        self.assertTrue(result)
+        self.assertEqual(6, post_user_count)
+        self.assertIsNone(post_user)
+
+    def test_delete_user_fails(self):
+        initial_user_count = self.database_service.users_collection.count_documents({})
+        user_initial = self.database_service.get_user('Random')
+
+        result = self.database_service.delete_user('Random')
+        post_user_count = self.database_service.users_collection.count_documents({})
+        post_user = self.database_service.get_user('Random')
+
+        self.assertEqual(7, initial_user_count)
+        self.assertIsNone(user_initial)
+        self.assertFalse(result)
+        self.assertEqual(7, post_user_count)
+        self.assertIsNone(post_user)
     
 
     @classmethod
     def tearDownClass(self) -> None:
         self.database_service.recorded_shows_collection.delete_many({})
+        self.database_service.users_collection.delete_many({})
         return super().tearDownClass()
 
     # test:
