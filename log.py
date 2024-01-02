@@ -5,7 +5,6 @@ import json
 import os
 import re
 
-from backups import write_to_backup_file
 from data_validation.validation import Validation
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -36,43 +35,6 @@ def compare_dates(date: datetime):
             return True
         return False
 
-
-def read_file():
-
-    with open('log/emails.txt') as fd:
-        data = fd.read()
-
-    return data
-
-
-def write_to_backup():
-    contents = read_file()
-
-    with open('log/backup_log.txt', 'w') as fd:
-        fd.write(contents)
-
-
-def log_message_sent():
-
-    write_to_backup()
-    
-    contents = read_file().splitlines(True)
-    if len(contents) > 1:
-        new_log = [contents[1]]
-    message_date = Validation.get_current_date()
-    new_log.append(f"\nTVGuide was sent on {message_date.strftime('%d-%m-%y')} at {message_date.strftime('%H:%M')}")
-    
-    with open('log/emails.txt', 'w') as fd:
-        for line in new_log:
-            fd.write(line)
-
-
-def delete_latest_entry():
-    with open('log/backup_log.txt') as fd:
-        backup = fd.read()
-
-    with open('log/emails.txt', 'w') as fd:
-        fd.write(backup)
 
 def read_events():
     try:
@@ -110,7 +72,6 @@ def log_guide_information(fta_shows: list['GuideShow'], bbc_shows: list['GuideSh
         json.dump(today_guide, fd, ensure_ascii=False, indent=4)
     
     # guide = organise_guide(fta_shows, bbc_shows)
-    write_to_backup_file(today_guide)
 
 def log_database_event(event: dict):
     "Log the database event to the events.json file"
