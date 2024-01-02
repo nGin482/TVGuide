@@ -120,7 +120,7 @@ def get_reminders():
 def reminders():
     reminder = request.json
     show: str = reminder['show']
-    show_check = show in database_service.get_search_list()
+    show_check = show in [show.title for show in database_service.get_all_recorded_shows()]
     reminder_check = database_service.get_one_reminder(show)
     if not show_check:
         return {'message': f'{show} is not being searched for'}, 400
