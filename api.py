@@ -1,13 +1,14 @@
 from flask import Flask, request
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_current_user
+import os
+
+from config import database_service
 from database.models.RecordedShow import RecordedShow, Season, Episode
 from database.models.Reminders import Reminder
 from database.models.Users import User
-from exceptions.DatabaseError import SearchItemAlreadyExistsError, DatabaseError
-from config import database_service
+from exceptions.DatabaseError import SearchItemAlreadyExistsError, DatabaseError, UserNotFoundError, InvalidSubscriptions
 from services.tvmaze.tvmaze_api import get_show_data
-import os
 
 app = Flask(__name__)
 CORS(app)
@@ -158,7 +159,75 @@ def reminder(show: str):
             reminders = [reminder.to_dict() for reminder in database_service.get_all_reminders()]
             return {'message': f'The reminder for {show} has been deleted', 'reminders': reminders}
     return {'message': f'A reminder for {show} does not exist'}, 404
-   
+
+@app.route('/api/user/<string:username>', methods=['GET'])
+def get_user(username: str):
+    user = database_service.get_user(username)
+    if user:
+        user_data = user.to_dict()
+        del user_data['password']
+        return user_data
+    return {'message': f'An account with the username {username} could not be found'}, 404
+
+@app.route('/api/user/<string:username>/subscriptions', methods=['PUT'])
+@jwt_required()
+def edit_user_subscriptions(username: str):
+    user = database_service.get_user(username)
+    if user:
+        current_user: User = get_current_user()
+        if current_user.username != username:
+            return {'message': "You are not authorised to update this user's details"}, 403
+        body = request.json
+        try:
+            user_was_updated = database_service.update_user_subscriptions(
+                username,
+                body['show_subscriptions'] if 'show_subscriptions' in body.keys() else None,
+                body['reminder_subscriptions'] if 'reminder_subscriptions' in body.keys() else None
+            )
+            if user_was_updated:
+                return {'message': 'Your subscriptions were updated', 'user': user_was_updated}
+        except InvalidSubscriptions as err:
+            return {'message': str(err)}, 400            
+    return {'message': f'A user with the username {username} could not be found'}, 404
+
+@app.route('/api/user/<string:username>/promote', methods=['PATCH'])
+@jwt_required()
+def promote_user(username: str):
+    current_user: User = get_current_user()
+    if current_user.role == 'Admin':
+        try:
+            promoted_user = database_service.promote_user(username)
+            return promoted_user
+        except UserNotFoundError as err:
+            return { 'message': str(err) }, 404
+    return { 'message': 'You are not authorised to promote this user to an admin role' }, 403
+    
+@app.route('/api/user/<string:username>/change_password', methods=['POST'])
+@jwt_required()
+def change_password(username: str):
+    current_user: User = get_current_user()
+    if current_user.username == username:
+        database_service.change_user_password(username, request.json['password'])
+        return { 'message': 'Your password has been updated' }
+    return { 'message': "You are not authorised to change this user's password" }, 403
+
+@app.route('/api/user/<string:username>', methods=['DELETE'])
+@jwt_required()
+def delete_user(username: str):
+    current_user: User = get_current_user()
+    if current_user.username == username:
+        database_service.delete_user(username)
+        return { 'message': 'Your account has been deleted' }
+    elif current_user.role == 'Admin':
+        check_user = database_service.get_user(username)
+        if check_user:
+            database_service.delete_user(username)
+            return { 'message': 'Your account has been deleted' }
+        else:
+            return {'message': f'An account with the username {username} could not be found'}, 404
+    else:
+        return { 'message': 'You are not authorised to delete this user account' }
+
 @app.route('/api/auth/register', methods=['POST'])
 def registerUser():
     body = request.json

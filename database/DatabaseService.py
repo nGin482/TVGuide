@@ -12,10 +12,19 @@ from database.models.RecordedShow import RecordedShow, Season, Episode
 from database.models.Reminders import Reminder
 from database.models.SearchItem import SearchItem
 from database.models.Users import User
-from exceptions.DatabaseError import DatabaseError, EpisodeNotFoundError, ReminderNotFoundError, SearchItemAlreadyExistsError, SearchItemNotFoundError, SeasonNotFoundError, ShowNotFoundError
+from exceptions.DatabaseError import (
+    DatabaseError,
+    EpisodeNotFoundError,
+    ReminderNotFoundError,
+    SearchItemAlreadyExistsError,
+    SearchItemNotFoundError,
+    SeasonNotFoundError,
+    ShowNotFoundError,
+    UserNotFoundError,
+    InvalidSubscriptions
+)
 
 class DatabaseService:
-
 
     def __init__(self, database: Database) -> None:
         self.database = database
@@ -353,11 +362,61 @@ class DatabaseService:
 
         self.users_collection.insert_one(new_user.to_dict())
     
-    def update_user_details(self, user: User):
-        self.users_collection.find_one_and_update(
-            {'username': user.username},
-            user.to_dict()
-        )
+    def update_user_subscriptions(self, username: str, show_subscriptions: list[str] = None, reminder_subscriptions: list[str] = None):
+        user = self.get_user(username)
+        if show_subscriptions and len(show_subscriptions) > 0:
+            if show_subscriptions > user.show_subscriptions:
+                user.subscribe_to_shows(show_subscriptions)
+            if show_subscriptions < user.show_subscriptions:
+                user.remove_show_subscriptions(show_subscriptions)
+            updated_user = self.users_collection.find_one_and_update(
+                {'username': user.username},
+                {'$set': {'show_subscriptions': sorted(show_subscriptions)}},
+                projection={ '_id': False, 'password': False },
+                return_document=ReturnDocument.AFTER
+            )
+            return updated_user
+        elif reminder_subscriptions and len(reminder_subscriptions) > 0:
+            if reminder_subscriptions > user.reminder_subscriptions:
+                user.subscribe_to_reminders(reminder_subscriptions)
+            if reminder_subscriptions < user.reminder_subscriptions:
+                user.remove_reminder_subscriptions(reminder_subscriptions)
+            updated_user = self.users_collection.find_one_and_update(
+                {'username': user.username},
+                {'$set': {'reminder_subscriptions': sorted(reminder_subscriptions)}},
+                projection={ '_id': False, 'password': False },
+                return_document=ReturnDocument.AFTER
+            )
+            return updated_user
+        else:
+            raise InvalidSubscriptions('Please provide an updated list of subscriptions')
+        
+    def promote_user(self, username: str):
+        user = self.get_user(username)
+        if user:
+            updated_user = self.users_collection.find_one_and_update(
+                { 'username': username },
+                { '$set': { 'role': 'Admin' } },
+                { '_id': False, 'password': False },
+                return_document=ReturnDocument.AFTER
+            )
+            return updated_user
+        else:
+            raise UserNotFoundError(f'No user can be found with the username {username}')
+        
+    def change_user_password(self, username: str, new_password: str):
+        user = self.get_user(username)
+        if user:
+            user.change_password(new_password)
+            updated_user = self.users_collection.find_one_and_update(
+                { 'username': username },
+                { '$set': { 'password': user.password } },
+                { '_id': False, 'password': False },
+                return_document=ReturnDocument.AFTER
+            )
+            return updated_user
+        else:
+            raise UserNotFoundError(f'No user can be found with the username {username}')
 
     def delete_user(self, username: str):
         user = self.get_user(username)

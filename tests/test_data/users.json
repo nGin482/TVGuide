@@ -1,0 +1,78 @@
+[
+    {
+        "username": "Rango",
+        "password": "Password for Test 1 account",
+        "show_subscriptions": [
+            "Doctor Who",
+            "Endeavour",
+            "Transformers: Prime"
+        ],
+        "reminder_subscriptions": [
+            "Doctor Who"
+        ],
+        "role": "Admin"
+    },
+    {
+        "username": "Splintax",
+        "password": "Password for Test 2 account",
+        "show_subscriptions": [
+            "Maigret",
+            "Vera"
+        ],
+        "reminder_subscriptions": [
+
+        ],
+        "role": "Standard"
+    },
+    {
+        "username": "Crux",
+        "password": "Password for Test 3 account",
+        "show_subscriptions": [
+            "Transformers: Prime",
+            "Transformers: Cyberverse"
+        ],
+        "reminder_subscriptions": [
+
+        ],
+        "role": "Standard"
+    },
+    {
+        "username": "Sulejmani",
+        "password": "Password for Test 4 account",
+        "show_subscriptions": [
+            "Transformers: Prime",
+            "Transformers: Cyberverse"
+        ],
+        "reminder_subscriptions": [
+
+        ],
+        "role": "Standard"
+    },
+    {
+        "username": "Jazz",
+        "password": "Password for Test 5 account",
+        "show_subscriptions": [
+            "Shetland",
+            "Maigret",
+            "Endeavour",
+            "Doctor Who"
+        ],
+        "reminder_subscriptions": [
+            "Doctor Who",
+            "Endeavour",
+            "Shetland"
+        ],
+        "role": "Standard"
+    },
+    {
+        "username": "John Smith",
+        "password": "Password for Test 6 account",
+        "show_subscriptions": [
+
+        ],
+        "reminder_subscriptions": [
+
+        ],
+        "role": "Standard"
+    }
+]
