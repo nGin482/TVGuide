@@ -72,7 +72,7 @@ async def send_guide(ctx: Context):
                 await ctx.send(bbc_message)
     finally:
         await ctx.send(reminders_message)
-        await ngin.send(compose_events_message())
+        await ngin.send(compose_events_message(fta_list.extend(bbc_list)))
 
 @hermes.command()
 async def send_guide_record(ctx: Context, date_to_send: str):
