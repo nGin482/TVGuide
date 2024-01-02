@@ -6,7 +6,7 @@ from aux_methods.helper_methods import build_episode, convert_utc_to_local
 from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
-from log import compare_dates, log_guide_information
+from log import compare_dates
 
 def find_json(url):
     headers = {
