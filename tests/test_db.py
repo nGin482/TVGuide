@@ -20,7 +20,7 @@ class TestDatabase(unittest.TestCase):
     def setUpClass(self) -> None:
         super().setUpClass()
         load_dotenv('.env')
-        os.environ['ENV'] = 'testing'
+        os.environ['PYTHON_ENV'] = 'testing'
         self.database_service = DatabaseService(mongo_client().get_database('test'))
 
         with open('tests/test_data/recorded_shows.json') as fd:
