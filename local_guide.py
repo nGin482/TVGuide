@@ -4,13 +4,16 @@ from os import getenv
 import sys
 
 from guide import run_guide, search_free_to_air, search_bbc_australia, revert_database_tvguide
+from aux_methods.helper_methods import compose_events_message
 from services.hermes.hermes import hermes
 
 
 def get_guide_data():
     fta_list = search_free_to_air(database_service)
     bbc_list = search_bbc_australia(database_service)
-    return run_guide(database_service, fta_list, bbc_list)
+    guide_message, reminders_message = run_guide(database_service, fta_list, bbc_list)
+    events_message = compose_events_message(fta_list + bbc_list)
+    return guide_message, reminders_message, events_message
 
 async def send_main_message():
     """
@@ -20,13 +23,14 @@ async def send_main_message():
     """
     await hermes.wait_until_ready()
     tvguide_channel: TextChannel = hermes.get_channel(int(getenv('DEV_CHANNEL')))
+    ngin = await hermes.fetch_user(int(getenv('NGIN')))
     try:
         await tvguide_channel.send(guide_message)
-        await tvguide_channel.send(reminder_message)
     except AttributeError:
-        ngin = await hermes.fetch_user(int(getenv('NGIN')))
         await ngin.send('The channel resolved to NoneType so the message could not be sent')
-    # log_guide(fta_shows, bbc_shows)
+    finally:
+        await tvguide_channel.send(reminder_message)
+        await ngin.send(events_message)
     
     await hermes.close()
 
@@ -47,7 +51,7 @@ if __name__ == '__main__':
         elif '--tear-down' in sys.argv:
             database_service.tear_down_data()
         else:
-            guide_message, reminder_message = get_guide_data()
+            guide_message, reminder_message, events_message = get_guide_data()
             try:
                 hermes.loop.create_task(send_main_message())
                 hermes.run(getenv('HERMES'))
