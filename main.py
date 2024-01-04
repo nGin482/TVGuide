@@ -76,7 +76,7 @@ async def send_main_message(database_service: DatabaseService):
         await ngin.send('The channel resolved to NoneType so the message could not be sent')
     finally:
         await tvguide_channel.send(reminder_message)
-        await ngin.send(compose_events_message(fta_list.extend(bbc_list)))
+        await ngin.send(compose_events_message(fta_list + bbc_list))
 
 
 if __name__ == '__main__':
