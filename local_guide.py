@@ -30,12 +30,12 @@ async def send_main_message():
         await ngin.send('The channel resolved to NoneType so the message could not be sent')
     finally:
         await tvguide_channel.send(reminder_message)
-        await ngin.send(events_message)
+        await tvguide_channel.send(events_message)
     
     await hermes.close()
 
 def local_message():
-    guide_message, reminder_message = get_guide_data()
+    guide_message, reminder_message, events_message = get_guide_data()
 
     print(guide_message)
     print(reminder_message)
