@@ -14,6 +14,35 @@
                 "series_num": "5",
                 "episode_num": "1",
                 "episode_title": "Muse"
+            },
+            {
+                "captioning": true,
+                "rating": "M",
+                "crid": "ZW0937A003S00",
+                "episode_num": 3,
+                "show_id": 513103,
+                "title": "Vera",
+                "live": false,
+                "image_file": "ZW0937A003S00_460.jpg",
+                "prog_slug": "vera",
+                "consumer_advice": "Adult Themes, Violence",
+                "repeat": true,
+                "description": "A hit and run and a stabbing death in a remote Northumberland valley have DCI Vera Stanhope and her team investigating the connection between the two people involved.",
+                "series-crid": "ZW0937A",
+                "start_time": "2024-01-12T13:00:00",
+                "genres": [
+                    "Drama"
+                ],
+                "show_type": "Episode",
+                "access_service": {
+                    "access_service_ref": "Audio Described",
+                    "access_service_language": "English [ENG]"
+                },
+                "onair_title": "Vera",
+                "series_num": 6,
+                "episode_title": "The Moth Catcher",
+                "length": 90,
+                "end_time": "2024-01-11T14:30:00"
             }
         ]
     },
