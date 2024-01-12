@@ -46,7 +46,7 @@ def search_free_to_air(database_service: DatabaseService):
                         episode_number = 0
                         episode_title = ''
                         if 'series_num' in guide_show.keys() and 'episode_num' in guide_show.keys():
-                            season_number = str(guide_show['series_num'])
+                            season_number = int(guide_show['series_num'])
                             episode_number = int(guide_show['episode_num'])
                         if 'episode_title' in guide_show.keys():
                             episode_title = guide_show['episode_title']
