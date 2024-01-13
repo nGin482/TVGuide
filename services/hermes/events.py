@@ -15,6 +15,12 @@ async def on_show_not_processed(show: str, err: Exception):
     await send_message(message)
 
 @hermes.event
+async def on_episode_not_updated(show: str, season_number: int, episode_number: int = 0, episode_title: str = ''):
+    episode = episode_title if not episode_number else f'{episode_number}, {episode_title}'
+    message = f'Season {season_number}, Episode {episode} of {show} was not updated'
+    await send_message(message)    
+
+@hermes.event
 async def on_db_not_connected(err: str):
     message = f'Having trouble connecting to the database.\nError: {err}'
-    await  send_message(message)
+    await send_message(message)
