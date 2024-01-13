@@ -29,7 +29,7 @@
                 "repeat": true,
                 "description": "A hit and run and a stabbing death in a remote Northumberland valley have DCI Vera Stanhope and her team investigating the connection between the two people involved.",
                 "series-crid": "ZW0937A",
-                "start_time": "2024-01-12T13:00:00",
+                "start_time": "2024-01-13T13:00:00",
                 "genres": [
                     "Drama"
                 ],
@@ -42,7 +42,33 @@
                 "series_num": 6,
                 "episode_title": "The Moth Catcher",
                 "length": 90,
-                "end_time": "2024-01-11T14:30:00"
+                "end_time": "2024-01-13T14:30:00"
+            },
+            {
+                "title": "Vera",
+                "start_time": "2024-01-13T17:00:00",
+                "episode_title": "Unknown Test"
+            },
+            {
+                "title": "Vera",
+                "start_time": "2024-01-13T18:30:00",
+                "series_num": "15",
+                "episode_num": "1",
+                "episode_title": "Both season number and episode number as string"
+            },
+            {
+                "title": "Vera",
+                "start_time": "2024-01-13T20:00:00",
+                "series_num": 15,
+                "episode_num": "1",
+                "episode_title": "Season number as integer and episode number as string"
+            },
+            {
+                "title": "Vera",
+                "start_time": "2024-01-13T21:30:00",
+                "series_num": "15",
+                "episode_num": 1,
+                "episode_title": "Season number as string and episode number as integer"
             }
         ]
     },
