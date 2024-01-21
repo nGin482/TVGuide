@@ -1,0 +1,15 @@
+[
+    {
+        "username": "Natalie",
+        "password": "test",
+        "show_subscriptions": [
+            "Doctor Who",
+            "Endeavour",
+            "Maigret"
+        ],
+        "reminder_subscriptions": [
+
+        ],
+        "role": "Standard"
+    }
+]
