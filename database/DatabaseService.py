@@ -361,34 +361,33 @@ class DatabaseService:
 
         self.users_collection.insert_one(new_user.to_dict())
     
-    def update_user_subscriptions(self, username: str, show_subscriptions: list[str] = None, reminder_subscriptions: list[str] = None):
+    def update_user_subscriptions(self, username: str, operation: str, resource: str, subscriptions: list[str]):
         user = self.get_user(username)
-        if show_subscriptions and len(show_subscriptions) > 0:
-            if show_subscriptions > user.show_subscriptions:
-                user.subscribe_to_shows(show_subscriptions)
-            if show_subscriptions < user.show_subscriptions:
-                user.remove_show_subscriptions(show_subscriptions)
-            updated_user = self.users_collection.find_one_and_update(
-                {'username': user.username},
-                {'$set': {'show_subscriptions': sorted(show_subscriptions)}},
-                projection={ '_id': False, 'password': False },
-                return_document=ReturnDocument.AFTER
-            )
-            return updated_user
-        elif reminder_subscriptions and len(reminder_subscriptions) > 0:
-            if reminder_subscriptions > user.reminder_subscriptions:
-                user.subscribe_to_reminders(reminder_subscriptions)
-            if reminder_subscriptions < user.reminder_subscriptions:
-                user.remove_reminder_subscriptions(reminder_subscriptions)
-            updated_user = self.users_collection.find_one_and_update(
-                {'username': user.username},
-                {'$set': {'reminder_subscriptions': sorted(reminder_subscriptions)}},
-                projection={ '_id': False, 'password': False },
-                return_document=ReturnDocument.AFTER
-            )
-            return updated_user
+        if resource == 'searchList':
+            if operation == 'add':
+                user.subscribe_to_shows(subscriptions)
+            if operation == 'remove':
+                user.remove_show_subscriptions(subscriptions)
+        elif resource == 'reminders':
+            if operation == 'add':
+                user.subscribe_to_reminders(subscriptions)
+            if operation == 'remove':
+                user.remove_reminder_subscriptions(subscriptions)
         else:
-            raise InvalidSubscriptions('Please provide an updated list of subscriptions')
+            raise InvalidSubscriptions('Subscriptions can only be updated for search items and reminders')
+
+        updated_user = self.users_collection.find_one_and_update(
+            { 'username': username },
+            { '$set':
+                {
+                    'show_subscriptions': sorted(user.show_subscriptions),
+                    'reminder_subscriptions': sorted(user.reminder_subscriptions)
+                }
+            },
+            projection = { '_id': False },
+            return_document = ReturnDocument.AFTER
+        )
+        return updated_user
         
     def promote_user(self, username: str):
         user = self.get_user(username)

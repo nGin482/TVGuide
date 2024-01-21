@@ -180,7 +180,7 @@ def get_user(username: str):
         return user_data
     return {'message': f'An account with the username {username} could not be found'}, 404
 
-@app.route('/api/user/<string:username>/subscriptions', methods=['PUT'])
+@app.route('/api/users/<string:username>/subscriptions', methods=['PUT'])
 @jwt_required()
 def edit_user_subscriptions(username: str):
     user = database_service.get_user(username)
@@ -192,8 +192,9 @@ def edit_user_subscriptions(username: str):
         try:
             user_was_updated = database_service.update_user_subscriptions(
                 username,
-                body['show_subscriptions'] if 'show_subscriptions' in body.keys() else None,
-                body['reminder_subscriptions'] if 'reminder_subscriptions' in body.keys() else None
+                body['operation'],
+                body['resource'],
+                body['subscriptions']
             )
             if user_was_updated:
                 return {'message': 'Your subscriptions were updated', 'user': user_was_updated}
