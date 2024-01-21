@@ -433,6 +433,7 @@ class DatabaseService:
         self.source_data_collection.delete_many({})
         self.search_list_collection.delete_many({})
         self.recorded_shows_collection.delete_many({})
+        self.users_collection.delete_many({})
 
         with open('dev-data/search_list.json') as fd:
             search_list = json.load(fd)
@@ -447,6 +448,14 @@ class DatabaseService:
             bbc_uktv_data = list(json.load(fd))
         with open('dev-data/recorded_shows.json') as fd:
             recorded_shows = list(json.load(fd))
+        with open('dev-data/users.json') as fd:
+            raw_users = list(json.load(fd))
+            users = [User.register_new_user(
+                user['username'],
+                user['password'],
+                user['show_subscriptions'],
+                user['reminder_subscriptions']
+            ) for user in raw_users]
         
         fta_result = self.source_data_collection.insert_one({
             'service': "FTA",
@@ -465,6 +474,9 @@ class DatabaseService:
         print(bbc_uktv_result.inserted_id, 'added to SourceData collection')
 
         self.recorded_shows_collection.insert_many(recorded_shows)
+        
+        users_result = self.users_collection.insert_many([user.to_dict() for user in users])
+        print(users_result.inserted_ids, 'added to the Users collection')
 
     def tear_down_data(self):
         self.source_data_collection.delete_many({})
