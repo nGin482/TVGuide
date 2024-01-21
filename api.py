@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_current_user
+import sys
 import os
 
 from config import database_service
@@ -275,5 +276,8 @@ def events():
     return events
 
 if __name__ == '__main__':
-    os.environ['PYTHON_ENV'] = 'production'
+    if len(sys.argv) > 1:
+        os.environ['PYTHON_ENV'] = sys.argv[1]
+    else:
+        os.environ['PYTHON_ENV'] = 'production'        
     app.run(host='0.0.0.0', port='5000', debug=True)
