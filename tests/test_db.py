@@ -354,31 +354,31 @@ class TestDatabase(unittest.TestCase):
     def test_add_show_subscriptions(self):
         intial_user = self.database_service.get_user('Splintax')
 
-        self.database_service.update_user_subscriptions('Splintax', ['Maigret', 'Vera', 'Transformers: Prime', 'Shetland'])
+        self.database_service.update_user_subscriptions('Splintax', 'add', 'searchList', ['Maigret', 'Vera', 'Transformers: Prime', 'Shetland'])
 
         post_user = self.database_service.get_user('Splintax')
 
         self.assertEqual(2, len(intial_user.show_subscriptions))
-        self.assertEqual(4, len(post_user.show_subscriptions))
+        self.assertEqual(6, len(post_user.show_subscriptions))
         self.assertIn('Transformers: Prime', post_user.show_subscriptions)
         self.assertIn('Shetland', post_user.show_subscriptions)
         
     def test_remove_show_subscriptions(self):
         intial_user = self.database_service.get_user('Crux')
 
-        self.database_service.update_user_subscriptions('Crux', ['Transformers: Prime'])
+        self.database_service.update_user_subscriptions('Crux', 'remove', 'searchList', ['Transformers: Prime'])
 
         post_user = self.database_service.get_user('Crux')
 
         self.assertEqual(2, len(intial_user.show_subscriptions))
         self.assertEqual(1, len(post_user.show_subscriptions))
-        self.assertIn('Transformers: Prime', post_user.show_subscriptions)
-        self.assertNotIn('Transformers: Cyberverse', post_user.show_subscriptions)
+        self.assertNotIn('Transformers: Prime', post_user.show_subscriptions)
+        self.assertIn('Transformers: Cyberverse', post_user.show_subscriptions)
 
     def test_add_reminder_subscriptions(self):
         intial_user = self.database_service.get_user('Sulejmani')
 
-        self.database_service.update_user_subscriptions('Sulejmani', reminder_subscriptions=['Transformers: Prime'])
+        self.database_service.update_user_subscriptions('Sulejmani', 'add', 'reminders', ['Transformers: Prime'])
 
         post_user = self.database_service.get_user('Sulejmani')
 
@@ -389,20 +389,20 @@ class TestDatabase(unittest.TestCase):
     def test_remove_reminder_subscriptions(self):
         intial_user = self.database_service.get_user('Jazz')
 
-        self.database_service.update_user_subscriptions('Jazz', reminder_subscriptions=['Doctor Who'])
+        self.database_service.update_user_subscriptions('Jazz', 'remove', 'reminders', ['Doctor Who'])
 
         post_user = self.database_service.get_user('Jazz')
 
         self.assertEqual(3, len(intial_user.reminder_subscriptions))
-        self.assertEqual(1, len(post_user.reminder_subscriptions))
-        self.assertIn('Doctor Who', post_user.reminder_subscriptions)
-        self.assertNotIn('Endeavour', post_user.reminder_subscriptions)
-        self.assertNotIn('Shetland', post_user.reminder_subscriptions)
+        self.assertEqual(2, len(post_user.reminder_subscriptions))
+        self.assertNotIn('Doctor Who', post_user.reminder_subscriptions)
+        self.assertIn('Endeavour', post_user.reminder_subscriptions)
+        self.assertIn('Shetland', post_user.reminder_subscriptions)
 
     def test_updating_subscriptions_raises_error(self):
         with self.assertRaises(InvalidSubscriptions) as context:
-            self.database_service.update_user_subscriptions('Crux')
-        self.assertIn('updated list of subscriptions', str(context.exception))
+            self.database_service.update_user_subscriptions('Crux', 'add', 'searchList', [])
+        self.assertIn('Please provide a list of show subscriptions', str(context.exception))
 
     def test_promote_user_succeeds(self):
         user_initial = self.database_service.get_user('Splintax')
