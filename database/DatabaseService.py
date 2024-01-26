@@ -362,34 +362,33 @@ class DatabaseService:
 
         self.users_collection.insert_one(new_user.to_dict())
     
-    def update_user_subscriptions(self, username: str, show_subscriptions: list[str] = None, reminder_subscriptions: list[str] = None):
+    def update_user_subscriptions(self, username: str, operation: str, resource: str, subscriptions: list[str]):
         user = self.get_user(username)
-        if show_subscriptions and len(show_subscriptions) > 0:
-            if show_subscriptions > user.show_subscriptions:
-                user.subscribe_to_shows(show_subscriptions)
-            if show_subscriptions < user.show_subscriptions:
-                user.remove_show_subscriptions(show_subscriptions)
-            updated_user = self.users_collection.find_one_and_update(
-                {'username': user.username},
-                {'$set': {'show_subscriptions': sorted(show_subscriptions)}},
-                projection={ '_id': False, 'password': False },
-                return_document=ReturnDocument.AFTER
-            )
-            return updated_user
-        elif reminder_subscriptions and len(reminder_subscriptions) > 0:
-            if reminder_subscriptions > user.reminder_subscriptions:
-                user.subscribe_to_reminders(reminder_subscriptions)
-            if reminder_subscriptions < user.reminder_subscriptions:
-                user.remove_reminder_subscriptions(reminder_subscriptions)
-            updated_user = self.users_collection.find_one_and_update(
-                {'username': user.username},
-                {'$set': {'reminder_subscriptions': sorted(reminder_subscriptions)}},
-                projection={ '_id': False, 'password': False },
-                return_document=ReturnDocument.AFTER
-            )
-            return updated_user
+        if resource == 'searchList':
+            if operation == 'add':
+                user.subscribe_to_shows(subscriptions)
+            if operation == 'remove':
+                user.remove_show_subscriptions(subscriptions)
+        elif resource == 'reminders':
+            if operation == 'add':
+                user.subscribe_to_reminders(subscriptions)
+            if operation == 'remove':
+                user.remove_reminder_subscriptions(subscriptions)
         else:
-            raise InvalidSubscriptions('Please provide an updated list of subscriptions')
+            raise InvalidSubscriptions('Subscriptions can only be updated for search items and reminders')
+
+        updated_user = self.users_collection.find_one_and_update(
+            { 'username': username },
+            { '$set':
+                {
+                    'show_subscriptions': sorted(user.show_subscriptions),
+                    'reminder_subscriptions': sorted(user.reminder_subscriptions)
+                }
+            },
+            projection = { '_id': False },
+            return_document = ReturnDocument.AFTER
+        )
+        return updated_user
         
     def promote_user(self, username: str):
         user = self.get_user(username)
@@ -435,6 +434,7 @@ class DatabaseService:
         self.source_data_collection.delete_many({})
         self.search_list_collection.delete_many({})
         self.recorded_shows_collection.delete_many({})
+        self.users_collection.delete_many({})
 
         with open('dev-data/search_list.json') as fd:
             search_list = json.load(fd)
@@ -449,6 +449,14 @@ class DatabaseService:
             bbc_uktv_data = list(json.load(fd))
         with open('dev-data/recorded_shows.json') as fd:
             recorded_shows = list(json.load(fd))
+        with open('dev-data/users.json') as fd:
+            raw_users = list(json.load(fd))
+            users = [User.register_new_user(
+                user['username'],
+                user['password'],
+                user['show_subscriptions'],
+                user['reminder_subscriptions']
+            ) for user in raw_users]
         
         fta_result = self.source_data_collection.insert_one({
             'service': "FTA",
@@ -467,6 +475,9 @@ class DatabaseService:
         print(bbc_uktv_result.inserted_id, 'added to SourceData collection')
 
         self.recorded_shows_collection.insert_many(recorded_shows)
+        
+        users_result = self.users_collection.insert_many([user.to_dict() for user in users])
+        print(users_result.inserted_ids, 'added to the Users collection')
 
     def tear_down_data(self):
         self.source_data_collection.delete_many({})

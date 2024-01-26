@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_current_user
+import sys
 import os
 
 from config import database_service
@@ -180,7 +181,7 @@ def get_user(username: str):
         return user_data
     return {'message': f'An account with the username {username} could not be found'}, 404
 
-@app.route('/api/user/<string:username>/subscriptions', methods=['PUT'])
+@app.route('/api/users/<string:username>/subscriptions', methods=['PUT'])
 @jwt_required()
 def edit_user_subscriptions(username: str):
     user = database_service.get_user(username)
@@ -192,8 +193,9 @@ def edit_user_subscriptions(username: str):
         try:
             user_was_updated = database_service.update_user_subscriptions(
                 username,
-                body['show_subscriptions'] if 'show_subscriptions' in body.keys() else None,
-                body['reminder_subscriptions'] if 'reminder_subscriptions' in body.keys() else None
+                body['operation'],
+                body['resource'],
+                body['subscriptions']
             )
             if user_was_updated:
                 return {'message': 'Your subscriptions were updated', 'user': user_was_updated}
@@ -274,5 +276,8 @@ def events():
     return events
 
 if __name__ == '__main__':
-    os.environ['PYTHON_ENV'] = 'production'
+    if len(sys.argv) > 1:
+        os.environ['PYTHON_ENV'] = sys.argv[1]
+    else:
+        os.environ['PYTHON_ENV'] = 'production'        
     app.run(host='0.0.0.0', port='5000', debug=True)
