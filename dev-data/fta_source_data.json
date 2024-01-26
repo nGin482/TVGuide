@@ -57,5 +57,29 @@
                 "episode_title": "Predator"
             }
         ]
+    },
+    {
+        "channel": "GO",
+        "listing": [
+            {
+                "consumer_advice": "",
+                "rating": "PG",
+                "show_id": 1034502,
+                "repeat": false,
+                "description": "A resurrected Unicron has taken over the now-lifeless body of Megatron to seek vengeance on the Autobots and ultimately, the destruction of Cybertron.",
+                "title": "Transformers Prime Beast Hunters: Predacons Rising",
+                "crid": "TRPR1_1_1",
+                "start_time": "2024-01-26T13:44:00",
+                "series-crid": "TRPR1",
+                "live": false,
+                "captioning": false,
+                "show_type": "Movie",
+                "length": 81,
+                "end_time": "2023-10-21T15:05:00",
+                "genres": [
+                    "Animation"
+                ]
+            }
+        ]
     }
 ]

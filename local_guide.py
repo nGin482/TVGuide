@@ -35,10 +35,11 @@ async def send_main_message():
     await hermes.close()
 
 def local_message():
-    guide_message, reminder_message = get_guide_data()
+    guide_message, reminder_message, events_message = get_guide_data()
 
     print(guide_message)
     print(reminder_message)
+    print(events_message)
 
 if __name__ == '__main__':
     from config import database_service
