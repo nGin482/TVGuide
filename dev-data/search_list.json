@@ -30,5 +30,13 @@
 
         },
         "search_active": true
+    },
+    {
+        "show": "Vera",
+        "image": "",
+        "conditions": {
+
+        },
+        "search_active": true
     }
 ]

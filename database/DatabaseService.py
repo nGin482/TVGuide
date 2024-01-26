@@ -89,16 +89,17 @@ class DatabaseService:
         Provide the `show_title` and the `season_number` that this episode belongs to.\n
         Raises `DatabaseError` if there is a problem updating the episode"""
         try:
-            ep = self.recorded_shows_collection.find_one_and_update(
+            update_result = self.recorded_shows_collection.update_one(
                 {'show': show_title},
                 {'$set': {'seasons.$[season].episodes.$[episode]': episode.to_dict()}},
                 array_filters = [
                     {'season.season_number': season_number},
                     {'episode.episode_number': episode.episode_number}
-                ],
-                # return_document = ReturnDocument.AFTER
+                ]
             )
-            return ep
+            if update_result.matched_count != update_result.modified_count:
+                from services.hermes.hermes import hermes
+                hermes.dispatch('episode_not_updated', show_title, season_number, episode.episode_number, episode.episode_title)
         except OperationFailure as err:
             raise DatabaseError(f"An error occurred when trying to update this episode of {show_title}. Error: {str(err)}")
 
@@ -172,7 +173,7 @@ class DatabaseService:
             result = f"{guide_show.title} has aired today"
             if episode.channel_check(guide_show.channel) is False:
                 result = episode.add_channel(guide_show.channel)
-            ep = self.update_episode_in_database(guide_show.title, guide_show.season_number, episode)
+            self.update_episode_in_database(guide_show.title, guide_show.season_number, episode)
             guide_show.db_event = result
         except EpisodeNotFoundError as err:
             try:

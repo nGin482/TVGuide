@@ -46,7 +46,7 @@ class TestGuide(unittest.TestCase):
         data = search_free_to_air(self.database_service)
         
         guide_show_all_details = data[0]
-        self.assertEqual('4', guide_show_all_details.season_number)
+        self.assertEqual(4, guide_show_all_details.season_number)
         self.assertEqual(4, guide_show_all_details.episode_number)
         self.assertEqual('The Sontaran Strategem', guide_show_all_details.episode_title)
 
@@ -59,7 +59,7 @@ class TestGuide(unittest.TestCase):
         data = search_free_to_air(self.database_service)
         
         guide_show_episode_num = data[1]
-        self.assertEqual('4', guide_show_episode_num.season_number)
+        self.assertEqual(4, guide_show_episode_num.season_number)
         self.assertEqual(5, guide_show_episode_num.episode_number)
         self.assertEqual('', guide_show_episode_num.episode_title)
 
