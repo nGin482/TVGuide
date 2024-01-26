@@ -255,11 +255,11 @@ def login():
     user = database_service.get_user(given_credentials['username'])
     if user and user.check_password(given_credentials['password']):
         return {
-            'user': user.username,
-            'searchList': user.show_subscriptions,
-            'reminders': user.reminder_subscriptions,
-            'token': create_access_token(identity=user.username),
-            'role': user.role
+            'user': {
+                'username': user.username,
+                'role': user.role,
+                'token': create_access_token(identity=user.username)
+            }
         }
     return {'message': 'Incorrect username or password'}, 401
 
