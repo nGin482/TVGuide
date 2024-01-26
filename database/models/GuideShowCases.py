@@ -13,6 +13,8 @@ class TransformersGuideShow(SpecialCases):
         check_transformers = TransformersGuideShow.transformers_shows(title)
         if isinstance(check_transformers, tuple):
             return 'Transformers', check_transformers[0], check_transformers[1], check_transformers[2]
+        if 'Predacons Rising' in title:
+            return 'Transformers: Prime', 4, 1, 'Beast Hunters: Predacons Rising'
         return check_transformers
 
     @staticmethod

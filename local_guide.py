@@ -39,6 +39,7 @@ def local_message():
 
     print(guide_message)
     print(reminder_message)
+    print(events_message)
 
 if __name__ == '__main__':
     from config import database_service
