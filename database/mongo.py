@@ -2,10 +2,9 @@ from pymongo import MongoClient, errors
 import sys
 import os
 
-def mongo_client():
+def mongo_client(connection: str):
     try:
-        connection_string = db_connection_string()
-        return MongoClient(connection_string)
+        return MongoClient(connection)
     except (errors.ConfigurationError, errors.ServerSelectionTimeoutError) as e:
         from services.hermes.hermes import hermes
         print('Having trouble connecting to the database.')

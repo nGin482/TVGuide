@@ -11,5 +11,5 @@ load_dotenv('.env')
 environment = os.getenv('PYTHON_ENV')
 database = 'tvguide' if environment == 'production' else 'development'
 
-database_service = DatabaseService(mongo_client().get_database(database))
+database_service = DatabaseService('production', database)
 scheduler = AsyncIOScheduler()

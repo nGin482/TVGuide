@@ -2,7 +2,6 @@ from pymongo.database import Database
 from pymongo.errors import OperationFailure
 from pymongo import ReturnDocument, DESCENDING
 from datetime import datetime
-import click
 import json
 import os
 
@@ -13,6 +12,7 @@ from database.models.RecordedShow import RecordedShow, Season, Episode
 from database.models.Reminders import Reminder
 from database.models.SearchItem import SearchItem
 from database.models.Users import User
+from database.mongo import mongo_client
 from exceptions.DatabaseError import (
     DatabaseError,
     EpisodeNotFoundError,
@@ -27,8 +27,9 @@ from exceptions.DatabaseError import (
 
 class DatabaseService:
 
-    def __init__(self, database: Database) -> None:
-        self.database = database
+    def __init__(self, database_conn: str, database: str) -> None:
+        mongo_connection = mongo_client(database_conn)
+        self.database = mongo_connection.get_database(database)
         self.recorded_shows_collection = self.database.get_collection('RecordedShows')
         self.reminders_collection = self.database.get_collection('Reminders')
         self.search_list_collection = self.database.get_collection('ShowList')
@@ -432,20 +433,21 @@ class DatabaseService:
         return dict(source_data)
     
     def import_data(self, resource: str):
-        match resource:
-            case 'recorded_shows':
-                self.import_recorded_shows()
-            case 'source_data':
-                self.import_source_data()
-            case 'search_list':
-                self.import_search_list()
-            case 'users':
-                self.import_users()
-            case 'all':
-                self.import_recorded_shows()
-                self.import_source_data()
-                self.import_search_list()
-                self.import_users()
+        print(resource)
+        # match resource:
+        #     case 'recorded_shows':
+        #         self.import_recorded_shows()
+        #     case 'source_data':
+        #         self.import_source_data()
+        #     case 'search_list':
+        #         self.import_search_list()
+        #     case 'users':
+        #         self.import_users()
+        #     case 'all':
+        #         self.import_recorded_shows()
+        #         self.import_source_data()
+        #         self.import_search_list()
+        #         self.import_users()
 
     def import_recorded_shows(self):
         self.recorded_shows_collection.delete_many({})
