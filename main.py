@@ -81,7 +81,15 @@ async def send_main_message(database_service: DatabaseService):
 
 if __name__ == '__main__':
     
-    scheduler.add_job(send_main_message, CronTrigger(hour=9, timezone='Australia/Sydney'), [database_service], misfire_grace_time=None)
+    scheduler.add_job(
+        send_main_message,
+        CronTrigger(hour=9, timezone='Australia/Sydney'),
+        [database_service],
+        id='TVGuide Message',
+        name='Send the TVGuide message',
+        misfire_grace_time=None,
+        replace_existing=True
+    )
     scheduler.start()
     hermes.run(os.getenv('HERMES'))
 

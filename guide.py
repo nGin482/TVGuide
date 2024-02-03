@@ -184,7 +184,13 @@ def reminders(guide_list: list['GuideShow'], database_service: DatabaseService, 
             from apscheduler.triggers.date import DateTrigger
             from services.hermes.utilities import send_message
             for reminder in reminders:
-                scheduler.add_job(send_message, DateTrigger(run_date=reminder.notify_time, timezone='Australia/Sydney'), [reminder.notification()])
+                scheduler.add_job(
+                    send_message,
+                    DateTrigger(run_date=reminder.notify_time, timezone='Australia/Sydney'),
+                    [reminder.notification()],
+                    id=f'reminder-${reminder.show}',
+                    name=f'Send the reminder message for {reminder.show}'
+                )
         return reminders_message
     else:
         print('There are no reminders scheduled for today')
