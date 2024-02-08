@@ -1,3 +1,5 @@
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.job import Job
 from pymongo.database import Database
 from pymongo.errors import OperationFailure
 from pymongo import ReturnDocument, DESCENDING
@@ -33,6 +35,7 @@ class DatabaseService:
         self.search_list_collection = self.database.get_collection('ShowList')
         self.guide_collection = self.database.get_collection('Guide')
         self.users_collection = self.database.get_collection('Users')
+        self.jobs_collection = self.database.get_collection('Jobs')
         self.source_data_collection = self.database.get_collection('SourceData')
     
 # RECORDED SHOWS
@@ -424,6 +427,23 @@ class DatabaseService:
             return True
         return False
     
+    # JOBS
+    def get_all_jobs(self, scheduler: AsyncIOScheduler):
+        job_documents = self.jobs_collection.find({})
+        jobs_list: list[Job] = [scheduler.get_job(job['job_id']) for job in job_documents]
+        return jobs_list
+    
+    def get_one_job(self, job_id: str, scheduler: AsyncIOScheduler):
+        job_doc = self.jobs_collection.find_one({ 'job_id': job_id })
+        if job_doc:
+            job: Job = scheduler.get_job(job_doc['job_id'])
+            return job
+        return None
+
+    def remove_job(self, job_id: str, scheduler: AsyncIOScheduler):
+        job_doc = self.jobs_collection.find_one({ 'job_id': job_id })
+        if job_doc:
+            scheduler.remove_job(job_doc['job_id'])
 
     # Source Data - Development Environment
     def get_source_data(self, service: str = 'All'):
