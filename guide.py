@@ -188,7 +188,7 @@ def reminders(guide_list: list['GuideShow'], database_service: DatabaseService, 
                     send_message,
                     DateTrigger(run_date=reminder.notify_time, timezone='Australia/Sydney'),
                     [reminder.notification()],
-                    id=f'reminder-${reminder.show}',
+                    id=f'reminder-{reminder.show}',
                     name=f'Send the reminder message for {reminder.show}'
                 )
         return reminders_message
