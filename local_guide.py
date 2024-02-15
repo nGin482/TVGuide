@@ -56,8 +56,8 @@ def tear_down_data(local_db: bool):
 @click.option('--local-db', default=True, help='The database to connect to')
 @click.option('--discord', default=True, help='Whether to send the message via Discord')
 def run_guide(local_db: bool, discord: bool):
-    from guide import run_guide, search_free_to_air, search_bbc_australia
     from aux_methods.helper_methods import compose_events_message
+    from guide import run_guide, search_free_to_air, search_bbc_australia
 
     if local_db:
         database_connection = os.getenv('LOCAL_DB')
