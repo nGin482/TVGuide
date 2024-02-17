@@ -163,7 +163,6 @@ class DatabaseService:
 
 
     def capture_db_event(self, guide_show: GuideShow, date: str = None):
-        from services.hermes.hermes import hermes
         
         recorded_show = guide_show.recorded_show
         event_date = datetime.strptime(date, '%d/%m/%Y') if date is not None else Validation.get_current_date().date()
@@ -204,6 +203,7 @@ class DatabaseService:
             print(f'{guide_show.title} happening on show')
             guide_show.db_event = insert_show
         except Exception as err:
+            from services.hermes.hermes import hermes
             hermes.dispatch('show_not_processed', guide_show.message_string(), err)
 
 # SEARCH LIST
