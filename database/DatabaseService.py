@@ -433,21 +433,20 @@ class DatabaseService:
         return dict(source_data)
     
     def import_data(self, resource: str):
-        print(resource)
-        # match resource:
-        #     case 'recorded_shows':
-        #         self.import_recorded_shows()
-        #     case 'source_data':
-        #         self.import_source_data()
-        #     case 'search_list':
-        #         self.import_search_list()
-        #     case 'users':
-        #         self.import_users()
-        #     case 'all':
-        #         self.import_recorded_shows()
-        #         self.import_source_data()
-        #         self.import_search_list()
-        #         self.import_users()
+        match resource:
+            case 'recorded_shows':
+                self.import_recorded_shows()
+            case 'source_data':
+                self.import_source_data()
+            case 'search_list':
+                self.import_search_list()
+            case 'users':
+                self.import_users()
+            case 'all':
+                self.import_recorded_shows()
+                self.import_source_data()
+                self.import_search_list()
+                self.import_users()
 
     def import_recorded_shows(self):
         self.recorded_shows_collection.delete_many({})
