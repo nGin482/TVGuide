@@ -2,12 +2,12 @@ from datetime import datetime
 from dotenv import load_dotenv
 import unittest
 import json
+import os
 
 from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
 from database.models.RecordedShow import RecordedShow
 from database.models.Reminders import Reminder
-from database.mongo import mongo_client
 from exceptions.DatabaseError import EpisodeNotFoundError, SeasonNotFoundError, ShowNotFoundError
 
 
@@ -15,7 +15,7 @@ class TestGuideShow(unittest.TestCase):
 
     def setUp(self):
         load_dotenv('.env')
-        self.database_service = DatabaseService(mongo_client().get_database('test'))
+        self.database_service = DatabaseService(os.getenv('TVGUIDE_DB'), 'test')
         with open('tests/test_data/test_guide_list.json') as fd:
             self.data = json.load(fd)
         with open('tests/test_data/recorded_shows.json') as fd:

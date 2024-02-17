@@ -12,6 +12,7 @@ from database.models.RecordedShow import RecordedShow, Season, Episode
 from database.models.Reminders import Reminder
 from database.models.SearchItem import SearchItem
 from database.models.Users import User
+from database.mongo import mongo_client
 from exceptions.DatabaseError import (
     DatabaseError,
     EpisodeNotFoundError,
@@ -26,8 +27,9 @@ from exceptions.DatabaseError import (
 
 class DatabaseService:
 
-    def __init__(self, database: Database) -> None:
-        self.database = database
+    def __init__(self, database_conn: str, database: str) -> None:
+        mongo_connection = mongo_client(database_conn)
+        self.database = mongo_connection.get_database(database)
         self.recorded_shows_collection = self.database.get_collection('RecordedShows')
         self.reminders_collection = self.database.get_collection('Reminders')
         self.search_list_collection = self.database.get_collection('ShowList')
@@ -430,16 +432,34 @@ class DatabaseService:
         source_data = self.source_data_collection.find_one({ 'service': service })
         return dict(source_data)
     
-    def import_data(self):
-        self.source_data_collection.delete_many({})
-        self.search_list_collection.delete_many({})
-        self.recorded_shows_collection.delete_many({})
-        self.users_collection.delete_many({})
+    def import_data(self, resource: str):
+        print(resource)
+        # match resource:
+        #     case 'recorded_shows':
+        #         self.import_recorded_shows()
+        #     case 'source_data':
+        #         self.import_source_data()
+        #     case 'search_list':
+        #         self.import_search_list()
+        #     case 'users':
+        #         self.import_users()
+        #     case 'all':
+        #         self.import_recorded_shows()
+        #         self.import_source_data()
+        #         self.import_search_list()
+        #         self.import_users()
 
-        with open('dev-data/search_list.json') as fd:
-            search_list = json.load(fd)
-        result = self.search_list_collection.insert_many(search_list)
-        print(len(result.inserted_ids), 'documents inserted in the Search List collection')
+    def import_recorded_shows(self):
+        self.recorded_shows_collection.delete_many({})
+
+        with open('dev-data/recorded_shows.json') as fd:
+            recorded_shows = list(json.load(fd))
+
+        recorded_show_result = self.recorded_shows_collection.insert_many(recorded_shows)
+        print(len(recorded_show_result.inserted_ids), 'documents added to the Recorded Shows collection')
+
+    def import_source_data(self):
+        self.source_data_collection.delete_many({})
 
         with open('dev-data/fta_source_data.json') as fd:
             fta_data = list(json.load(fd))
@@ -447,17 +467,7 @@ class DatabaseService:
             bbc_first_data = list(json.load(fd))
         with open('dev-data/bbc_uktv_source_data.json') as fd:
             bbc_uktv_data = list(json.load(fd))
-        with open('dev-data/recorded_shows.json') as fd:
-            recorded_shows = list(json.load(fd))
-        with open('dev-data/users.json') as fd:
-            raw_users = list(json.load(fd))
-            users = [User.register_new_user(
-                user['username'],
-                user['password'],
-                user['show_subscriptions'],
-                user['reminder_subscriptions']
-            ) for user in raw_users]
-        
+
         fta_result = self.source_data_collection.insert_one({
             'service': "FTA",
             'schedule': fta_data
@@ -474,7 +484,26 @@ class DatabaseService:
         print(bbc_first_result.inserted_id, 'added to SourceData collection')
         print(bbc_uktv_result.inserted_id, 'added to SourceData collection')
 
-        self.recorded_shows_collection.insert_many(recorded_shows)
+    def import_search_list(self):
+        self.search_list_collection.delete_many({})
+
+        with open('dev-data/search_list.json') as fd:
+            search_list = json.load(fd)
+        
+        result = self.search_list_collection.insert_many(search_list)
+        print(len(result.inserted_ids), 'documents inserted in the Search List collection')
+
+    def import_users(self):
+        self.users_collection.delete_many({})
+
+        with open('dev-data/users.json') as fd:
+            raw_users = list(json.load(fd))
+            users = [User.register_new_user(
+                user['username'],
+                user['password'],
+                user['show_subscriptions'],
+                user['reminder_subscriptions']
+            ) for user in raw_users]
         
         users_result = self.users_collection.insert_many([user.to_dict() for user in users])
         print(users_result.inserted_ids, 'added to the Users collection')

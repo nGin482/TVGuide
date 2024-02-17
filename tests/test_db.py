@@ -10,7 +10,6 @@ from database.models.GuideShow import GuideShow
 from database.models.RecordedShow import RecordedShow
 from database.models.Reminders import Reminder
 from database.models.Users import User
-from database.mongo import mongo_client
 from exceptions.DatabaseError import UserNotFoundError, InvalidSubscriptions
 
 
@@ -21,7 +20,7 @@ class TestDatabase(unittest.TestCase):
         super().setUpClass()
         load_dotenv('.env')
         os.environ['PYTHON_ENV'] = 'testing'
-        self.database_service = DatabaseService(mongo_client().get_database('test'))
+        self.database_service = DatabaseService(os.getenv('TVGUIDE_DB'), 'test')
 
         with open('tests/test_data/recorded_shows.json') as fd:
             self.recorded_shows: list[dict] = json.load(fd)
