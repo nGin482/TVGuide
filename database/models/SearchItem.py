@@ -12,6 +12,15 @@ class SearchItem:
     def from_database(cls, search_item: dict[str]):
         return cls(search_item['show'], search_item['image'], search_item['conditions'], search_item['search_active'])
 
+    def check_search_conditions(self, guide_show: dict):
+        print(bool(self.conditions))
+        if not self.conditions:
+            return True
+        if self.conditions and guide_show['season_number'] >= self.conditions['min_season']:
+            print(f"{guide_show['season_number']} >= {self.conditions['min_season']}")
+            return True
+        return False
+
 
     def to_dict(self):
         return {

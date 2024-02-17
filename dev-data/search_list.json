@@ -19,7 +19,7 @@
         "show": "Silent Witness",
         "image": "",
         "conditions": {
-
+            "min_season": "20"
         },
         "search_active": true
     },

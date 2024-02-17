@@ -58,6 +58,7 @@ def search_free_to_air(database_service: DatabaseService):
                             episode_number,
                             episode_title
                         )
+                        episodes = [episode for episode in episodes if search_item.check_search_conditions(episode)]
                         shows_data.extend(episodes)
 
     shows_data = Validation.remove_unwanted_shows(shows_data)
@@ -102,6 +103,7 @@ def search_bbc_australia(database_service: DatabaseService):
                         episode_num,
                         episode_title
                     )
+                    episodes = [episode for episode in episodes if search_item.check_search_conditions(episode)]
                     show_list.extend(episodes)
     
     search_channel_data(bbc_first_data, 'BBC First')
