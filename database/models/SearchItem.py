@@ -16,8 +16,17 @@ class SearchItem:
         print(bool(self.conditions))
         if not self.conditions:
             return True
-        if self.conditions and guide_show['season_number'] >= self.conditions['min_season']:
+        
+        if 'min_season' in self.conditions and 'max_season' in self.conditions:
+            if self.conditions['min_season'] <= guide_show['season_number'] <= self.conditions['max_season']:
+                print(f"{self.conditions['min_season']} <= {guide_show['season_number']} <= {self.conditions['max_season']}")
+                return True
+            return False
+        if 'min_season' in self.conditions and guide_show['season_number'] >= self.conditions['min_season']:
             print(f"{guide_show['season_number']} >= {self.conditions['min_season']}")
+            return True
+        if 'max_season' in self.conditions and guide_show['season_number'] <= self.conditions['max_season']:
+            print(f"{guide_show['season_number']} <= {self.conditions['max_season']}")
             return True
         return False
 

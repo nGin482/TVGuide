@@ -14,6 +14,19 @@
     },
     {
         "show": {
+            "title": "Silent Witness"
+        },
+        "start": "2023-12-26 19:30:00",
+        "episode": {
+            "series": {
+                "number": "27"
+            },
+            "number": "1",
+            "title": "Squaring the Circle: Part 1"
+        }
+    },
+    {
+        "show": {
             "title": "Death in Paradise"
         },
         "start": "2023-12-26 20:30:00",

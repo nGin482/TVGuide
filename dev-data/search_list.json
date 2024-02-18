@@ -19,7 +19,8 @@
         "show": "Silent Witness",
         "image": "",
         "conditions": {
-            "min_season": "20"
+            "min_season": "20",
+            "max_season": "25"
         },
         "search_active": true
     },
@@ -27,7 +28,7 @@
         "show": "Lewis",
         "image": "",
         "conditions": {
-
+            "max_season": "5"
         },
         "search_active": true
     },
