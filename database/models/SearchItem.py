@@ -28,6 +28,14 @@ class SearchItem:
         if 'max_season' in self.conditions and guide_show['season_number'] <= self.conditions['max_season']:
             print(f"{guide_show['season_number']} <= {self.conditions['max_season']}")
             return True
+        
+        if 'exact_search' in self.conditions:
+            if self.conditions['exact_search']:
+                return self.show.lower() == guide_show['title'].lower()
+            else:
+                return self.show.lower() in guide_show['title'].lower()
+        if 'exclude_titles' in self.conditions:
+            return guide_show['title'] not in self.conditions['exclude_titles']
         return False
 
 

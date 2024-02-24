@@ -11,7 +11,10 @@
         "show": "NCIS",
         "image": "",
         "conditions": {
-
+            "exclude_titles": [
+                "NCIS: New Orleans",
+                "NCIS: Hawaii"
+            ]
         },
         "search_active": true
     },
@@ -28,7 +31,8 @@
         "show": "Lewis",
         "image": "",
         "conditions": {
-            "max_season": "5"
+            "max_season": "5",
+            "exact_search": true
         },
         "search_active": true
     },
@@ -36,7 +40,7 @@
         "show": "Vera",
         "image": "",
         "conditions": {
-
+            "exact_search": true
         },
         "search_active": true
     },

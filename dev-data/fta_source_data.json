@@ -110,6 +110,13 @@
                 "series_num": "1",
                 "episode_num": "3",
                 "episode_title": "Predator"
+            },
+            {
+                "title": "NCIS: New Orleans",
+                "start_time": "2024-02-24T20:30:00",
+                "series_num": "2",
+                "episode_num": "1",
+                "episode_title": "Sic Semper Tyrannis"
             }
         ]
     },
@@ -134,6 +141,11 @@
                 "genres": [
                     "Animation"
                 ]
+            },
+            {
+                "title": "The Verandah",
+                "start_time": "2024-02-24T16:30:00",
+                "episode_title": "Sky High The Verandah"
             }
         ]
     }
