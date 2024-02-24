@@ -16,27 +16,35 @@ class SearchItem:
         print(bool(self.conditions))
         if not self.conditions:
             return True
-        
-        if 'min_season' in self.conditions and 'max_season' in self.conditions:
-            if self.conditions['min_season'] <= guide_show['season_number'] <= self.conditions['max_season']:
-                print(f"{self.conditions['min_season']} <= {guide_show['season_number']} <= {self.conditions['max_season']}")
-                return True
-            return False
-        if 'min_season' in self.conditions and guide_show['season_number'] >= self.conditions['min_season']:
-            print(f"{guide_show['season_number']} >= {self.conditions['min_season']}")
-            return True
-        if 'max_season' in self.conditions and guide_show['season_number'] <= self.conditions['max_season']:
-            print(f"{guide_show['season_number']} <= {self.conditions['max_season']}")
-            return True
+
+        if 'min_season' not in self.conditions and 'max_season' not in self.conditions:
+            season_check = True
+        elif 'season_number' in guide_show and guide_show['season_number'] != 'Unknown':
+            if 'min_season' in self.conditions and 'max_season' in self.conditions:
+                season_check = int(self.conditions['min_season']) <= int(guide_show['season_number']) <= int(self.conditions['max_season'])
+            elif 'min_season' in self.conditions:
+                season_check = int(guide_show['season_number']) >= int(self.conditions['min_season'])
+            elif 'max_season' in self.conditions:
+                season_check = int(guide_show['season_number']) <= int(self.conditions['max_season'])
+        elif 'season_number' in guide_show and guide_show['season_number'] == 'Unknown':
+            season_check = True
+        else:
+            season_check = False
         
         if 'exact_search' in self.conditions:
             if self.conditions['exact_search']:
-                return self.show.lower() == guide_show['title'].lower()
+                show_title_check = self.show.lower() == str(guide_show['title']).lower()
             else:
-                return self.show.lower() in guide_show['title'].lower()
+                show_title_check = self.show.lower() in str(guide_show['title']).lower()
+        else:
+            show_title_check = True
         if 'exclude_titles' in self.conditions:
-            return guide_show['title'] not in self.conditions['exclude_titles']
-        return False
+            show_title_exclusion_check = guide_show['title'] not in self.conditions['exclude_titles']
+        else:
+            show_title_exclusion_check = True
+        
+        print(self.show, f'| title check: {show_title_check}', f'| exclusion check: {show_title_exclusion_check}', f'| season check: {season_check}')
+        return show_title_check and show_title_exclusion_check and season_check
 
 
     def to_dict(self):
