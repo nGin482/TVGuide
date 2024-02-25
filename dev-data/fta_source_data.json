@@ -122,6 +122,13 @@
         "channel": "10",
         "listing": [
             {
+                "title": "NCIS",
+                "start_time": "2024-02-25T20:30:00",
+                "series_num": 10,
+                "episode_num": 3,
+                "episode_title": "Phoenix"
+            },
+            {
                 "title": "NCIS: Los Angeles",
                 "start_time": "2023-12-26T20:30:00",
                 "series_num": "1",

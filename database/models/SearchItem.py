@@ -14,6 +14,9 @@ class SearchItem:
 
     def check_search_conditions(self, guide_show: dict):
         print(bool(self.conditions))
+        if not self.search_active:
+            return False
+
         if not self.conditions:
             return True
 
@@ -43,6 +46,7 @@ class SearchItem:
                 show_title_check = self.show.lower() in str(guide_show['title']).lower()
         else:
             show_title_check = True
+        
         if 'exclude_titles' in self.conditions:
             show_title_exclusion_check = guide_show['title'] not in self.conditions['exclude_titles']
         else:
