@@ -59,5 +59,13 @@
 
         },
         "search_active": true
+    },
+    {
+        "show": "Mock the Week",
+        "image": "",
+        "conditions": {
+            "only_season": 19
+        },
+        "search_active": true
     }
 ]

@@ -19,17 +19,22 @@ class SearchItem:
 
         if 'min_season' not in self.conditions and 'max_season' not in self.conditions:
             season_check = True
-        elif 'season_number' in guide_show and guide_show['season_number'] != 'Unknown':
+        elif guide_show['season_number'] != 'Unknown':
             if 'min_season' in self.conditions and 'max_season' in self.conditions:
                 season_check = int(self.conditions['min_season']) <= int(guide_show['season_number']) <= int(self.conditions['max_season'])
             elif 'min_season' in self.conditions:
                 season_check = int(guide_show['season_number']) >= int(self.conditions['min_season'])
             elif 'max_season' in self.conditions:
                 season_check = int(guide_show['season_number']) <= int(self.conditions['max_season'])
-        elif 'season_number' in guide_show and guide_show['season_number'] == 'Unknown':
+        elif guide_show['season_number'] == 'Unknown':
             season_check = True
         else:
             season_check = False
+
+        if 'only_season' in self.conditions:
+            only_season_check = int(self.conditions['only_season']) == int(guide_show['season_number'])
+        else:
+            only_season_check = True
         
         if 'exact_search' in self.conditions:
             if self.conditions['exact_search']:
@@ -43,8 +48,14 @@ class SearchItem:
         else:
             show_title_exclusion_check = True
         
-        print(self.show, f'| title check: {show_title_check}', f'| exclusion check: {show_title_exclusion_check}', f'| season check: {season_check}')
-        return show_title_check and show_title_exclusion_check and season_check
+        print(
+            self.show,
+            f'| title check: {show_title_check}',
+            f'| exclusion check: {show_title_exclusion_check}',
+            f'| season check: {season_check}',
+            f'| only season check: {only_season_check}'
+        )
+        return show_title_check and show_title_exclusion_check and season_check and only_season_check
 
 
     def to_dict(self):

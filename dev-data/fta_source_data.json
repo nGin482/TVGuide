@@ -91,6 +91,23 @@
         ]
     },
     {
+        "channel": "ABC2",
+        "listing": [
+            {
+                "title": "Mock the Week",
+                "series_num": 19,
+                "episode_num": "3",
+                "start_time": "2024-02-25T21:00:00"
+            },
+            {
+                "title": "Mock the Week",
+                "series_num": 20,
+                "episode_num": "1",
+                "start_time": "2024-02-25T21:30:00"
+            }
+        ]
+    },
+    {
         "channel": "7TWO",
         "listing": [
             {
