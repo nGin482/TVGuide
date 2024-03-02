@@ -37,9 +37,9 @@ def search_free_to_air(database_service: DatabaseService):
 
     for channel_data in schedule:
         for guide_show in channel_data['listing']:
-            title = guide_show['title']
+            title: str = guide_show['title']
             for search_item in search_list:
-                if search_item.show in title:
+                if search_item.show.lower() in title.lower():
                     show_date = datetime.strptime(guide_show['start_time'], '%Y-%m-%dT%H:%M:%S')
                     if show_date.day == date.day:
                         season_number = 'Unknown'
