@@ -13,7 +13,6 @@ class SearchItem:
         return cls(search_item['show'], search_item['image'], search_item['conditions'], search_item['search_active'])
 
     def check_search_conditions(self, guide_show: dict):
-        print(bool(self.conditions))
         if not self.search_active:
             return False
 
@@ -52,13 +51,6 @@ class SearchItem:
         else:
             show_title_exclusion_check = True
         
-        print(
-            self.show,
-            f'| title check: {show_title_check}',
-            f'| exclusion check: {show_title_exclusion_check}',
-            f'| season check: {season_check}',
-            f'| only season check: {only_season_check}'
-        )
         return show_title_check and show_title_exclusion_check and season_check and only_season_check
 
 
