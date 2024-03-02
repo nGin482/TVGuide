@@ -26,6 +26,10 @@ class TestGuide(unittest.TestCase):
             new_reminder = Reminder.from_database(reminder)
             self.database_service.insert_new_reminder(new_reminder)
 
+        with open('tests/test_data/search_list.json') as fd:
+            search_list = json.load(fd)
+        self.database_service.search_list_collection.insert_many(search_list)
+
     def guide_data():
         with open('tests/test_data/fta_data.json') as fd:
             fta_data = json.load(fd)
@@ -168,6 +172,7 @@ class TestGuide(unittest.TestCase):
         reminders = self.database_service.get_all_reminders()
         for reminder in reminders:
             self.database_service.delete_reminder(reminder.show)
+        self.database_service.search_list_collection.delete_many({})
 
 
 if __name__ == '__main__':
