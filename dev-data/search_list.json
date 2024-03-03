@@ -67,5 +67,13 @@
             "only_season": 19
         },
         "search_active": true
+    },
+    {
+        "show": "Death in Paradise",
+        "image": "",
+        "conditions": {
+
+        },
+        "search_active": true
     }
 ]

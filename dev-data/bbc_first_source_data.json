@@ -49,5 +49,31 @@
             },
             "number": 1
         }
+    },
+    {
+        "show": {
+            "title": "Death in Paradise"
+        },
+        "start": "2024-03-03 23:15:00",
+        "episode": {
+            "series": {
+                "number": 1
+            },
+            "number": 1,
+            "title": "Arriving in Paradise"
+        }
+    },
+    {
+        "show": {
+            "title": "Death In Paradise"
+        },
+        "start": "2024-03-03 00:15:00",
+        "episode": {
+            "series": {
+                "number": 1
+            },
+            "number": 2,
+            "title": "Wicked Wedding Night"
+        }
     }
 ]

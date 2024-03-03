@@ -85,8 +85,8 @@ def search_bbc_australia(database_service: DatabaseService):
     def search_channel_data(channel_data: list, channel: str):
         for show in channel_data:
             for search_item in search_list:
-                title = show['show']['title']
-                if title == search_item.show:
+                title: str = show['show']['title']
+                if title.lower() == search_item.show.lower():
                     guide_start = datetime.strptime(show['start'], '%Y-%m-%d %H:%M:%S')
                     start_time = convert_utc_to_local(guide_start)
                     series_num = show['episode']['series']['number']
@@ -107,7 +107,6 @@ def search_bbc_australia(database_service: DatabaseService):
     search_channel_data(bbc_first_data, 'BBC First')
     search_channel_data(bbc_uktv_data, 'BBC UKTV')
 
-    show_list = Validation.remove_unwanted_shows(show_list)
     shows_on = build_guide_shows(show_list, database_service)
 
     return shows_on

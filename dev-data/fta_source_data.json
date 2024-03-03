@@ -69,6 +69,20 @@
                 "series_num": "15",
                 "episode_num": 1,
                 "episode_title": "Season number as string and episode number as integer"
+            },
+            {
+                "title": "Death in Paradise",
+                "start_time": "2024-03-03T12:30:00",
+                "series_num": "1",
+                "episode_num": 1,
+                "episode_title": "Arring in Paradise"
+            },
+            {
+                "title": "Death In Paradise",
+                "start_time": "2024-03-03T13:30:00",
+                "series_num": "1",
+                "episode_num": 2,
+                "episode_title": "Wicked Wedding Night"
             }
         ]
     },
