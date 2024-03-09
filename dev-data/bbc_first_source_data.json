@@ -6,9 +6,9 @@
         "start": "2023-12-26 18:30:00",
         "episode": {
             "series": {
-                "number": "18"
+                "number": 18
             },
-            "number": "7",
+            "number": 7,
             "title": "Squaring the Circle: Part 1"
         }
     },

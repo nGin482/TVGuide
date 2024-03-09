@@ -54,5 +54,21 @@
 
         },
         "search_active": true
+    },
+    {
+        "show": "Doctor Who",
+        "image": "",
+        "conditions": {
+
+        },
+        "search_active": true
+    },
+    {
+        "show": "Professor T",
+        "image": "",
+        "conditions": {
+
+        },
+        "search_active": true
     }
 ]

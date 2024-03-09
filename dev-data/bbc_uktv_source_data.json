@@ -6,10 +6,49 @@
         "start": "2023-12-26 12:30:00",
         "episode": {
             "series": {
-                "number": "2"
+                "number": 2
             },
-            "number": "3",
+            "number": 3,
             "title": "Life Born of Fire"
+        }
+    },
+    {
+        "show": {
+            "title": "Professor T"
+        },
+        "start": "2023-12-26 14:00:00",
+        "episode": {
+            "series": {
+                "number": 1
+            },
+            "number": 1,
+            "title": "Anatomy of a Memory"
+        }
+    },
+    {
+        "show": {
+            "title": "Professor T"
+        },
+        "start": "2023-12-26 15:00:00",
+        "episode": {
+            "series": {
+                "number": 2
+            },
+            "number": 1,
+            "title": "Ring of Fire"
+        }
+    },
+    {
+        "show": {
+            "title": "Professor T"
+        },
+        "start": "2023-12-26 16:00:00",
+        "episode": {
+            "series": {
+                "number": 2
+            },
+            "number": 2,
+            "title": "The Mask Murders"
         }
     }
 ]
