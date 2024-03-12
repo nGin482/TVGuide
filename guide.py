@@ -65,7 +65,12 @@ def search_free_to_air(database_service: DatabaseService):
 
     shows_on: list['GuideShow'] = []
     for show in shows_data:
-        guide_show = build_guide_show(show, database_service, shows_data)
+        unknown_episodes = [
+            show_data for show_data in shows_data
+            if show_data['title'] == show['title']
+            and show['season_number'] == 'Unknown'
+        ]
+        guide_show = build_guide_show(show, database_service, unknown_episodes)
         if 'HD' not in guide_show.channel:
             database_service.capture_db_event(guide_show)
         shows_on.append(guide_show)
@@ -124,7 +129,7 @@ def search_bbc_australia(database_service: DatabaseService):
 
     return shows_on
 
-def build_guide_show(show: dict, database_service: DatabaseService, show_list: list[dict]):
+def build_guide_show(show: dict, database_service: DatabaseService, unknown_episodes: list[dict]):
     episode_data = GuideShow.get_show(show['title'], show['season_number'], show['episode_number'], show['episode_title'])
     title, season_number, episode_number, episode_title = episode_data
     recorded_show = database_service.get_one_recorded_show(title)
@@ -137,7 +142,7 @@ def build_guide_show(show: dict, database_service: DatabaseService, show_list: l
             recorded_show
         )
     else:
-        episode_number = Validation.get_unknown_episode_number(show_list, title, episode_title)
+        episode_number = Validation.get_unknown_episode_number(unknown_episodes, title, episode_title)
         if episode_number is None:
             episode_number = 0
         guide_show = GuideShow.unknown_season(
