@@ -1,0 +1,62 @@
+[
+    {
+        "show": "NCIS",
+        "image": "https://image_url.com",
+        "conditions": {
+            "exclude_titles": [
+                "NCIS: New Orleans",
+                "NCIS: Hawaii"
+            ]
+        },
+        "search_active": true
+    },
+    {
+        "show": "Maigret",
+        "image": "https://image_url.com",
+        "conditions": {
+        
+        },
+        "search_active": false
+    },
+    {
+        "show": "Lewis",
+        "image": "https://image_url.com",
+        "conditions": {
+            "exact_search": true
+        },
+        "search_active": true
+    },
+    {
+        "show": "Death in Paradise",
+        "image": "https://image_url.com",
+        "conditions": {
+            "min_season": 3
+        },
+        "search_active": true
+    },
+    {
+        "show": "Doctor Who",
+        "image": "https://image_url.com",
+        "conditions": {
+            "max_season": 10
+        },
+        "search_active": true
+    },
+    {
+        "show": "Vera",
+        "image": "https://image_url.com",
+        "conditions": {
+            "min_season": 1,
+            "max_season": 4
+        },
+        "search_active": true
+    },
+    {
+        "show": "Transformers",
+        "image": "https://image_url.com",
+        "conditions": {
+            "only_season": 2
+        },
+        "search_active": true
+    }
+]
