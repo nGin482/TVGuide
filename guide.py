@@ -61,7 +61,6 @@ def search_free_to_air(database_service: DatabaseService):
                         episodes = [episode for episode in episodes if search_item.check_search_conditions(episode)]
                         shows_data.extend(episodes)
 
-    shows_data = Validation.remove_unwanted_shows(shows_data)
     shows_data.sort(key=lambda show: (show['time'], show['channel']))
 
     shows_on: list['GuideShow'] = []
