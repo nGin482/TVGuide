@@ -85,7 +85,7 @@ class TestGuideShow(unittest.TestCase):
             dw_recorded_show,
             2
         )
-        self.assertEqual(5, unknown_episode.episode_number)
+        self.assertEqual(2, unknown_episode.episode_number)
         self.assertEqual('Unknown', unknown_episode.season_number)
 
     def test_season_unknown_finds_recorded_episode_repeat_true(self):

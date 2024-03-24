@@ -61,8 +61,19 @@ def search_free_to_air(database_service: DatabaseService):
                         shows_data.extend(episodes)
 
     shows_data = Validation.remove_unwanted_shows(shows_data)
+    shows_data.sort(key=lambda show: (show['time'], show['channel']))
 
-    shows_on = build_guide_shows(shows_data, database_service)
+    shows_on: list['GuideShow'] = []
+    for show in shows_data:
+        unknown_episodes = [
+            show_data for show_data in shows_data
+            if show_data['title'] == show['title']
+            and show['season_number'] == 'Unknown'
+        ]
+        guide_show = build_guide_show(show, database_service, unknown_episodes)
+        if 'HD' not in guide_show.channel:
+            database_service.capture_db_event(guide_show)
+        shows_on.append(guide_show)
     
     return shows_on
 
@@ -108,41 +119,41 @@ def search_bbc_australia(database_service: DatabaseService):
     search_channel_data(bbc_uktv_data, 'BBC UKTV')
 
     show_list = Validation.remove_unwanted_shows(show_list)
-    shows_on = build_guide_shows(show_list, database_service)
-
-    return shows_on
-
-def build_guide_shows(show_list: list[dict], database_service: DatabaseService):
-    shows_on: list[GuideShow] = []
+    show_list.sort(key=lambda show_obj: (show_obj['time'], show_obj['channel']))
+    
+    shows_on: list['GuideShow'] = []
     for show in show_list:
-        episode_data = GuideShow.get_show(show['title'], show['season_number'], show['episode_number'], show['episode_title'])
-        title, season_number, episode_number, episode_title = episode_data
-        recorded_show = database_service.get_one_recorded_show(title)
-
-        if season_number != 'Unknown':
-            guide_show = GuideShow.known_season(
-                title,
-                (show['channel'], show['time']),
-                (season_number, episode_number, episode_title),
-                recorded_show
-            )
-        else:
-            episode_number = Validation.get_unknown_episode_number(show_list, title, episode_title)
-            if episode_number is None:
-                episode_number = 0
-            guide_show = GuideShow.unknown_season(
-                title,
-                (show['channel'], show['time']),
-                episode_title,
-                recorded_show,
-                episode_number
-            )
+        guide_show = build_guide_show(show, database_service, show_list)
+        database_service.capture_db_event(guide_show)
         shows_on.append(guide_show)
 
-    shows_on = list(set(shows_on))
-    shows_on.sort(key=lambda show_obj: (show_obj.time, show_obj.channel))
-    
     return shows_on
+
+def build_guide_show(show: dict, database_service: DatabaseService, unknown_episodes: list[dict]):
+    episode_data = GuideShow.get_show(show['title'], show['season_number'], show['episode_number'], show['episode_title'])
+    title, season_number, episode_number, episode_title = episode_data
+    recorded_show = database_service.get_one_recorded_show(title)
+
+    if season_number != 'Unknown':
+        guide_show = GuideShow.known_season(
+            title,
+            (show['channel'], show['time']),
+            (season_number, episode_number, episode_title),
+            recorded_show
+        )
+    else:
+        episode_number = Validation.get_unknown_episode_number(unknown_episodes, title, episode_title)
+        if episode_number is None:
+            episode_number = 0
+        guide_show = GuideShow.unknown_season(
+            title,
+            (show['channel'], show['time']),
+            episode_title,
+            recorded_show,
+            episode_number
+        )
+
+    return guide_show
 
 def compose_message(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow'], date_provided: datetime = None):
     """
@@ -208,9 +219,6 @@ def run_guide(database_service: DatabaseService, fta_list: list['GuideShow'], bb
     if update_db_flag:
         database_service.backup_recorded_shows()
         
-        for guide_show in guide_list:
-            if 'HD' not in guide_show.channel:
-                database_service.capture_db_event(guide_show)
         database_service.add_guide_data(fta_list, bbc_list)
 
     reminders_message = reminders(guide_list, database_service, scheduler)
