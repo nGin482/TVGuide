@@ -30,8 +30,8 @@ from exceptions.DatabaseError import (
 class DatabaseService:
 
     def __init__(self, database_conn: str, database: str) -> None:
-        mongo_connection = mongo_client(database_conn)
-        self.database = mongo_connection.get_database(database)
+        self._mongo_connection = mongo_client(database_conn)
+        self.database = self._mongo_connection.get_database(database)
         self.recorded_shows_collection = self.database.get_collection('RecordedShows')
         self.reminders_collection = self.database.get_collection('Reminders')
         self.search_list_collection = self.database.get_collection('ShowList')

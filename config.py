@@ -15,5 +15,5 @@ database_connection = os.getenv('LOCAL_DB') if environment == 'development' else
 database_service = DatabaseService(database_connection, database)
 
 scheduler = AsyncIOScheduler()
-mongo_jobstore = MongoDBJobStore(database=database, collection='Jobs', client=mongo_client())
+mongo_jobstore = MongoDBJobStore(database=database, collection='Jobs', client=database_service._mongo_connection)
 scheduler.add_jobstore(mongo_jobstore)
