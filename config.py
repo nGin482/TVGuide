@@ -1,4 +1,5 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.jobstores.mongodb import MongoDBJobStore
 from dotenv import load_dotenv
 import os
 
@@ -14,3 +15,5 @@ database_connection = os.getenv('LOCAL_DB') if environment == 'development' else
 database_service = DatabaseService(database_connection, database)
 
 scheduler = AsyncIOScheduler()
+mongo_jobstore = MongoDBJobStore(database=database, collection='Jobs', client=mongo_client())
+scheduler.add_jobstore(mongo_jobstore)
