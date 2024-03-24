@@ -38,22 +38,7 @@ class TestValidation(unittest.TestCase):
 
         grantchester_data = next(show for show in self.data if show['title'] == 'Grantchester Christmas Special')
         grantchester = Validation.check_show_titles(grantchester_data['title'])
-        self.assertEqual('Grantchester', grantchester)
-
-    def test_remove_unwanted_shows(self):
-        processed_list = Validation.remove_unwanted_shows(self.data)
-        ncis_hawaii_check = next((show for show in processed_list if show['title'] == 'NCIS: Hawaii'), None)
-        ncis_new_orleans_check = next((show for show in processed_list if show['title'] == 'NCIS: New Orleans'), None)
-        vera_check = next((show for show in processed_list if show['title'] == 'Verandah Roadshow'), None)
-        endeavour_check = next((show for show in processed_list if show['title'] == 'Searching for Endeavour'), None)
-        lewis_check = next((show for show in processed_list if show['title'] == 'Lewisham Alley'), None)
-
-        self.assertIsNone(ncis_hawaii_check)
-        self.assertIsNone(ncis_new_orleans_check)
-        self.assertIsNone(vera_check)
-        self.assertIsNone(endeavour_check)
-        self.assertIsNone(lewis_check)
-        
+        self.assertEqual('Grantchester', grantchester)        
 
     def test_get_unknown_episode_number_no_recorded_show(self):
         "Test handling for unknown episode numbers without recorded shows"

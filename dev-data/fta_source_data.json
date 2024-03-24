@@ -90,6 +90,20 @@
                 "series_num": 14,
                 "episode_num": 3,
                 "episode_title": "The Giggle"
+            },
+            {
+                "title": "Death in Paradise",
+                "start_time": "2024-03-03T12:30:00",
+                "series_num": "1",
+                "episode_num": 1,
+                "episode_title": "Arring in Paradise"
+            },
+            {
+                "title": "Death In Paradise",
+                "start_time": "2024-03-03T13:30:00",
+                "series_num": "1",
+                "episode_num": 2,
+                "episode_title": "Wicked Wedding Night"
             }
         ]
     },
@@ -112,6 +126,23 @@
         ]
     },
     {
+        "channel": "ABC2",
+        "listing": [
+            {
+                "title": "Mock the Week",
+                "series_num": 19,
+                "episode_num": "3",
+                "start_time": "2024-02-25T21:00:00"
+            },
+            {
+                "title": "Mock the Week",
+                "series_num": 20,
+                "episode_num": "1",
+                "start_time": "2024-02-25T21:30:00"
+            }
+        ]
+    },
+    {
         "channel": "7TWO",
         "listing": [
             {
@@ -126,11 +157,25 @@
         "channel": "10",
         "listing": [
             {
+                "title": "NCIS",
+                "start_time": "2024-02-25T20:30:00",
+                "series_num": 10,
+                "episode_num": 3,
+                "episode_title": "Phoenix"
+            },
+            {
                 "title": "NCIS: Los Angeles",
                 "start_time": "2023-12-26T20:30:00",
                 "series_num": "1",
                 "episode_num": "3",
                 "episode_title": "Predator"
+            },
+            {
+                "title": "NCIS: New Orleans",
+                "start_time": "2024-02-24T20:30:00",
+                "series_num": "2",
+                "episode_num": "1",
+                "episode_title": "Sic Semper Tyrannis"
             }
         ]
     },
@@ -169,6 +214,11 @@
                 "series_num": 1,
                 "episode_num": 2,
                 "episode_title": "Darkness Rising - Part 2"
+            },
+            {
+                "title": "The Verandah",
+                "start_time": "2024-02-24T16:30:00",
+                "episode_title": "Sky High The Verandah"
             }
         ]
     }

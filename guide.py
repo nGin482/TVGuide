@@ -37,9 +37,9 @@ def search_free_to_air(database_service: DatabaseService):
 
     for channel_data in schedule:
         for guide_show in channel_data['listing']:
-            title = guide_show['title']
+            title: str = guide_show['title']
             for search_item in search_list:
-                if search_item.show in title:
+                if search_item.show.lower() in title.lower():
                     show_date = datetime.strptime(guide_show['start_time'], '%Y-%m-%dT%H:%M:%S')
                     if show_date.day == date.day:
                         season_number = 'Unknown'
@@ -58,6 +58,7 @@ def search_free_to_air(database_service: DatabaseService):
                             episode_number,
                             episode_title
                         )
+                        episodes = [episode for episode in episodes if search_item.check_search_conditions(episode)]
                         shows_data.extend(episodes)
 
     shows_data = Validation.remove_unwanted_shows(shows_data)
@@ -97,8 +98,8 @@ def search_bbc_australia(database_service: DatabaseService):
     def search_channel_data(channel_data: list, channel: str):
         for show in channel_data:
             for search_item in search_list:
-                title = show['show']['title']
-                if title == search_item.show:
+                title: str = show['show']['title']
+                if title.lower() == search_item.show.lower():
                     guide_start = datetime.strptime(show['start'], '%Y-%m-%d %H:%M:%S')
                     start_time = convert_utc_to_local(guide_start)
                     series_num = show['episode']['series']['number']
@@ -113,15 +114,18 @@ def search_bbc_australia(database_service: DatabaseService):
                         episode_num,
                         episode_title
                     )
+                    episodes = [episode for episode in episodes if search_item.check_search_conditions(episode)]
                     show_list.extend(episodes)
     
     search_channel_data(bbc_first_data, 'BBC First')
     search_channel_data(bbc_uktv_data, 'BBC UKTV')
 
-    show_list = Validation.remove_unwanted_shows(show_list)
-    show_list.sort(key=lambda show_obj: (show_obj['time'], show_obj['channel']))
-    
-    shows_on: list['GuideShow'] = []
+    shows_on = build_guide_shows(show_list, database_service)
+
+    return shows_on
+
+def build_guide_shows(show_list: list[dict], database_service: DatabaseService):
+    shows_on: list[GuideShow] = []
     for show in show_list:
         guide_show = build_guide_show(show, database_service, show_list)
         database_service.capture_db_event(guide_show)

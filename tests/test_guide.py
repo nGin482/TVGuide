@@ -172,6 +172,7 @@ class TestGuide(unittest.TestCase):
         reminders = self.database_service.get_all_reminders()
         for reminder in reminders:
             self.database_service.delete_reminder(reminder.show)
+        self.database_service.search_list_collection.delete_many({})
 
         self.database_service.search_list_collection.delete_many({})
         self.database_service.recorded_shows_collection.delete_many({})
