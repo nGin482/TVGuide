@@ -51,7 +51,7 @@ class Reminder:
     def calculate_notification_time(self):
         if self.reminder_alert == 'On-Start':
             self.notify_time = self.airing_details[1]
-        elif self.reminder_alert == 'After':            
+        elif self.reminder_alert == 'After':
             self.notify_time = self.airing_details[1] + timedelta(minutes=self.warning_time)
         else:
             self.notify_time = self.airing_details[1] - timedelta(minutes=self.warning_time)

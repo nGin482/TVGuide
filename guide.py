@@ -108,7 +108,7 @@ def search_bbc_australia(database_service: DatabaseService):
                     episodes = build_episode(
                         title,
                         channel,
-                        start_time.time(),
+                        start_time,
                         series_num,
                         episode_num,
                         episode_title
