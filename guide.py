@@ -4,6 +4,7 @@ from requests import get
 import os
 
 from aux_methods.helper_methods import build_episode, convert_utc_to_local
+from config import database_service
 from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
@@ -17,7 +18,7 @@ def find_json(url):
     
     return request.json()
 
-def search_free_to_air(database_service: DatabaseService):
+def search_free_to_air():
     """
 
     :return:
@@ -77,7 +78,7 @@ def search_free_to_air(database_service: DatabaseService):
     
     return shows_on
 
-def search_bbc_australia(database_service: DatabaseService):
+def search_bbc_australia():
 
     current_date = Validation.get_current_date().date()
     search_date = current_date.strftime('%Y-%m-%d')
@@ -211,7 +212,7 @@ def reminders(guide_list: list['GuideShow'], database_service: DatabaseService, 
         print('===================================================================================')
         return 'There are no reminders scheduled for today'
 
-def run_guide(database_service: DatabaseService, fta_list: list['GuideShow'], bbc_list: list['GuideShow'], scheduler: AsyncIOScheduler=None):
+def run_guide(fta_list: list['GuideShow'], bbc_list: list['GuideShow'], scheduler: AsyncIOScheduler=None):
 
     latest_guide = database_service.get_latest_guide()
     if latest_guide:

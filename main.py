@@ -6,8 +6,7 @@ from requests import get
 import os
 
 from aux_methods.helper_methods import compose_events_message, split_message_by_time
-from config import database_service, scheduler
-from database.DatabaseService import DatabaseService
+from config import scheduler
 from guide import run_guide, search_free_to_air, search_bbc_australia
 from services.hermes.hermes import hermes
 
@@ -38,15 +37,15 @@ def search_vera_series():
     return series_num
 
 
-async def send_main_message(database_service: DatabaseService):
+async def send_main_message():
     """
 
     :param `database_service`: The service handler for database operations
     :return: n/a
     """
-    fta_list = search_free_to_air(database_service)
-    bbc_list = search_bbc_australia(database_service)
-    guide_message, reminder_message = run_guide(database_service, fta_list, bbc_list, scheduler)
+    fta_list = search_free_to_air()
+    bbc_list = search_bbc_australia()
+    guide_message, reminder_message = run_guide(fta_list, bbc_list, scheduler)
     
     await hermes.wait_until_ready()
     tvguide_channel: TextChannel = hermes.get_channel(int(os.getenv('TVGUIDE_CHANNEL')))
@@ -84,7 +83,6 @@ if __name__ == '__main__':
     scheduler.add_job(
         send_main_message,
         CronTrigger(hour=9, timezone='Australia/Sydney'),
-        [database_service],
         id='TVGuide Message',
         name='Send the TVGuide message',
         misfire_grace_time=None,
