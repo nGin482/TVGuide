@@ -71,7 +71,7 @@ def search_free_to_air():
             if show_data['title'] == show['title']
             and show['season_number'] == 'Unknown'
         ]
-        guide_show = build_guide_show(show, database_service, unknown_episodes)
+        guide_show = build_guide_show(show, unknown_episodes)
         if 'HD' not in guide_show.channel:
             database_service.capture_db_event(guide_show)
         shows_on.append(guide_show)
@@ -120,11 +120,6 @@ def search_bbc_australia():
     search_channel_data(bbc_first_data, 'BBC First')
     search_channel_data(bbc_uktv_data, 'BBC UKTV')
 
-    shows_on = build_guide_shows(show_list, database_service)
-
-    return shows_on
-
-def build_guide_shows(show_list: list[dict], database_service: DatabaseService):
     shows_on: list[GuideShow] = []
     for show in show_list:
         guide_show = build_guide_show(show, database_service, show_list)
@@ -133,7 +128,7 @@ def build_guide_shows(show_list: list[dict], database_service: DatabaseService):
 
     return shows_on
 
-def build_guide_show(show: dict, database_service: DatabaseService, unknown_episodes: list[dict]):
+def build_guide_show(show: dict, unknown_episodes: list[dict]):
     episode_data = GuideShow.get_show(show['title'], show['season_number'], show['episode_number'], show['episode_title'])
     title, season_number, episode_number, episode_title = episode_data
     recorded_show = database_service.get_one_recorded_show(title)
@@ -186,7 +181,7 @@ def compose_message(fta_shows: list['GuideShow'], bbc_shows: list['GuideShow'], 
 
     return message
 
-def reminders(guide_list: list['GuideShow'], database_service: DatabaseService, scheduler: AsyncIOScheduler = None):
+def reminders(guide_list: list['GuideShow'], scheduler: AsyncIOScheduler = None):
     print('===================================================================================')
     print('Reminders:')
     for guide_show in guide_list:
@@ -228,10 +223,9 @@ def run_guide(fta_list: list['GuideShow'], bbc_list: list['GuideShow'], schedule
     print(guide_message)
     if update_db_flag:
         database_service.backup_recorded_shows()
-        
         database_service.add_guide_data(fta_list, bbc_list)
 
-    reminders_message = reminders(guide_list, database_service, scheduler)
+    reminders_message = reminders(guide_list, scheduler)
     return guide_message, reminders_message
 
 def revert_database_tvguide(database_service: DatabaseService):
