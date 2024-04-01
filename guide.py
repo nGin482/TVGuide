@@ -198,7 +198,7 @@ def reminders(guide_list: list['GuideShow'], scheduler: AsyncIOScheduler = None)
                     send_message,
                     DateTrigger(run_date=reminder.notify_time, timezone='Australia/Sydney'),
                     [reminder.notification()],
-                    id=f'reminder-{reminder.show}',
+                    id=f'reminder-{reminder.show}-{Validation.get_current_date()}',
                     name=f'Send the reminder message for {reminder.show}'
                 )
         return reminders_message
