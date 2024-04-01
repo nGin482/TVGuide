@@ -122,7 +122,7 @@ def search_bbc_australia():
 
     shows_on: list[GuideShow] = []
     for show in show_list:
-        guide_show = build_guide_show(show, database_service, show_list)
+        guide_show = build_guide_show(show, show_list)
         database_service.capture_db_event(guide_show)
         shows_on.append(guide_show)
 
