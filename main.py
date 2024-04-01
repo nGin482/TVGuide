@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from requests import get
 import os
 
+os.environ['PYTHON_ENV'] = 'production'
 from aux_methods.helper_methods import compose_events_message, split_message_by_time
 from config import scheduler
 from guide import run_guide, search_free_to_air, search_bbc_australia
