@@ -36,7 +36,7 @@ def add_show_list():
     body = request.json
     if 'show' not in body or 'tvmaze_id' not in body or 'image' not in body or 'conditions' not in body:
         return {'message': "Please provide the show's name, the search conditions and the id and image from TVMaze"}, 400
-    show, image, tvmaze_id, conditions = body
+    show, image, tvmaze_id, conditions = body['show'], body['image'], body['tvmaze_id'], body['conditions']
     if show == '' or image == '' or tvmaze_id == '' or conditions == {}:
         return {'message': "Please provide the show's name, the search conditions and the id and image from TVMaze"}, 400
     try:
