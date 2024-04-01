@@ -37,8 +37,8 @@ def add_show_list():
     if 'show' not in body or 'tvmaze_id' not in body or 'image' not in body or 'conditions' not in body:
         return {'message': "Please provide the show's name, the search conditions and the id and image from TVMaze"}, 400
     show, image, tvmaze_id, conditions = body['show'], body['image'], body['tvmaze_id'], body['conditions']
-    if show == '' or image == '' or tvmaze_id == '' or conditions == {}:
-        return {'message': "Please provide the show's name, the search conditions and the id and image from TVMaze"}, 400
+    if show == '' or image == '' or tvmaze_id == '':
+        return {'message': "Please provide the show's name and the Id and image from TVMaze"}, 400
     try:
         new_search_item = SearchItem(show, image, conditions, True)
         database_service.add_search_item(new_search_item)
