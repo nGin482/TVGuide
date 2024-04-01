@@ -7,6 +7,8 @@ from database.DatabaseService import DatabaseService
 
 if os.environ['PYTHON_ENV'] == 'testing':
     load_dotenv('.env.local.test')
+elif os.environ['PYTHON_ENV'] == 'development':
+    load_dotenv('.env.local.dev')
 else:
     load_dotenv('.env')
 
