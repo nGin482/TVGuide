@@ -6,7 +6,10 @@ import unittest
 import json
 import os
 
-from database.DatabaseService import DatabaseService
+load_dotenv('.env.local.test')
+os.environ['PYTHON_ENV'] = 'testing'
+
+from config import database_service
 from database.models.Reminders import Reminder
 from guide import search_free_to_air, compose_message, reminders
 
@@ -16,9 +19,7 @@ requests = Mock()
 class TestGuide(unittest.TestCase):
 
     def setUp(self):
-        load_dotenv('.env')
-        os.environ['PYTHON_ENV'] = 'testing'
-        self.database_service = DatabaseService(os.getenv('TVGUIDE_DB'), 'test')
+        self.database_service = database_service
 
         with open('tests/test_data/reminders_data.json') as fd:
             reminders_data = json.load(fd)
@@ -46,7 +47,7 @@ class TestGuide(unittest.TestCase):
         mocked_today = datetime(2023, 10, 30)
         mock_datetime.now.return_value = mocked_today
         
-        data = search_free_to_air(self.database_service)
+        data = search_free_to_air()
         
         guide_show_all_details = data[0]
         self.assertEqual(4, guide_show_all_details.season_number)
@@ -59,7 +60,7 @@ class TestGuide(unittest.TestCase):
         mocked_today = datetime(2023, 10, 30)
         mock_datetime.now.return_value = mocked_today
         
-        data = search_free_to_air(self.database_service)
+        data = search_free_to_air()
         
         guide_show_episode_num = data[1]
         self.assertEqual(4, guide_show_episode_num.season_number)
@@ -72,7 +73,7 @@ class TestGuide(unittest.TestCase):
         mocked_today = datetime(2023, 10, 30)
         mock_datetime.now.return_value = mocked_today
         
-        data = search_free_to_air(self.database_service)
+        data = search_free_to_air()
         
         guide_show_episode_title = data[3]
         self.assertEqual('Unknown', guide_show_episode_title.season_number)
@@ -85,7 +86,7 @@ class TestGuide(unittest.TestCase):
         mocked_today = datetime(2023, 10, 30)
         mock_datetime.now.return_value = mocked_today
         
-        data = search_free_to_air(self.database_service)
+        data = search_free_to_air()
         
         guide_show_episode_title = data[4]
         self.assertEqual('Unknown', guide_show_episode_title.season_number)
@@ -94,7 +95,7 @@ class TestGuide(unittest.TestCase):
 
     @patch('guide.get', return_value=guide_data())
     def test_search_is_sorted(self, mock_requests):
-        data = search_free_to_air(self.database_service)
+        data = search_free_to_air()
 
         self.assertTrue(all(data[i].time <= data[i+1].time for i in range(len(data) - 1)))
     
@@ -104,7 +105,7 @@ class TestGuide(unittest.TestCase):
         mocked_today = datetime(2023, 10, 30)
         mock_datetime.now.return_value = mocked_today
         
-        data = search_free_to_air(self.database_service)
+        data = search_free_to_air()
         message = compose_message(data, [])
 
         self.assertIn('30-10-2023', message)
@@ -113,7 +114,7 @@ class TestGuide(unittest.TestCase):
     def test_message_contains_date_provided(self, mock_requests):
         date_provided = datetime(2023, 11, 4)
         
-        data = search_free_to_air(self.database_service)
+        data = search_free_to_air()
         message = compose_message(data, [], date_provided)
 
         self.assertIn('04-11-2023', message)
@@ -129,7 +130,7 @@ class TestGuide(unittest.TestCase):
         mocked_today = datetime(2023, 10, 30)
         mock_datetime.now.return_value = mocked_today
 
-        data = search_free_to_air(self.database_service)
+        data = search_free_to_air()
         message = compose_message(data, [])
 
         expected = """
@@ -159,8 +160,8 @@ class TestGuide(unittest.TestCase):
         mocked_today = datetime(2023, 10, 30)
         mock_datetime.now.return_value = mocked_today
 
-        data = search_free_to_air(self.database_service)
-        reminders_message = reminders(data, self.database_service)
+        data = search_free_to_air()
+        reminders_message = reminders(data)
 
         self.assertIn('REMINDER: Doctor Who is on ABC1 at 00:00', reminders_message)
         self.assertIn('REMINDER: Doctor Who is on ABC1 at 00:45', reminders_message)

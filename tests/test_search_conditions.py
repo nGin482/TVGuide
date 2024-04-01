@@ -13,7 +13,7 @@ class TestSearchConditions(unittest.TestCase):
     @classmethod
     def setUpClass(self) -> None:
         super().setUpClass()
-        load_dotenv('.env')
+        load_dotenv('.env.local.test')
         os.environ['PYTHON_ENV'] = 'testing'
 
         self.database_service = DatabaseService(os.getenv('TVGUIDE_DB'), 'test')
