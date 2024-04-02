@@ -13,8 +13,6 @@ else:
     load_dotenv('.env')
 
 
-environment = os.getenv('PYTHON_ENV')
-
 database = os.getenv('DATABASE_NAME')
 database_connection = os.getenv('TVGUIDE_DB')
 database_service = DatabaseService(database_connection, database)

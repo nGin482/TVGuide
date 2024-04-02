@@ -1,12 +1,10 @@
 from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
-from dotenv import load_dotenv
 from textwrap import dedent
 import unittest
 import json
 import os
 
-load_dotenv('.env.local.test')
 os.environ['PYTHON_ENV'] = 'testing'
 
 from config import database_service
