@@ -75,6 +75,7 @@ def run_guide(local_db: bool, discord: bool):
     if discord:
         try:
             hermes.loop.create_task(send_main_message(guide_message, reminders_message, events_message))
+            hermes.run(os.getenv('HERMES'))
         except ClientConnectorError:
             print(guide_message)
             print(reminders_message)
