@@ -2,6 +2,7 @@ from datetime import datetime
 import unittest
 import json
 
+from aux_methods.helper_methods import sbs_episode_format
 from database.models.GuideShow import GuideShow
 from database.models.RecordedShow import RecordedShow
 from data_validation.validation import Validation
@@ -100,3 +101,17 @@ class TestValidation(unittest.TestCase):
         self.assertEqual(4, shows_on[0].episode_number)
         self.assertEqual(5, shows_on[1].episode_number)
         self.assertEqual(6, shows_on[2].episode_number)
+
+    def test_sbs_episode_format_returns_season_episode_number(self):
+        sbs_data = next((show for show in self.data if show['title'] == 'Litvinenko'), None)
+        season_number, episode_number = sbs_episode_format(sbs_data['title'], sbs_data['episode_title'])
+        
+        self.assertEqual(season_number, 1)
+        self.assertEqual(episode_number, 1)
+
+    def test_sbs_episode_format_fails(self):
+        sbs_data = next((show for show in self.data if show['title'] == 'Litvinenko'), None)
+        sbs_data['episode_title'] = 'Series 1 Ep 1'
+        result = sbs_episode_format(sbs_data['title'], sbs_data['episode_title'])
+        
+        self.assertEqual(result, 'Series 1 Ep 1')
