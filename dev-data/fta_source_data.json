@@ -143,6 +143,31 @@
         ]
     },
     {
+        "channel": "SBS",
+        "listing": [
+            {
+                "consumer_advice": "",
+                "rating": "CTC",
+                "show_id": 1058295,
+                "repeat": false,
+                "description": "The day after Litvinenko's death, radiation teams swarm across London to secure potentially contaminated sites visited by the Russian spy. Officers discover traces of Polonium at Itsu, a sushi restaurant where Litvinenko met Mario Scaramella before a later encounter with Andrey Lugovoy and Dmitry Kovtun at the Millennium Hotel, which has also tested positive for Polonium.",
+                "title": "Litvinenko",
+                "crid": "crid://sydney.sbsone.sbs.au/1239832",
+                "start_time": "2024-04-05T21:30:00",
+                "series-crid": "crid://sbs.com.au/239907",
+                "live": false,
+                "captioning": true,
+                "show_type": "Episode",
+                "episode_title": "Litvinenko Series 1 Ep 2",
+                "length": 55,
+                "end_time": "2024-04-03T22:25:00",
+                "genres": [
+                    "Drama"
+                ]
+            }
+        ]
+    },
+    {
         "channel": "7TWO",
         "listing": [
             {
