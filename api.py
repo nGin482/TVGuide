@@ -9,7 +9,13 @@ from database.models.RecordedShow import RecordedShow, Season, Episode
 from database.models.Reminders import Reminder
 from database.models.SearchItem import SearchItem
 from database.models.Users import User
-from exceptions.DatabaseError import SearchItemAlreadyExistsError, DatabaseError, UserNotFoundError, InvalidSubscriptions
+from exceptions.DatabaseError import (
+    DatabaseError,
+    InvalidSubscriptions,
+    SearchItemAlreadyExistsError,
+    SearchItemNotFoundError,
+    UserNotFoundError
+)
 from services.tvmaze.tvmaze_api import get_show_data
 
 app = Flask(__name__)
@@ -24,6 +30,7 @@ jwt = JWTManager(app)
 def user_lookup_callback(_jwt_header, jwt_data):
     return database_service.get_user(jwt_data['sub'])
 
+# SEARCH LIST
 @app.route('/api/show-list', methods=['GET'])
 def show_list():
     return [item.to_dict() for item in database_service.get_search_list()]
@@ -51,6 +58,18 @@ def add_show_list():
     except DatabaseError as err:
         return {'message': str(err)}, 500
 
+@app.route('/api/show-list/<string:show>', methods=['DELETE'])
+@jwt_required()
+def delete_search_item(show: str):
+    try:
+        database_service.remove_show_from_list(show)
+        return {'message': f'{show} was deleted from the Search List'}
+    except SearchItemNotFoundError as err:
+        return { 'message': str(err) }, 404
+    except DatabaseError as err:
+        return { 'message': str(err) }, 500
+        
+# GUIDE
 @app.route('/api/guide')
 def guide():
     if request.args.get('date'):
@@ -62,6 +81,7 @@ def guide():
         guide = database_service.get_latest_guide()
     return guide.to_dict()
 
+# RECORDED SHOWS
 @app.route('/api/recorded-shows')
 def recorded_shows():
     recorded_shows = [recorded_show.to_dict() for recorded_show in database_service.get_all_recorded_shows()]
@@ -116,6 +136,7 @@ def recorded_show(show: str):
                 return {'message': f'{show} has been deleted'}
     return {'message': f'A recorded show for {show} could not be found'}, 404
 
+# REMINDERS
 @app.route('/api/reminders')
 def get_reminders():
     try:
@@ -123,7 +144,6 @@ def get_reminders():
         return reminders
     except (KeyError, ValueError) as error:
         return {'message': 'There was a problem retrieving the reminders', 'error': str(error)}, 500
-
 
 @app.route('/api/reminders', methods=['POST'])
 @jwt_required()
@@ -172,6 +192,7 @@ def reminder(show: str):
             return {'message': f'The reminder for {show} has been deleted', 'reminders': reminders}
     return {'message': f'A reminder for {show} does not exist'}, 404
 
+# USERS
 @app.route('/api/user/<string:username>', methods=['GET'])
 def get_user(username: str):
     user = database_service.get_user(username)
