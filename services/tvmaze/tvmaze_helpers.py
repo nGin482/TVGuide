@@ -1,6 +1,5 @@
 def format_episode_title(episode_title: str):
     if '(Part ' in episode_title:
-        # print('running')
         episode_title = episode_title.replace('(Part ', 'Part ')
         episode_title = episode_title.replace(')', '')
     if 'Part I' in episode_title and 'Part II' not in episode_title:

@@ -27,6 +27,9 @@ def get_show_data(show: str, tvmaze_id: str, season_start: int = 0, include_spec
             }
             episode_list.append(episode)
 
+    if api_data[0]['season'] != 1 and season_start == 0:
+        season_start = api_data[0]['season'] - 1
+
     show_details['seasons'] = group_seasons(episode_list, api_data[-1]['season'], season_start)
     return show_details
 
