@@ -11,6 +11,7 @@ on:
 env:
   TVGUIDE_DB: ${{ secrets.TVGUIDE_DB }}
   PYTHON_ENV: testing
+  DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
 
 jobs:
   Run-Tests:
