@@ -45,9 +45,9 @@ async def remove_show(ctx: Context, show: str):
 
 @hermes.command()
 async def send_guide(ctx: Context):
-    fta_list = search_free_to_air(database_service)
-    bbc_list = search_bbc_australia(database_service)
-    guide_message, reminders_message = run_guide(database_service, fta_list, bbc_list, scheduler)
+    fta_list = search_free_to_air()
+    bbc_list = search_bbc_australia()
+    guide_message, reminders_message = run_guide(fta_list, bbc_list, scheduler)
     ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
     try:
         await ctx.send(guide_message)

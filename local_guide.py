@@ -4,7 +4,6 @@ import click
 import os
 
 from database.DatabaseService import DatabaseService
-from services.hermes.hermes import hermes
 
 
 async def send_main_message(guide_message: str, reminder_message: str, events_message: str):
@@ -13,6 +12,7 @@ async def send_main_message(guide_message: str, reminder_message: str, events_me
     :param send_status:
     :return: n/a
     """
+    from services.hermes.hermes import hermes
     await hermes.wait_until_ready()
     tvguide_channel: TextChannel = hermes.get_channel(int(os.getenv('DEV_CHANNEL')))
     ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
@@ -57,21 +57,25 @@ def tear_down_data(local_db: bool):
 @click.option('--discord', default=True, help='Whether to send the message via Discord')
 def run_guide(local_db: bool, discord: bool):
     from aux_methods.helper_methods import compose_events_message
-    from guide import run_guide, search_free_to_air, search_bbc_australia
+    from dotenv import load_dotenv
 
     if local_db:
-        database_connection = os.getenv('LOCAL_DB')
+        os.environ['PYTHON_ENV'] = 'development'
+        load_dotenv('.env.local.dev')
     else:
-        database_connection = os.getenv('TVGUIDE_DB')
-    database_service = DatabaseService(database_connection, 'development')
+        os.environ['PYTHON_ENV'] = 'production'
+    
+    from guide import run_guide, search_free_to_air, search_bbc_australia
+    from services.hermes.hermes import hermes
 
-    fta_list = search_free_to_air(database_service)
-    bbc_list = search_bbc_australia(database_service)
-    guide_message, reminders_message = run_guide(database_service, fta_list, bbc_list)
+    fta_list = search_free_to_air()
+    bbc_list = search_bbc_australia()
+    guide_message, reminders_message = run_guide(fta_list, bbc_list)
     events_message = compose_events_message(fta_list + bbc_list)
     if discord:
         try:
             hermes.loop.create_task(send_main_message(guide_message, reminders_message, events_message))
+            hermes.run(os.getenv('HERMES'))
         except ClientConnectorError:
             print(guide_message)
             print(reminders_message)

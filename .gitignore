@@ -20,7 +20,7 @@
 
 # files
 *.pyc
-.env
+.env*
 aux_methods/imdb_api_results.json
 update_showlist.py
 *.log

@@ -1,6 +1,5 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.job import Job
-from pymongo.database import Database
 from pymongo.errors import OperationFailure
 from pymongo import ReturnDocument, DESCENDING
 from datetime import datetime

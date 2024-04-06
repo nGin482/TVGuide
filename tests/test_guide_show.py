@@ -14,7 +14,7 @@ from exceptions.DatabaseError import EpisodeNotFoundError, SeasonNotFoundError, 
 class TestGuideShow(unittest.TestCase):
 
     def setUp(self):
-        load_dotenv('.env')
+        load_dotenv('.env.local.test')
         self.database_service = DatabaseService(os.getenv('TVGUIDE_DB'), 'test')
         with open('tests/test_data/test_guide_list.json') as fd:
             self.data = json.load(fd)
