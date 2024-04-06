@@ -175,6 +175,10 @@ def build_episode(show_title: str, channel: str, time: datetime, season_number: 
                 'episode_title': Validation.format_episode_title(episode.title())
             })
     else:
+        if 'SBS' in channel:
+            sbs_format = sbs_episode_format(show_title, episode_title)
+            if isinstance(sbs_format, tuple):
+                season_number, episode_number = sbs_format
         episodes.append({
             'title': show_title,
             'channel': channel,
@@ -198,3 +202,11 @@ def split_message_by_time(message: str):
     pm_message = message[am_index:]
 
     return am_message, pm_message
+
+def sbs_episode_format(show_title: str, episode: str):
+    search = re.match(rf"{show_title} Series \d+ Ep \d+", episode)
+    if search:
+        numbers = tuple(int(number) for number in re.findall(r"\d+", episode))
+        return numbers
+    else:
+        return episode

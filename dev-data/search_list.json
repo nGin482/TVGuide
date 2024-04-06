@@ -91,5 +91,14 @@
 
         },
         "search_active": true
+    },
+    {
+        "show": "Litvinenko",
+        "image": "",
+        "conditions": {
+
+        },
+        "search_active": true
     }
+    
 ]
