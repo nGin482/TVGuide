@@ -228,7 +228,7 @@ class DatabaseService:
         Raises `SearchItemNotFoundError` if the given show can't be found in the collection,
         or `DatabaseError` if there is a problem removing the show."""
         show_exists = self.search_list_collection.find_one({'show': show_to_remove})
-        if show_exists:
+        if not show_exists:
             raise SearchItemNotFoundError(f'The show {show_to_remove} could not be found in the SearchList.')
         try:
             self.search_list_collection.delete_one({'show': show_to_remove})
