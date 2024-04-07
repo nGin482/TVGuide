@@ -300,5 +300,11 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         os.environ['PYTHON_ENV'] = sys.argv[1]
     else:
-        os.environ['PYTHON_ENV'] = 'production'        
-    app.run(host='0.0.0.0', port='5000', debug=True)
+        os.environ['PYTHON_ENV'] = 'production'
+    if os.getenv('PYTHON_ENV') == 'production':
+        host = 'tvguide-ng.fly.dev'
+        debug = False
+    else:
+        host = '0.0.0.0'
+        debug = True
+    app.run(host=host, port='5000', debug=debug)
