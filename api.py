@@ -1,9 +1,13 @@
-from flask import Flask, request
+from flask import Flask, request, render_template, send_from_directory
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_current_user
 import sys
 import os
 
+if len(sys.argv) > 1:
+    os.environ['PYTHON_ENV'] = sys.argv[1]
+else:
+    os.environ['PYTHON_ENV'] = 'production'
 from config import database_service
 from database.models.RecordedShow import RecordedShow, Season, Episode
 from database.models.Reminders import Reminder
@@ -18,7 +22,7 @@ from exceptions.DatabaseError import (
 )
 from services.tvmaze.tvmaze_api import get_show_data
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='build', static_folder='build/static')
 CORS(app)
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
 jwt = JWTManager(app)
@@ -29,6 +33,18 @@ jwt = JWTManager(app)
 @jwt.user_lookup_loader
 def user_lookup_callback(_jwt_header, jwt_data):
     return database_service.get_user(jwt_data['sub'])
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory('build', 'favicon.ico')
+
+@app.route('/manifest.json')
+def manifest():
+    return send_from_directory('build', 'manifest.json')
 
 # SEARCH LIST
 @app.route('/api/show-list', methods=['GET'])
@@ -297,10 +313,6 @@ def events():
     return events
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        os.environ['PYTHON_ENV'] = sys.argv[1]
-    else:
-        os.environ['PYTHON_ENV'] = 'production'
     if os.getenv('PYTHON_ENV') == 'production':
         host = 'tvguide-ng.fly.dev'
         debug = False
