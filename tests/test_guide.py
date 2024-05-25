@@ -9,7 +9,7 @@ import os
 os.environ['PYTHON_ENV'] = 'testing'
 
 from database.models.Reminders import Reminder
-from database import DatabaseService
+from database.DatabaseService import DatabaseService
 from guide import search_free_to_air, compose_message, reminders
 
 requests = Mock()
