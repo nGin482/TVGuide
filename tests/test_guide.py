@@ -1,5 +1,6 @@
 from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
+from dotenv import load_dotenv
 from textwrap import dedent
 import unittest
 import json
@@ -7,8 +8,8 @@ import os
 
 os.environ['PYTHON_ENV'] = 'testing'
 
-from config import database_service
 from database.models.Reminders import Reminder
+from database import DatabaseService
 from guide import search_free_to_air, compose_message, reminders
 
 requests = Mock()
@@ -17,7 +18,9 @@ requests = Mock()
 class TestGuide(unittest.TestCase):
 
     def setUp(self):
-        self.database_service = database_service
+        super().setUpClass()
+        load_dotenv('.env.local.test')
+        self.database_service = DatabaseService(os.getenv('TVGUIDE_DB'), 'test')
 
         with open('tests/test_data/reminders_data.json') as fd:
             reminders_data = json.load(fd)
