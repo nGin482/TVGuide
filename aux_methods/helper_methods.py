@@ -5,6 +5,7 @@ import re
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
+    from database.models.Guide import Guide
     from database.models.GuideShow import GuideShow
     from database.models.SearchItem import SearchItem
 
@@ -152,7 +153,8 @@ def parse_date_from_command(date: str):
         else:
             raise ValueError('The date provided was not in a valid format.')
         
-def compose_events_message(guide_list: list['GuideShow']):
+def compose_events_message(guide: Guide):
+    guide_list = guide.fta_shows + guide.bbc_shows
     return "\n".join([f"{show.title} - {show.db_event}" for show in guide_list])
 
 def convert_utc_to_local(utc_timestamp: datetime):

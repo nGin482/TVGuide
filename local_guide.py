@@ -3,7 +3,8 @@ from discord import TextChannel
 import click
 import os
 
-from database.DatabaseService import DatabaseService
+# from database.DatabaseService import DatabaseService
+from database.models.Guide import Guide
 
 
 async def send_main_message(guide_message: str, reminder_message: str, events_message: str):
@@ -39,6 +40,7 @@ def import_data(resource: str, local_db: bool, database: str):
         database_connection = os.getenv('LOCAL_DB')
     else:
         database_connection = os.getenv('TVGUIDE_DB')
+    from database.DatabaseService import DatabaseService
     database_service = DatabaseService(database_connection, database)
     database_service.import_data(resource)
 
@@ -49,6 +51,7 @@ def tear_down_data(local_db: bool):
         database_connection = os.getenv('LOCAL_DB')
     else:
         database_connection = os.getenv('TVGUIDE_DB')
+    from database.DatabaseService import DatabaseService
     database_service = DatabaseService(database_connection, 'development')
     database_service.tear_down_data()
 
@@ -68,10 +71,11 @@ def run_guide(local_db: bool, discord: bool):
     from guide import run_guide, search_free_to_air, search_bbc_australia
     from services.hermes.hermes import hermes
 
-    fta_list = search_free_to_air()
-    bbc_list = search_bbc_australia()
-    guide_message, reminders_message = run_guide(fta_list, bbc_list)
-    events_message = compose_events_message(fta_list + bbc_list)
+    # fta_list = search_free_to_air()
+    # bbc_list = search_bbc_australia()
+    today_guide = Guide.from_runtime()
+    guide_message, reminders_message = run_guide()
+    events_message = compose_events_message(today_guide)
     if discord:
         try:
             hermes.loop.create_task(send_main_message(guide_message, reminders_message, events_message))

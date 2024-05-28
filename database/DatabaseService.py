@@ -330,12 +330,10 @@ class DatabaseService:
         guides = [Guide.from_database(details) for details in self.get_all_guides()]
         return [{'date': guide.date, 'show': show} for guide in guides for show in guide.search_for_show(show_title)]
 
-    def add_guide_data(self, fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
+    def add_guide_data(self, new_guide: Guide):
         """Add the Guide data to the database.\n
         Raises `exceptions.DatabaseError` if the Guide data for the current day already exists or 
         was not able to be inserted."""
-
-        new_guide = Guide.from_runtime(fta_shows, bbc_shows)
 
         check_guide_exists = self.get_guide_date(new_guide.date)
         if check_guide_exists is not None:

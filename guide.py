@@ -8,6 +8,7 @@ from config import database_service
 from data_validation.validation import Validation
 from database.DatabaseService import DatabaseService
 from database.models.GuideShow import GuideShow
+from database.models.Guide import Guide
 from log import compare_dates
 
 def find_json(url):
@@ -207,7 +208,7 @@ def reminders(guide_list: list['GuideShow'], scheduler: AsyncIOScheduler = None)
         print('===================================================================================')
         return 'There are no reminders scheduled for today'
 
-def run_guide(fta_list: list['GuideShow'], bbc_list: list['GuideShow'], scheduler: AsyncIOScheduler=None):
+def run_guide(scheduler: AsyncIOScheduler=None):
 
     latest_guide = database_service.get_latest_guide()
     if latest_guide:
@@ -217,15 +218,14 @@ def run_guide(fta_list: list['GuideShow'], bbc_list: list['GuideShow'], schedule
         update_db_flag = True
     print(update_db_flag)
     
-    guide_list = fta_list + bbc_list
-    
-    guide_message = compose_message(fta_list, bbc_list)
+    guide = Guide.from_runtime()
+    guide_message = guide.compose_message()
     print(guide_message)
     if update_db_flag:
         database_service.backup_recorded_shows()
-        database_service.add_guide_data(fta_list, bbc_list)
+        database_service.add_guide_data(guide)
 
-    reminders_message = reminders(guide_list, scheduler)
+    reminders_message = reminders(guide.fta_shows + guide.bbc_shows, scheduler)
     return guide_message, reminders_message
 
 def revert_database_tvguide(database_service: DatabaseService):
