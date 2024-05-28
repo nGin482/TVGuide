@@ -152,10 +152,6 @@ def parse_date_from_command(date: str):
             return datetime(int(year), month, int(date_values[0]))
         else:
             raise ValueError('The date provided was not in a valid format.')
-        
-def compose_events_message(guide: Guide):
-    guide_list = guide.fta_shows + guide.bbc_shows
-    return "\n".join([f"{show.title} - {show.db_event}" for show in guide_list])
 
 def convert_utc_to_local(utc_timestamp: datetime):
     utc_timestamp = utc_timestamp.replace(tzinfo=pytz.utc)

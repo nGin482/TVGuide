@@ -73,9 +73,7 @@ def run_guide(local_db: bool, discord: bool):
 
     # fta_list = search_free_to_air()
     # bbc_list = search_bbc_australia()
-    today_guide = Guide.from_runtime()
-    guide_message, reminders_message = run_guide()
-    events_message = compose_events_message(today_guide)
+    guide_message, reminders_message, events_message = run_guide()
     if discord:
         try:
             hermes.loop.create_task(send_main_message(guide_message, reminders_message, events_message))

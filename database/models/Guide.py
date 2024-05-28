@@ -203,6 +203,10 @@ class Guide:
                 message += f'{show.message_string()}\n'
 
         return message
+    
+    def compose_events_message(self):
+        guide_list = self.fta_shows + self.bbc_shows
+        return "\n".join([f"{show.title} - {show.db_event}" for show in guide_list])
 
     def search_for_show(self, show_title):
         return [show for show in self.fta_shows if show_title in show.title]

@@ -226,7 +226,8 @@ def run_guide(scheduler: AsyncIOScheduler=None):
         database_service.add_guide_data(guide)
 
     reminders_message = reminders(guide.fta_shows + guide.bbc_shows, scheduler)
-    return guide_message, reminders_message
+    events_message = guide.compose_events_message()
+    return guide_message, reminders_message, events_message
 
 def revert_database_tvguide(database_service: DatabaseService):
     "Forget sending a message and rollback the database to its previous state"
