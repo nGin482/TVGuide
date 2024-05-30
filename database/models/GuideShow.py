@@ -8,6 +8,7 @@ from database.models.RecordedShow import RecordedShow
 from exceptions.DatabaseError import EpisodeNotFoundError, SeasonNotFoundError, ShowNotFoundError
 
 if TYPE_CHECKING:
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
     from database.DatabaseService import DatabaseService
     from database.models.Reminders import Reminder
 
@@ -110,7 +111,7 @@ class GuideShow:
         else:
             raise ShowNotFoundError
         
-    def create_reminder(self, database_service: DatabaseService):
+    def schedule_reminder(self, database_service: DatabaseService, scheduler: AsyncIOScheduler = None):
         """
         Create a reminder for the episode aired, if one has been created for this show.\n
         Returns `None` if no reminder has been set for the show.
@@ -120,6 +121,16 @@ class GuideShow:
             reminder.airing_details = (self.channel, self.time)
             reminder.calculate_notification_time()
             self.reminder = reminder
+            if scheduler is not None:
+                from apscheduler.triggers.date import DateTrigger
+                from services.hermes.utilities import send_message
+                scheduler.add_job(
+                    send_message,
+                    DateTrigger(run_date=reminder.notify_time, timezone='Australia/Sydney'),
+                    [reminder.notification()],
+                    id=f'reminder-{reminder.show}-{Validation.get_current_date()}',
+                    name=f'Send the reminder message for {reminder.show}'
+                )
 
     def message_string(self):
         """

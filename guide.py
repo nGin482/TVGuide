@@ -219,14 +219,14 @@ def run_guide(scheduler: AsyncIOScheduler=None):
     print(update_db_flag)
     
     guide = Guide.from_runtime()
-    guide_message = guide.compose_message()
-    print(guide_message)
     if update_db_flag:
         database_service.backup_recorded_shows()
         database_service.add_guide_data(guide)
 
-    reminders_message = reminders(guide.fta_shows + guide.bbc_shows, scheduler)
+    guide_message = guide.compose_message()
+    reminders_message = guide.schedule_reminders(database_service, scheduler)
     events_message = guide.compose_events_message()
+    print(guide_message)
     return guide_message, reminders_message, events_message
 
 def revert_database_tvguide(database_service: DatabaseService):

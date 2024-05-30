@@ -1,11 +1,15 @@
 from __future__ import annotations
 from datetime import datetime
+from typing import TYPE_CHECKING
 import os
 
 from aux_methods.helper_methods import build_episode, convert_utc_to_local
 from database.models.GuideShow import GuideShow
 from data_validation.validation import Validation
 from services.APIClient import APIClient
+
+if TYPE_CHECKING:
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
 class Guide:
@@ -17,7 +21,6 @@ class Guide:
 
     @classmethod
     def from_database(cls, guide_details: dict, database_service: DatabaseService = None):
-        fta_list = []
         datetime_stamp = datetime.strptime(guide_details['date'], '%d/%m/%Y')
 
         fta_list = [Guide.build_guide_show(show, [], database_service) for show in guide_details['FTA']]
@@ -207,6 +210,23 @@ class Guide:
     def compose_events_message(self):
         guide_list = self.fta_shows + self.bbc_shows
         return "\n".join([f"{show.title} - {show.db_event}" for show in guide_list])
+    
+    def schedule_reminders(self, database_service: DatabaseService, scheduler: AsyncIOScheduler = None):
+        print('===================================================================================')
+        print('Reminders:')
+        guide_list = self.fta_shows + self.bbc_shows
+        for guide_show in guide_list:
+            guide_show.schedule_reminder(database_service, scheduler)
+        reminders = [guide_show.reminder for guide_show in guide_list if guide_show.reminder is not None]
+
+        if len(reminders) > 0:
+            print(f'{len(reminders)} reminders for today')
+            print('===================================================================================')
+            return '\n'.join([reminder.general_message() for reminder in reminders])
+        else:
+            print('There are no reminders scheduled for today')
+            print('===================================================================================')
+            return 'There are no reminders scheduled for today'
 
     def search_for_show(self, show_title):
         return [show for show in self.fta_shows if show_title in show.title]
