@@ -231,7 +231,7 @@ class TestGuideShow(unittest.TestCase):
             (episode_data['season_number'], episode_data['episode_number'], episode_data['episode_title']),
             recorded_show
         )
-        the_capture_episode.create_reminder(self.database_service)
+        the_capture_episode.schedule_reminder(self.database_service)
         
         self.assertIsNone(the_capture_episode.reminder)
 
@@ -244,7 +244,7 @@ class TestGuideShow(unittest.TestCase):
             (episode_data['season_number'], episode_data['episode_number'], episode_data['episode_title']),
             recorded_show
         )
-        lewis_episode.create_reminder(self.database_service)
+        lewis_episode.schedule_reminder(self.database_service)
         
         self.assertIsNotNone(self.database_service.get_one_reminder(lewis_episode.title))
         self.assertIsNone(lewis_episode.reminder)
@@ -258,7 +258,7 @@ class TestGuideShow(unittest.TestCase):
             (episode_data['season_number'], episode_data['episode_number'], episode_data['episode_title']),
             recorded_show
         )
-        episode.create_reminder(self.database_service)
+        episode.schedule_reminder(self.database_service)
 
         self.assertIsNotNone(self.database_service.get_one_reminder('Doctor Who'))
         self.assertIsNotNone(episode.reminder)

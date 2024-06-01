@@ -10,7 +10,8 @@ os.environ['PYTHON_ENV'] = 'testing'
 
 from database.models.Reminders import Reminder
 from database.DatabaseService import DatabaseService
-from guide import search_free_to_air, compose_message, reminders
+from database.models.Guide import Guide
+from guide import run_guide
 
 requests = Mock()
 # https://realpython.com/python-mock-library/
@@ -40,28 +41,31 @@ class TestGuide(unittest.TestCase):
         response_mock.status_code = 200
         response_mock.json.return_value = fta_data
         
-        return response_mock
+        return response_mock.json()
     
     @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
-    @patch('guide.get', return_value=guide_data())
+    @patch('services.APIClient.APIClient.get', side_effect=[guide_data(), [], []])
     def test_search_fta_finds_all_details(self, mock_requests, mock_datetime):
         mocked_today = datetime(2023, 10, 30)
         mock_datetime.now.return_value = mocked_today
         
-        data = search_free_to_air()
+        guide = Guide.from_runtime()
+        print(guide.date)
+        print(guide.fta_shows)
+        print(guide.bbc_shows)
         
-        guide_show_all_details = data[0]
-        self.assertEqual(4, guide_show_all_details.season_number)
-        self.assertEqual(4, guide_show_all_details.episode_number)
-        self.assertEqual('The Sontaran Strategem', guide_show_all_details.episode_title)
+        guide_show_all_details = guide.fta_shows
+        self.assertEqual(4, guide_show_all_details[0].season_number)
+        self.assertEqual(4, guide_show_all_details[0].episode_number)
+        self.assertEqual('The Sontaran Strategem', guide_show_all_details[0].episode_title)
 
     @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
-    @patch('guide.get', return_value=guide_data())
+    @patch('services.APIClient.APIClient.get', side_effect=[guide_data(), [], []])
     def test_search_fta_finds_season_episode_number(self, mock_requests, mock_datetime):
         mocked_today = datetime(2023, 10, 30)
         mock_datetime.now.return_value = mocked_today
         
-        data = search_free_to_air()
+        data = Guide.from_runtime().fta_shows
         
         guide_show_episode_num = data[1]
         self.assertEqual(4, guide_show_episode_num.season_number)
@@ -69,12 +73,12 @@ class TestGuide(unittest.TestCase):
         self.assertEqual('', guide_show_episode_num.episode_title)
 
     @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
-    @patch('guide.get', return_value=guide_data())
+    @patch('services.APIClient.APIClient.get', side_effect=[guide_data(), [], []])
     def test_search_fta_finds_episode_title(self, mock_requests, mock_datetime):
         mocked_today = datetime(2023, 10, 30)
         mock_datetime.now.return_value = mocked_today
         
-        data = search_free_to_air()
+        data = Guide.from_runtime().fta_shows
         
         guide_show_episode_title = data[3]
         self.assertEqual('Unknown', guide_show_episode_title.season_number)
@@ -82,57 +86,57 @@ class TestGuide(unittest.TestCase):
         self.assertEqual("The Doctor's Daughter", guide_show_episode_title.episode_title)
 
     @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
-    @patch('guide.get', return_value=guide_data())
+    @patch('services.APIClient.APIClient.get', side_effect=[guide_data(), [], []])
     def test_search_fta_finds_no_details(self, mock_requests, mock_datetime):
         mocked_today = datetime(2023, 10, 30)
         mock_datetime.now.return_value = mocked_today
         
-        data = search_free_to_air()
+        data = Guide.from_runtime().fta_shows
         
         guide_show_episode_title = data[4]
         self.assertEqual('Unknown', guide_show_episode_title.season_number)
         self.assertEqual(2, guide_show_episode_title.episode_number)
         self.assertEqual("", guide_show_episode_title.episode_title)
 
-    @patch('guide.get', return_value=guide_data())
+    @patch('services.APIClient.APIClient.get', side_effect=[guide_data(), [], []])
     def test_search_is_sorted(self, mock_requests):
-        data = search_free_to_air()
+        data = Guide.from_runtime().fta_shows
 
         self.assertTrue(all(data[i].time <= data[i+1].time for i in range(len(data) - 1)))
     
     @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
-    @patch('guide.get', return_value=guide_data())
+    @patch('services.APIClient.APIClient.get', side_effect=[guide_data(), [], []])
     def test_message_contains_current_date(self, mock_requests, mock_datetime):
         mocked_today = datetime(2023, 10, 30)
         mock_datetime.now.return_value = mocked_today
         
-        data = search_free_to_air()
-        message = compose_message(data, [])
+        guide = Guide.from_runtime()
+        message = guide.compose_message()
 
         self.assertIn('30-10-2023', message)
 
-    @patch('guide.get', return_value=guide_data())
+    @patch('services.APIClient.APIClient.get', side_effect=[guide_data(), [], []])
     def test_message_contains_date_provided(self, mock_requests):
         date_provided = datetime(2023, 11, 4)
         
-        data = search_free_to_air()
-        message = compose_message(data, [], date_provided)
+        guide = Guide.from_runtime(date_provided)
+        message = guide.compose_message()
 
         self.assertIn('04-11-2023', message)
 
-    def test_message_handles_empty_list(self):
-        message = compose_message([], [])
+    @patch('services.APIClient.APIClient.get', side_effect=[guide_data(), [], []])
+    def test_message_handles_empty_list(self, mock_requests):
+        guide = Guide.from_runtime()
 
-        self.assertIn('Nothing on Free to Air today', message)
+        self.assertIn('Nothing on Free to Air today', guide.compose_message())
 
     @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
-    @patch('guide.get', return_value=guide_data())
+    @patch('services.APIClient.APIClient.get', side_effect=[guide_data(), [], []])
     def test_message_creates_guide(self, mock_requests, mock_datetime):
         mocked_today = datetime(2023, 10, 30)
         mock_datetime.now.return_value = mocked_today
 
-        data = search_free_to_air()
-        message = compose_message(data, [])
+        guide = Guide.from_runtime()
 
         expected = """
         00:00: Doctor Who is on ABC1 (Season 4, Episode 4: The Sontaran Strategem)
@@ -143,26 +147,25 @@ class TestGuide(unittest.TestCase):
         """
         expected = dedent(expected)
 
-        self.assertIn(expected, message)
+        self.assertIn(expected, guide.compose_message())
     
     @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
-    @patch('guide.get', return_value=guide_data())
+    @patch('services.APIClient.APIClient.get', side_effect=[{'schedule': []}, [], []])
     def test_empty_reminders_message(self, mock_requests, mock_datetime):
         mocked_today = datetime(2023, 10, 30)
         mock_datetime.now.return_value = mocked_today
 
-        reminders_message = reminders([], self.database_service)
+        _, reminders_message, __ = run_guide()
 
         self.assertIn('There are no reminders scheduled for today', reminders_message)
 
     @patch('data_validation.validation.datetime', side_effect=lambda *args, **kw: datetime(*args, **kw))
-    @patch('guide.get', return_value=guide_data())
+    @patch('services.APIClient.APIClient.get', side_effect=[guide_data(), [], []])
     def test_reminders_message_contains_reminder_details(self, mock_requests, mock_datetime):
         mocked_today = datetime(2023, 10, 30)
         mock_datetime.now.return_value = mocked_today
 
-        data = search_free_to_air()
-        reminders_message = reminders(data)
+        _, reminders_message, __ = run_guide()
 
         self.assertIn('REMINDER: Doctor Who is on ABC1 at 00:00', reminders_message)
         self.assertIn('REMINDER: Doctor Who is on ABC1 at 00:45', reminders_message)

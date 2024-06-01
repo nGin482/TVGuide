@@ -107,7 +107,7 @@ class Guide:
         search_date = current_date.strftime('%Y-%m-%d')
         
         environment = os.getenv('PYTHON_ENV')
-        if environment == 'production':
+        if environment == 'production' or environment == 'testing':
             api_client = APIClient()
             bbc_first_data: dict = api_client.get(
                 f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-first?timezone=Australia%2FSydney&date={search_date}'
