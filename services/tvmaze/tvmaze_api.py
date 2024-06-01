@@ -1,13 +1,12 @@
-import requests
-
+from services.APIClient import APIClient
 from services.tvmaze.tvmaze_helpers import format_episode_title, group_seasons
 
 
 def get_show_data(show: str, tvmaze_id: str, season_start: int = 0, include_specials: bool = False):
     if include_specials:
-        api_data = requests.get(f'https://api.tvmaze.com/shows/{tvmaze_id}/episodes?specials=1').json()
+        api_data = APIClient.get(f'https://api.tvmaze.com/shows/{tvmaze_id}/episodes?specials=1')
     else:
-        api_data = requests.get(f'https://api.tvmaze.com/shows/{tvmaze_id}/episodes').json()
+        api_data = APIClient.get(f'https://api.tvmaze.com/shows/{tvmaze_id}/episodes')
     episode_list = []
     show_details = {
         'show': show,
