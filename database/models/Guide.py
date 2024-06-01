@@ -10,6 +10,7 @@ from services.APIClient import APIClient
 
 if TYPE_CHECKING:
     from apscheduler.schedulers.asyncio import AsyncIOScheduler
+    from database.DatabaseService import DatabaseService
 
 
 class Guide:
@@ -31,6 +32,7 @@ class Guide:
     @classmethod
     def from_runtime(cls, date: datetime = None):
         guide_date = date if date is not None else Validation.get_current_date()
+        from database.DatabaseService import DatabaseService
         database_service = DatabaseService(os.getenv('TVGUIDE_DB'), os.getenv('DATABASE_NAME'))
         fta_shows = Guide.search_free_to_air(database_service)
         bbc_shows = Guide.search_bbc_australia(database_service)
@@ -238,5 +240,3 @@ class Guide:
             'FTA': [show.to_dict() for show in self.fta_shows],
             'BBC': [show.to_dict() for show in self.bbc_shows]
         }
-    
-from database.DatabaseService import DatabaseService

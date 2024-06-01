@@ -6,9 +6,9 @@ from requests import get
 import os
 
 os.environ['PYTHON_ENV'] = 'production'
-from aux_methods.helper_methods import compose_events_message, split_message_by_time
+from aux_methods.helper_methods import split_message_by_time
 from config import scheduler
-from guide import run_guide, search_free_to_air, search_bbc_australia
+from guide import run_guide
 from services.hermes.hermes import hermes
 
 load_dotenv('.env')
@@ -44,9 +44,7 @@ async def send_main_message():
     :param `database_service`: The service handler for database operations
     :return: n/a
     """
-    fta_list = search_free_to_air()
-    bbc_list = search_bbc_australia()
-    guide_message, reminder_message = run_guide(fta_list, bbc_list, scheduler)
+    guide_message, reminder_message, events_message = run_guide(scheduler)
     
     await hermes.wait_until_ready()
     tvguide_channel: TextChannel = hermes.get_channel(int(os.getenv('TVGUIDE_CHANNEL')))
@@ -76,7 +74,7 @@ async def send_main_message():
         await ngin.send('The channel resolved to NoneType so the message could not be sent')
     finally:
         await tvguide_channel.send(reminder_message)
-        await ngin.send(compose_events_message(fta_list + bbc_list))
+        await ngin.send(events_message)
 
 
 if __name__ == '__main__':
