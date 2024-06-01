@@ -5,7 +5,6 @@ import re
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from database.models.Guide import Guide
     from database.models.GuideShow import GuideShow
     from database.models.SearchItem import SearchItem
 

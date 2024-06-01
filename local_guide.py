@@ -3,9 +3,6 @@ from discord import TextChannel
 import click
 import os
 
-# from database.DatabaseService import DatabaseService
-from database.models.Guide import Guide
-
 
 async def send_main_message(guide_message: str, reminder_message: str, events_message: str):
     """
@@ -59,7 +56,6 @@ def tear_down_data(local_db: bool):
 @click.option('--local-db', default=True, help='The database to connect to')
 @click.option('--discord', default=True, help='Whether to send the message via Discord')
 def run_guide(local_db: bool, discord: bool):
-    from aux_methods.helper_methods import compose_events_message
     from dotenv import load_dotenv
 
     if local_db:
@@ -68,11 +64,9 @@ def run_guide(local_db: bool, discord: bool):
     else:
         os.environ['PYTHON_ENV'] = 'production'
     
-    from guide import run_guide, search_free_to_air, search_bbc_australia
+    from guide import run_guide
     from services.hermes.hermes import hermes
 
-    # fta_list = search_free_to_air()
-    # bbc_list = search_bbc_australia()
     guide_message, reminders_message, events_message = run_guide()
     if discord:
         try:

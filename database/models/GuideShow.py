@@ -4,12 +4,12 @@ from typing import TYPE_CHECKING
 
 from data_validation.validation import Validation
 from database.models.GuideShowCases import TransformersGuideShow
-from database.models.RecordedShow import RecordedShow
 from exceptions.DatabaseError import EpisodeNotFoundError, SeasonNotFoundError, ShowNotFoundError
 
 if TYPE_CHECKING:
     from apscheduler.schedulers.asyncio import AsyncIOScheduler
     from database.DatabaseService import DatabaseService
+    from database.models.RecordedShow import RecordedShow
     from database.models.Reminders import Reminder
 
 class GuideShow:
