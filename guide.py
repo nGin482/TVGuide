@@ -209,27 +209,14 @@ def reminders(guide_list: list['GuideShow'], scheduler: AsyncIOScheduler = None)
         return 'There are no reminders scheduled for today'
 
 def run_guide(scheduler: AsyncIOScheduler=None):
-
-    latest_guide = database_service.get_latest_guide()
-    if latest_guide:
-        print(latest_guide.date)
-        update_db_flag = compare_dates(latest_guide.date)
-    else:
-        update_db_flag = True
-    print(update_db_flag)
+    
+    database_service.backup_recorded_shows()
     
     guide = Guide.from_runtime()
-    if update_db_flag:
-        database_service.backup_recorded_shows()
-        database_service.add_guide_data(guide)
+    database_service.add_guide_data(guide)
 
     guide_message = guide.compose_message()
     reminders_message = guide.schedule_reminders(database_service, scheduler)
     events_message = guide.compose_events_message()
     print(guide_message)
     return guide_message, reminders_message, events_message
-
-def revert_database_tvguide(database_service: DatabaseService):
-    "Forget sending a message and rollback the database to its previous state"
-    database_service.rollback_recorded_shows()
-    database_service.remove_guide_data(Validation.get_current_date().strftime('%d/%m/%Y'))

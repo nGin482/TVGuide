@@ -352,6 +352,11 @@ class DatabaseService:
         if delete_result is None:
             raise DatabaseError(f"The Guide data for {date} could not be found")
         
+    def revert_guide(self):
+        "Forget sending a message and rollback the database to its previous state"
+        self.rollback_recorded_shows()
+        self.remove_guide_data(Validation.get_current_date().strftime('%d/%m/%Y'))
+        
     # Users
     def get_user(self, username: str):
         user_document = self.users_collection.find_one({'username': username})
