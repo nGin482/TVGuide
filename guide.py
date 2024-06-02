@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+import os
 
 from config import database_service
 from database.models.Guide import Guide
@@ -10,7 +11,8 @@ if TYPE_CHECKING:
 
 def run_guide(scheduler: AsyncIOScheduler=None):
     
-    database_service.backup_recorded_shows()
+    if os.environ['PYTHON_ENV'] == 'production':
+        database_service.backup_recorded_shows()
     
     guide = Guide.from_runtime()
     database_service.add_guide_data(guide)
