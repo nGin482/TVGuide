@@ -1,18 +1,16 @@
-from datetime import datetime
 from discord import Message, File
 from discord.ext.commands import Context
 from discord.errors import HTTPException
 from zipfile import ZipFile
 import os
-import re
 
-from aux_methods.helper_methods import show_list_message, parse_date_from_command, compose_events_message, split_message_by_time
+from aux_methods.helper_methods import show_list_message, parse_date_from_command, split_message_by_time
 from config import database_service, scheduler
 from data_validation.validation import Validation
 from database.models.RecordedShow import RecordedShow
 from database.models.Reminders import Reminder
 from exceptions.DatabaseError import DatabaseError, ReminderNotFoundError, SearchItemAlreadyExistsError, SearchItemNotFoundError, ShowNotFoundError
-from guide import compose_message, revert_database_tvguide, run_guide, search_free_to_air, search_bbc_australia
+from guide import run_guide
 from log import get_date_from_tvguide_message
 from services.hermes.hermes import hermes
 from services.tvmaze.tvmaze_api import get_show_data
@@ -45,9 +43,7 @@ async def remove_show(ctx: Context, show: str):
 
 @hermes.command()
 async def send_guide(ctx: Context):
-    fta_list = search_free_to_air()
-    bbc_list = search_bbc_australia()
-    guide_message, reminders_message = run_guide(fta_list, bbc_list, scheduler)
+    guide_message, reminders_message, events_message = run_guide(scheduler)
     ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
     try:
         await ctx.send(guide_message)
@@ -72,15 +68,14 @@ async def send_guide(ctx: Context):
                 await ctx.send(bbc_message)
     finally:
         await ctx.send(reminders_message)
-        await ngin.send(compose_events_message(fta_list + bbc_list))
+        await ngin.send(events_message)
 
 @hermes.command()
 async def send_guide_record(ctx: Context, date_to_send: str):
     convert_date = parse_date_from_command(date_to_send).strftime('%d/%m/%Y')
     guide = database_service.get_guide_date(convert_date)
     if guide is not None:
-        guide_message = compose_message(guide.fta_shows, guide.bbc_shows, guide.date)
-        await ctx.send(guide_message)
+        await ctx.send(guide.compose_message())
     else:
         await ctx.send(f'A Guide record for {convert_date} could not be found.')
 
@@ -208,7 +203,3 @@ async def restore_shows(ctx: Context):
         os.remove(f'database/restore/recorded_shows/{file}')
     os.rmdir('database/restore/recorded_shows')
     os.removedirs('database/restore')
-
-@hermes.command()
-async def events(ctx: Context):
-    await ctx.send(compose_events_message())
