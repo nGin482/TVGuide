@@ -129,7 +129,8 @@ class GuideShow:
                     DateTrigger(run_date=reminder.notify_time, timezone='Australia/Sydney'),
                     [reminder.notification()],
                     id=f'reminder-{reminder.show}-{Validation.get_current_date()}',
-                    name=f'Send the reminder message for {reminder.show}'
+                    name=f'Send the reminder message for {reminder.show}',
+                    misfire_grace_time=None
                 )
 
     def message_string(self):
