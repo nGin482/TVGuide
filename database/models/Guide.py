@@ -52,7 +52,7 @@ class Guide:
         if environment == 'production' or environment == 'testing':
             api_client = APIClient()
             schedule = api_client.get(
-                f"https://epg.abctv.net.au/processed/Sydney_{date.strftime('%Y-%m-%d')}.json"
+                f"https://cdn.iview.abc.net.au/epg/processed/Sydney_{date.strftime('%Y-%m-%d')}.json"
             )['schedule']
         else:
             schedule = database_service.get_source_data('FTA')['schedule']
