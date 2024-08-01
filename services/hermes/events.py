@@ -24,3 +24,7 @@ async def on_episode_not_updated(show: str, season_number: int, episode_number: 
 async def on_db_not_connected(err: str):
     message = f'Having trouble connecting to the database.\nError: {err}'
     await send_message(message)
+
+@hermes.event
+async def on_guide_data_fetch_failed(error: str):
+    await send_message(f'There was a problem fetching the guide data.\n Error: {error}')

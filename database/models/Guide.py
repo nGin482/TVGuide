@@ -49,11 +49,16 @@ class Guide:
         shows_data: list[dict] = []
 
         environment = os.getenv('PYTHON_ENV')
+        schedule = []
         if environment == 'production' or environment == 'testing':
-            api_client = APIClient()
-            schedule = api_client.get(
-                f"https://cdn.iview.abc.net.au/epg/processed/Sydney_{date.strftime('%Y-%m-%d')}.json"
-            )['schedule']
+            try:
+                api_client = APIClient()
+                schedule = api_client.get(
+                    f"https://cdn.iview.abc.net.au/epg/processed/Sydney_{date.strftime('%Y-%m-%d')}.json"
+                )['schedule']
+            except Exception as error:
+                from services.hermes.hermes import hermes
+                hermes.dispatch('guide_data_fetch_failed', str(error))
         else:
             schedule = database_service.get_source_data('FTA')['schedule']
         search_list = database_service.get_search_list()
