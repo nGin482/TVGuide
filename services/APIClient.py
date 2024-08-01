@@ -26,5 +26,7 @@ class APIClient:
     def get(self, endpoint: str, headers: dict = {}) -> TBody:
         
         response = APIClient._make_request('GET', endpoint, headers)
-
-        return response.json()
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise Exception(f'Response returned status {response.status_code}')
