@@ -23,6 +23,10 @@ class Guide:
     @classmethod
     def from_database(cls, guide_details: dict, database_service: DatabaseService = None):
         datetime_stamp = datetime.strptime(guide_details['date'], '%d/%m/%Y')
+        for show in guide_details['FTA']:
+            show['time'] = datetime.strptime(f"{guide_details['date']}T{show['time']}", '%d/%m/%YT%H:%M')
+        for show in guide_details['BBC']:
+            show['time'] = datetime.strptime(f"{guide_details['date']}T{show['time']}", '%d/%m/%YT%H:%M')
 
         fta_list = [Guide.build_guide_show(show, [], database_service) for show in guide_details['FTA']]
         bbc_list = [Guide.build_guide_show(show, [], database_service) for show in guide_details['BBC']]
