@@ -26,8 +26,10 @@ class GuideEpisode(Base):
     db_event = Column('db_event', Text)
     show_id = Column('show_id', Integer, ForeignKey('ShowDetails.id'))
     episode_id = Column('episode_id', Integer, ForeignKey('ShowEpisode.id'))
+    reminder_id = Column('reminder_id', Integer, ForeignKey('Reminder.id'))
     show_details: Mapped['ShowDetails'] = relationship('ShowDetails', back_populates="guide_episodes", uselist=False)
     show_episode: Mapped['ShowEpisode'] = relationship('ShowEpisode', back_populates='guide_episodes', uselist=False)
+    reminder: Mapped['Reminder'] = relationship('Reminder', back_populates='guide_episodes', uselist=False)
 
     def __init__(
         self,

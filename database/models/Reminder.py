@@ -16,14 +16,16 @@ class Reminder(Base):
     occasions = Column('occasions', Text)
     show_id = Column('show_id', Integer, ForeignKey('ShowDetails.id'))
     show_details: Mapped['ShowDetails'] = relationship('ShowDetails', back_populates='reminder', uselist=False)
+    guide_episodes: Mapped[list['GuideEpisode']] = relationship('GuideEpisode', back_populates='reminder')
 
-    def __init__(self, show: str, alert: str, warning_time: int, occasions: str):
+    def __init__(self, show: str, alert: str, warning_time: int, occasions: str, show_id: int = None):
         super().__init__()
         self.show = show
         self.alert = alert
         self.warning_time = warning_time
         self.occasions = occasions
         self.notify_time: datetime = None
+        self.show_id = show_id
 
     @staticmethod
     def get_all_reminders():
@@ -66,3 +68,5 @@ class Reminder(Base):
         session.commit()
 
         session.commit()
+
+Reminder.metadata.create_all(engine, tables=[Reminder.__table__])
