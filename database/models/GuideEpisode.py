@@ -85,6 +85,11 @@ class GuideEpisode(Base):
 
         session.close()
 
+    def check_repeat(self):
+        if self.show_episode:
+            return len(self.show_episode.air_dates) > 0
+        return False
+
     def message_string(self):
         """
         String that is displayed in the Guide's notification message
