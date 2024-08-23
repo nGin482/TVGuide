@@ -3,7 +3,7 @@ import json
 import os
 
 from aux_methods.helper_methods import build_episode, convert_utc_to_local
-from database.models import GuideEpisode, SearchItem, ShowDetails, ShowEpisode
+from database.models import GuideEpisode, Reminder, SearchItem, ShowDetails, ShowEpisode
 from data_validation.validation import Validation
 from services.APIClient import APIClient
 
@@ -59,7 +59,13 @@ class Guide():
         shows_on: list['GuideEpisode'] = []
         for show in shows_data:
             show_details = ShowDetails.get_show_by_title(show['title'])
-            show_episode = ShowEpisode.search_for_episode(show['title'], show['season_number'], show['episode_number'], show['episode_title'])
+            show_episode = ShowEpisode.search_for_episode(
+                show['title'],
+                show['season_number'],
+                show['episode_number'],
+                show['episode_title']
+            )
+            reminder = Reminder.get_reminder_by_show(show['title'])
             guide_episode = GuideEpisode(
                 show['title'],
                 show['channel'],
@@ -69,10 +75,12 @@ class Guide():
                 show_episode.episode_number if show_episode is not None else show['episode_number'],
                 show_episode.episode_title if show_episode is not None else show['episode_title'],
                 show_details.id,
-                show_episode.id if show_episode is not None else None
+                show_episode.id if show_episode is not None else None,
+                reminder.id if reminder is not None else None
             )
             guide_episode.repeat = guide_episode.check_repeat()
             guide_episode.add_episode()
+            guide_episode.set_reminder()
             shows_on.append(guide_episode)
         
         print(len(shows_on))
@@ -192,5 +200,15 @@ class Guide():
             for show in self.bbc_shows:
                 message += f'{show.message_string()}\n'
 
+        return message
+    
+    def compose_reminder_message(self):
+        fta_reminders = [
+            show
+            for show in self.fta_shows
+            if show.reminder is not None and 'notify_time' in show.reminder.__dict__
+        ]
+        message = '\n'.join([show.reminder_message() for show in fta_reminders])
+        
         return message
 

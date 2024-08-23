@@ -46,7 +46,7 @@ class Reminder(Base):
         return reminder
     
     def add_reminder(self):
-        session = Session(engine)
+        session = Session(engine, expire_on_commit=False)
 
         session.add(self)
         session.commit()
@@ -68,5 +68,23 @@ class Reminder(Base):
         session.commit()
 
         session.commit()
+
+    def compare_reminder_interval(self, guide_episode: GuideEpisode):
+        if self.occasions == 'All':
+            return True
+        elif self.occasions == 'Latest':
+            return guide_episode.show_episode.is_latest_episode()
+        return False
+
+    def calculate_notification_time(self, episode_start_time: datetime):
+        if self.alert == 'On-Start':
+            self.notify_time = episode_start_time
+        elif self.alert == 'After':
+            self.notify_time = episode_start_time + timedelta(minutes=self.warning_time)
+        else:
+            self.notify_time = episode_start_time - timedelta(minutes=self.warning_time)
+
+    def __repr__(self) -> str:
+        return f"Reminder (show={self.show})"
 
 Reminder.metadata.create_all(engine, tables=[Reminder.__table__])

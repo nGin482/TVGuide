@@ -55,6 +55,7 @@ class GuideEpisode(Base):
         self.show_id = show_id
         self.episode_id = episode_id
         self.reminder_id = reminder_id
+        self.session = Session(engine, expire_on_commit=False)
 
     @staticmethod
     def get_shows_for_date(date: datetime):
@@ -66,31 +67,40 @@ class GuideEpisode(Base):
         return [guide_episode for guide_episode in guide_episodes]
     
     def add_episode(self):
-        session = Session(engine, expire_on_commit=False)
-
-        session.add(self)
-        session.commit()
+        self.session.add(self)
+        self.session.commit()
 
     def update_episode(self, field: str, value: str | int | datetime):
-        session = Session(engine)
-
         setattr(self, field, value)
-        session.commit()
+        self.session.commit()
 
-        session.close()
+        self.session.close()
 
     def delete_episode(self):
-        session = Session(engine)
+        self.session.delete(self)
+        self.session.commit()
 
-        session.delete(self)
-        session.commit()
-
-        session.close()
+        self.session.close()
 
     def check_repeat(self):
         if self.show_episode:
             return len(self.show_episode.air_dates) > 0
         return False
+
+    def set_reminder(self, scheduler: AsyncIOScheduler = None):
+        if self.reminder and 'HD' not in self.channel and self.start_time.hour > 9:
+            self.reminder.calculate_notification_time(self.start_time)
+            if scheduler:
+                from apscheduler.triggers.date import DateTrigger
+                from services.hermes.utilities import send_message
+                scheduler.add_job(
+                    send_message,
+                    DateTrigger(run_date=self.reminder.notify_time, timezone='Australia/Sydney'),
+                    [self.reminder_notification()],
+                    id=f'reminder-{self.reminder.show}-{self.start_time}',
+                    name=f'Send the reminder message for {self.reminder.show}',
+                    misfire_grace_time=None
+                )
 
     def message_string(self):
         """
@@ -108,6 +118,12 @@ class GuideEpisode(Base):
     
     def reminder_notification(self):
         return f'REMINDER: {self.title} is on {self.channel} at {self.start_time.strftime("%H:%M")}'
+    
+    def reminder_message(self):
+        return f"{self.reminder_notification()}.\nYou will be reminded at {self.reminder.notify_time.strftime('%H:%M')}"
+    
+    def __repr__(self) -> str:
+        return f"GuideEpisode (show={self.title}, channel = {self.channel}, time={self.start_time}-{self.end_time})"
 
 
 GuideEpisode.metadata.create_all(engine, tables=[GuideEpisode.__table__])
