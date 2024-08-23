@@ -33,6 +33,25 @@ class SearchItem(Base):
         self.ignore_episodes = conditions['ignore_episodes'] if 'ignore_episodes' in conditions else []
         self.show_id = show_id
 
+    def check_search_conditions(self, episode: dict):
+        if episode['season_number'] == -1 and episode['episode_title'] == "":
+            return True
+        
+        if episode['season_number'] == -1 and episode['episode_title'] != "":
+            return episode['episode_title'] not in self.ignore_episodes
+        if episode['season_number'] < self.min_season_number or episode['season_number'] > self.max_season_number:
+            return False
+        elif episode['season_number'] in self.ignore_seasons:
+            return False
+        elif episode['episode_title'] in self.ignore_episodes:
+            return False
+        else:
+            return True
+        
+    def validate_conditions(self):
+        if self.min_season_number > self.max_season_number:
+            raise ValueError(f"Minimum season number cannot be greater than maximum season number. Received minimum '{self.min_season_number}' and maximum '{self.max_season_number}'")
+
     @staticmethod
     def get_all_search_items():
         session = Session(engine)

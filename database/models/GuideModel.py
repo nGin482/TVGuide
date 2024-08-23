@@ -51,7 +51,7 @@ class Guide():
                             episode_number,
                             episode_title
                         )
-                        # episodes = [episode for episode in episodes if search_item.check_search_conditions(episode)]
+                        episodes = [episode for episode in episodes if search_item.check_search_conditions(episode)]
                         shows_data.extend(episodes)
 
         shows_data.sort(key=lambda show: (show['start_time'], show['channel']))
