@@ -157,7 +157,7 @@ def convert_utc_to_local(utc_timestamp: datetime):
     local_time = utc_timestamp.astimezone(pytz.timezone('Australia/Sydney'))
     return local_time
 
-def build_episode(show_title: str, channel: str, time: datetime, season_number: str, episode_number: int, episode_title: str):
+def build_episode(show_title: str, channel: str, start_time: datetime, end_time: datetime, season_number: str, episode_number: int, episode_title: str):
     from data_validation.validation import Validation
     episodes = []
     if 'Cyberverse' in show_title and '/' in episode_title:
@@ -166,7 +166,7 @@ def build_episode(show_title: str, channel: str, time: datetime, season_number: 
             episodes.append({
                 'title': show_title,
                 'channel': channel,
-                'time': time + timedelta(minutes=14) if idx == 1 else time,
+                'time': start_time + timedelta(minutes=14) if idx == 1 else start_time,
                 'season_number': season_number,
                 'episode_number': episode_number,
                 'episode_title': Validation.format_episode_title(episode.title())
@@ -179,7 +179,8 @@ def build_episode(show_title: str, channel: str, time: datetime, season_number: 
         episodes.append({
             'title': show_title,
             'channel': channel,
-            'time': time,
+            'start_time': start_time,
+            'end_time': end_time,
             'season_number': season_number,
             'episode_number': episode_number,
             'episode_title': Validation.format_episode_title(episode_title)
