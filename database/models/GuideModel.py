@@ -1,14 +1,17 @@
 from datetime import datetime
+from sqlalchemy.orm import Session
 import json
 import os
 
 from aux_methods.helper_methods import build_episode, convert_utc_to_local
+from database.database import engine
 from database.models import GuideEpisode, Reminder, SearchItem, ShowDetails, ShowEpisode
 from data_validation.validation import Validation
 from services.APIClient import APIClient
 
 
 class Guide():
+    session = Session(engine)
     
     def __init__(self, date: datetime):
         self.date = date
@@ -81,6 +84,8 @@ class Guide():
             guide_episode.repeat = guide_episode.check_repeat()
             guide_episode.add_episode()
             guide_episode.set_reminder()
+            if 'HD' not in guide_episode.channel:
+                guide_episode.capture_db_event(Guide.session)
             shows_on.append(guide_episode)
         
         print(len(shows_on))

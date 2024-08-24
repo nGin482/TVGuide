@@ -102,6 +102,35 @@ class GuideEpisode(Base):
                     misfire_grace_time=None
                 )
 
+    def capture_db_event(self, session: Session):
+
+        if self.show_episode and self.show_details:
+            self.show_episode.add_air_date(self.start_time)
+            episode_details = f"Season {self.season_number} Episode {self.episode_number} ({self.episode_title})"
+            self.db_event = f" {episode_details} has aired today"
+            if not self.show_episode.channel_check(self.channel):
+                self.db_event = self.show_episode.add_channel(self.channel)
+        elif not self.show_episode:
+            season_episodes = ShowEpisode.get_episodes_by_season(self.title, self.season_number, session)
+            if len(season_episodes) == 0:
+                show_episode = ShowEpisode(
+                    self.title,
+                    self.season_number,
+                    self.episode_title,
+                    self.episode_title,
+                    '',
+                    [],
+                    [self.channel],
+                    [self.start_time],
+                    self.show_details.id
+                )
+                show_episode.add_episode(session)
+                episode_details = f"Season {self.season_number} Episode {self.episode_number} ({self.episode_title})"
+                self.db_event = f"{episode_details} has been inserted"
+
+        session.merge(self)
+        session.commit()
+
     def message_string(self):
         """
         String that is displayed in the Guide's notification message
