@@ -217,3 +217,7 @@ class Guide():
         
         return message
 
+    def compose_events_message(self):
+        fta_events = [f"{show.title} - {show.db_event}" for show in self.fta_shows]
+
+        return "\n".join(fta_events)
