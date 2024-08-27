@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, Text
 from sqlalchemy.orm import Mapped, Session
+import bcrypt
 
 from database.database import Base
 
@@ -15,7 +16,7 @@ class User(Base):
     def __init__(self, username: str, password: str, role: str = 'User'):
         super().__init__()
         self.username = username
-        self.password = password
+        self.password = self.encrypt_password(password)
         self.role = role
 
     def add_user(self, session: Session):
@@ -27,4 +28,30 @@ class User(Base):
 
         session.delete(self)
         session.commit()
+
+    def encrypt_password(self, password: str):
+        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt(4))
+
+        return hashed_password.decode()
+    
+    def check_password(self, password: str):
+        return bcrypt.checkpw(password.encode(), self.password.encode())
+    
+    def change_password(self, new_password: str):
+        self.password = self.encrypt_password(new_password)
+    
+    def promote_role(self):
+        self.role = 'Admin'
+
+    def is_authorised(self, operation: str):
+        if self.role == 'Admin':
+            return True
+        else:
+            if 'delete' in operation:
+                if 'own-account' in operation:
+                    return True
+                return False
+            if 'recorded_shows' in operation:
+                return False
+            return True
 
