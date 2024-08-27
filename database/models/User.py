@@ -1,8 +1,8 @@
-from sqlalchemy import Column, Integer, Text
+from sqlalchemy import Column, Integer, select, Text
 from sqlalchemy.orm import Mapped, Session
 import bcrypt
 
-from database.database import Base
+from database.database import Base, engine
 
 
 class User(Base):
@@ -19,6 +19,23 @@ class User(Base):
         self.password = self.encrypt_password(password)
         self.role = role
 
+    def get_all_users():
+        session = Session(engine)
+
+        query = select(User)
+        users = session.scalars(query).all()
+
+        return [user for user in users]
+    
+    @staticmethod
+    def search_for_user(username: str):
+        session = Session(engine)
+
+        query = select(User).where(User.username == username)
+        user = session.scalar(query)
+
+        return user
+    
     def add_user(self, session: Session):
 
         session.add(self)
