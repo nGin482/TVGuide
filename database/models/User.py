@@ -72,3 +72,5 @@ class User(Base):
                 return False
             return True
 
+
+User.metadata.create_all(engine, tables=[User.__table__])
