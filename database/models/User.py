@@ -1,17 +1,21 @@
 from sqlalchemy import Column, Integer, select, Text
-from sqlalchemy.orm import Mapped, Session
+from sqlalchemy.orm import Mapped, relationship, Session
+from typing import TYPE_CHECKING
 import bcrypt
 
 from database.database import Base, engine
+if TYPE_CHECKING:
+    from database.models import UserSearchSubscription
 
 
 class User(Base):
-    __tablename__ = 'Users'
+    __tablename__ = 'User'
 
     id: Mapped[int] = Column('id', Integer, primary_key=True, autoincrement=True)
     username: Mapped[str] = Column('username', Text)
     password: Mapped[str] = Column('password', Text)
     role: Mapped[str] = Column('role', Text, default='User')
+    show_subscriptions: Mapped['UserSearchSubscription'] = relationship('UserSearchSubscription', back_populates='user')
 
     def __init__(self, username: str, password: str, role: str = 'User'):
         super().__init__()
