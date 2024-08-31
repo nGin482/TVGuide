@@ -70,6 +70,15 @@ class SearchItem(Base):
 
         return [search_item for search_item in search_items]
     
+    @staticmethod
+    def get_search_item(show_title: str):
+        session = Session(engine)
+
+        query = select(SearchItem).where(SearchItem.show == show_title)
+        search_item = session.scalar(query)
+
+        return search_item
+    
     def add_search_item(self):
         session = Session(engine)
 

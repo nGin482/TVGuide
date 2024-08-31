@@ -14,15 +14,25 @@ class UserSearchSubscription(Base):
     user_id: Mapped[int] = Column('user_id', Integer, ForeignKey('User.id'))
     search_id: Mapped[int] = Column('search_id', Integer, ForeignKey('SearchItem.id'))
     user: Mapped['User'] = relationship('User', back_populates='show_subscriptions')
-    show_details: Mapped['SearchItem'] = relationship('SearchItem')
+    search_item: Mapped['SearchItem'] = relationship('SearchItem')
 
     def __init__(self, user_id: int, search_id: int):
         super().__init__()
         self.user_id = user_id
         self.search_id = search_id
 
+    def add_subscription(self, session: Session):
+        session.add(self)
+        session.commit()
+        print(f"User {self.user.username} has subscribed to {self.search_item.show}")
+
+    def remove_subscription(self, session: Session):
+        session.delete(self)
+        session.commit()
+        print(f"User {self.user.username} has unsubscribed from {self.search_item.show}")
+
     def __repr__(self) -> str:
-        return f"Search Subscription (user: {self.user.username}, show: {self.show_details.show})"
+        return f"Search Subscription (user_id: {self.user_id}, search_id: {self.search_id})"
 
 
 UserSearchSubscription.metadata.create_all(engine, tables=[UserSearchSubscription.__table__])

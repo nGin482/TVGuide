@@ -15,7 +15,7 @@ class User(Base):
     username: Mapped[str] = Column('username', Text)
     password: Mapped[str] = Column('password', Text)
     role: Mapped[str] = Column('role', Text, default='User')
-    show_subscriptions: Mapped['UserSearchSubscription'] = relationship('UserSearchSubscription', back_populates='user')
+    show_subscriptions: Mapped[list['UserSearchSubscription']] = relationship('UserSearchSubscription', back_populates='user')
 
     def __init__(self, username: str, password: str, role: str = 'User'):
         super().__init__()
@@ -32,8 +32,7 @@ class User(Base):
         return [user for user in users]
     
     @staticmethod
-    def search_for_user(username: str):
-        session = Session(engine)
+    def search_for_user(username: str, session: Session):
 
         query = select(User).where(User.username == username)
         user = session.scalar(query)
