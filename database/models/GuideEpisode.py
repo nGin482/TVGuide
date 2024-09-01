@@ -136,7 +136,8 @@ class GuideEpisode(Base):
         String that is displayed in the Guide's notification message
         """
         time = self.start_time.strftime('%H:%M')
-        message = f'{time}: {self.title} is on {self.channel} (Season {self.season_number}, Episode {self.episode_number}'
+        season_number = 'Unknown' if self.season_number == -1 else self.season_number
+        message = f'{time}: {self.title} is on {self.channel} (Season {season_number}, Episode {self.episode_number}'
         if self.episode_title != '':
             message += f': {self.episode_title}'
         message += ')'
@@ -152,7 +153,11 @@ class GuideEpisode(Base):
         return f"{self.reminder_notification()}.\nYou will be reminded at {self.reminder.notify_time.strftime('%H:%M')}"
     
     def __repr__(self) -> str:
-        return f"GuideEpisode (show={self.title}, channel = {self.channel}, time={self.start_time}-{self.end_time})"
+        season_number = 'Unknown' if self.season_number == -1 else self.season_number
+        return (
+            f"GuideEpisode (show={self.title}, channel={self.channel}, time={self.start_time}-{self.end_time}, "
+            f"season number={season_number}, episode number={self.episode_number}, episode title={self.episode_title})"
+        )
 
 
 GuideEpisode.metadata.create_all(engine, tables=[GuideEpisode.__table__])
