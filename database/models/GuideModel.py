@@ -213,7 +213,10 @@ class Guide():
             for show in self.fta_shows
             if show.reminder is not None and 'notify_time' in show.reminder.__dict__
         ]
-        message = '\n'.join([show.reminder_message() for show in fta_reminders])
+        if len(fta_reminders) > 0:
+            message = '\n'.join([show.reminder_message() for show in fta_reminders])
+        else:
+            message = 'There are no reminders scheduled for today'
         
         return message
 
