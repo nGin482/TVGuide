@@ -1,5 +1,5 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.jobstores.mongodb import MongoDBJobStore
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from dotenv import load_dotenv
 import os
 
@@ -18,5 +18,6 @@ database_connection = os.getenv('TVGUIDE_DB')
 database_service = DatabaseService(database_connection, database)
 
 scheduler = AsyncIOScheduler()
-mongo_jobstore = MongoDBJobStore(database=database, collection='Jobs', client=database_service._mongo_connection)
-scheduler.add_jobstore(mongo_jobstore)
+jobstore = SQLAlchemyJobStore(url=os.getenv('DB_URL'), tablename='Jobs', tableschema=os.getenv('DB_SCHEMA'))
+scheduler.add_jobstore(jobstore)
+scheduler.start() # table is created when the scheduler is started

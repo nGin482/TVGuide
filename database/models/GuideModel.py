@@ -1,3 +1,4 @@
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
 from sqlalchemy.orm import Session
 import json
@@ -18,7 +19,7 @@ class Guide():
         self.fta_shows = []
         self.bbc_shows = []
 
-    def search_free_to_air(self):
+    def search_free_to_air(self, scheduler: AsyncIOScheduler = None):
         """
 
         """
@@ -83,7 +84,7 @@ class Guide():
             )
             guide_episode.repeat = guide_episode.check_repeat()
             guide_episode.add_episode()
-            guide_episode.set_reminder()
+            guide_episode.set_reminder(scheduler)
             if 'HD' not in guide_episode.channel:
                 guide_episode.capture_db_event(Guide.session)
             shows_on.append(guide_episode)
@@ -173,8 +174,8 @@ class Guide():
                 schedule = json.load(fd)
             return schedule['schedule']
     
-    def create_new_guide(self):
-        self.fta_shows = self.search_free_to_air()
+    def create_new_guide(self, scheduler: AsyncIOScheduler):
+        self.fta_shows = self.search_free_to_air(scheduler)
         # self.bbc_shows = self.search_bbc_australia()
     
     def get_shows(self):
