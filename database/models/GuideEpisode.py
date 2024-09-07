@@ -1,5 +1,5 @@
 from __future__ import annotations
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, select, Text
 from sqlalchemy.orm import Mapped, relationship, Session
 from typing import TYPE_CHECKING
@@ -61,7 +61,9 @@ class GuideEpisode(Base):
     def get_shows_for_date(date: datetime):
         session = Session(engine)
 
-        query = select(GuideEpisode).where(GuideEpisode.start_time.date() == date)
+        end_date = date + timedelta(days=1)
+
+        query = select(GuideEpisode).where(GuideEpisode.start_time.between(date, end_date))
         guide_episodes = session.scalars(query).all()
 
         return [guide_episode for guide_episode in guide_episodes]
