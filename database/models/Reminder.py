@@ -84,6 +84,14 @@ class Reminder(Base):
         else:
             self.notify_time = episode_start_time - timedelta(minutes=self.warning_time)
 
+    def message_format(self):
+        return (
+            f"Show: {self.show}\n"
+            f"Alert: {self.alert}"
+            f"Warning Time: {self.warning_time}"
+            f"Occasions: {self.occasions}"
+        )
+    
     def __repr__(self) -> str:
         return f"Reminder (show={self.show})"
 
