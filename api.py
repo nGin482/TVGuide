@@ -8,7 +8,7 @@ import sys
 import os
 
 load_dotenv('.env')
-from database.database import engine
+from database import engine
 from database.models import Reminder, SearchItem, ShowDetails, ShowEpisode, User, UserSearchSubscription
 from database.models.GuideModel import Guide
 from exceptions.DatabaseError import DatabaseError, InvalidSubscriptions

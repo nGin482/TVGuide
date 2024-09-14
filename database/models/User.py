@@ -3,7 +3,7 @@ from sqlalchemy.orm import Mapped, relationship, Session
 from typing import TYPE_CHECKING
 import bcrypt
 
-from database.database import Base, engine
+from database import Base, engine
 if TYPE_CHECKING:
     from database.models import UserSearchSubscription
 

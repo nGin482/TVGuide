@@ -2,7 +2,7 @@ from datetime import datetime
 from sqlalchemy import ARRAY, Column, DateTime, ForeignKey, func, Integer, select, Text
 from sqlalchemy.orm import Mapped, relationship, Session
 
-from database.database import Base, engine
+from database import Base, engine
 from database.models import GuideEpisode, ShowDetails
 from data_validation.validation import Validation
 

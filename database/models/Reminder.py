@@ -2,7 +2,7 @@ from sqlalchemy import Column, ForeignKey, Integer, select, Text
 from sqlalchemy.orm import Mapped, relationship, Session
 from datetime import datetime, timedelta
 
-from database.database import Base, engine
+from database import Base, engine
 from database.models import GuideEpisode, ShowDetails
 
 

@@ -4,7 +4,7 @@ from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, select, T
 from sqlalchemy.orm import Mapped, relationship, Session
 from typing import TYPE_CHECKING
 
-from database.database import Base, engine
+from database import Base, engine
 from database.models import Reminder, ShowDetails, ShowEpisode
 
 if TYPE_CHECKING:

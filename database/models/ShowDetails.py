@@ -1,7 +1,7 @@
 from sqlalchemy import ARRAY, Column, Integer, select, Text
 from sqlalchemy.orm import Mapped, relationship, Session
 
-from database.database import engine, Base
+from database import engine, Base
 from database.models import GuideEpisode, Reminder, SearchItem, ShowEpisode
 
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 from sqlalchemy import ARRAY, Boolean, Column, ForeignKey, Integer, select, Text
 from sqlalchemy.orm import Mapped, relationship, Session
 
-from database.database import Base, engine
+from database import Base, engine
 from database.models import ShowDetails
 
 

@@ -5,7 +5,7 @@ import json
 import os
 
 from aux_methods.helper_methods import build_episode, convert_utc_to_local
-from database.database import engine
+from database import engine
 from database.models import GuideEpisode, Reminder, SearchItem, ShowDetails, ShowEpisode
 from data_validation.validation import Validation
 from services.APIClient import APIClient
