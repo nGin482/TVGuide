@@ -31,6 +31,12 @@ class UserSearchSubscription(Base):
         session.commit()
         print(f"User {self.user.username} has unsubscribed from {self.search_item.show}")
 
+    def to_dict(self):
+        return {
+            'user_id': self.user_id,
+            'search_item_id': self.search_id
+        }
+
     def __repr__(self) -> str:
         return f"Search Subscription (user_id: {self.user_id}, search_id: {self.search_id})"
 

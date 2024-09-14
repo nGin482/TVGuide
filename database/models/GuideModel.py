@@ -225,3 +225,9 @@ class Guide():
         fta_events = [f"{show.title} - {show.db_event}" for show in self.fta_shows]
 
         return "\n".join(fta_events)
+
+    def to_dict(self):
+        return {
+            'date': self.date.strftime('%d/%m/%Y'),
+            'fta': [show.to_dict() for show in self.fta_shows]
+        }

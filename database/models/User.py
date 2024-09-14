@@ -74,6 +74,13 @@ class User(Base):
             if 'recorded_shows' in operation:
                 return False
             return True
+        
+    def to_dict(self):
+        return {
+            'username': self.username,
+            'role': self.role,
+            'show_subscriptions': [subscription.to_dict() for subscription in self.show_subscriptions]
+        }
 
 
 User.metadata.create_all(engine, tables=[User.__table__])

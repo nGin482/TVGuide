@@ -140,4 +140,16 @@ class ShowEpisode(Base):
         date = Validation.get_current_date() if air_date is None else air_date
         self.air_dates.append(date)
 
+    def to_dict(self):
+        return {
+            'show': self.show,
+            'season_number': self.season_number,
+            'episode_number': self.episode_number,
+            'episode_title': self.episode_title,
+            'summary': self.summary,
+            'alternative_titles': self.alternative_titles,
+            'channels': self.channels,
+            'air_date': self.air_dates
+        }
+
 ShowEpisode.metadata.create_all(engine, tables=[ShowEpisode.__table__])

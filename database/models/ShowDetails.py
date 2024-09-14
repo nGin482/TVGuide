@@ -68,6 +68,15 @@ class ShowDetails(Base):
 
         session.close()
 
+    def to_dict(self):
+        return {
+            'title': self.title,
+            'description': self.description,
+            'tvmaze_id': self.tvmaze_id,
+            'genres': self.genres,
+            'image': self.image
+        }
+
     def __repr__(self) -> str:
         return f"ShowDetails (title={self.title}, description={self.description}, tvmaze_id={self.tvmaze_id}, genres={self.genres}, image={self.image})"
 

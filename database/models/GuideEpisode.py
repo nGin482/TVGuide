@@ -161,5 +161,18 @@ class GuideEpisode(Base):
             f"season number={season_number}, episode number={self.episode_number}, episode title={self.episode_title})"
         )
 
+    def to_dict(self):
+        return {
+            'title': self.title,
+            'start_time': self.start_time.strftime('%H:%M'),
+            'start_time': self.start_time.strftime('%H:%M'),
+            'channel': self.channel,
+            'season_number': self.season_number,
+            'episode_number': self.episode_number,
+            'episode_title': self.episode_title,
+            'repeat': self.repeat,
+            'db_event': self.db_event
+        }
+
 
 GuideEpisode.metadata.create_all(engine, tables=[GuideEpisode.__table__])

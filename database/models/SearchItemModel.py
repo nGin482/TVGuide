@@ -108,6 +108,27 @@ class SearchItem(Base):
         conditions += f"Ignore Titles={self.ignore_titles}, Ignore Seasons={self.ignore_seasons}, Ignore Episodes={self.ignore_episodes}"
         return conditions
     
+    def to_dict(self):
+        return {
+            'show': self.show,
+            'search_active': self.search_active,
+            'exact_title_match': self.exact_title_match,
+            'conditions': {
+                'min_season_number': self.min_season_number,
+                'max_season_number': self.max_season_number,
+                'ignore_titles': self.ignore_titles,
+                'ignore_seasons': self.ignore_seasons,
+                'ignore_episodes': self.ignore_episodes
+            }
+            # search_active = Column('search_active', Boolean)
+            # exact_title_match = Column('exact_title_match', Boolean)
+            # min_season_number: Mapped[int] = Column('min_season_number', Integer)
+            # max_season_number = Column('max_season_number', Integer)
+            # ignore_titles = Column('ignore_titles', ARRAY(Text))
+            # ignore_seasons = Column('ignore_seasons', ARRAY(Integer))
+            # ignore_episodes = Column('ignore_episodes', ARRAY(Text))
+        }
+    
     def __repr__(self) -> str:
         search_item_string = f"ShowDetails (show={self.show}, search_active={self.search_active}, "
         search_item_string += f"exact_search={self.exact_title_match}, conditions=[{self.conditions_string()}])"

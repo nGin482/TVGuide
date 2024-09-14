@@ -92,6 +92,14 @@ class Reminder(Base):
             f"Occasions: {self.occasions}"
         )
     
+    def to_dict(self):
+        return {
+            'show': self.show,
+            'alert': self.alert,
+            'warning_time': self.warning_time,
+            'occasions': self.occasions
+        }
+    
     def __repr__(self) -> str:
         return f"Reminder (show={self.show})"
 
