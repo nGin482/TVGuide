@@ -1,18 +1,16 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
-from sqlalchemy.orm import Session
 import json
 import os
 
 from aux_methods.helper_methods import build_episode, convert_utc_to_local
-from database import engine
+from config import session
 from database.models import GuideEpisode, Reminder, SearchItem, ShowDetails, ShowEpisode
 from data_validation.validation import Validation
 from services.APIClient import APIClient
 
 
 class Guide():
-    session = Session(engine, expire_on_commit=False)
     
     def __init__(self, date: datetime):
         self.date = date
@@ -29,7 +27,7 @@ class Guide():
         shows_data: list[dict] = []
 
         schedule = self.get_source_data()
-        search_list = SearchItem.get_active_searches(Guide.session)
+        search_list = SearchItem.get_active_searches(session)
 
         for channel_data in schedule:
             for guide_show in channel_data['listing']:
@@ -62,15 +60,15 @@ class Guide():
 
         shows_on: list['GuideEpisode'] = []
         for show in shows_data:
-            show_details = ShowDetails.get_show_by_title(show['title'], Guide.session)
+            show_details = ShowDetails.get_show_by_title(show['title'], session)
             show_episode = ShowEpisode.search_for_episode(
                 show['title'],
                 show['season_number'],
                 show['episode_number'],
                 show['episode_title'],
-                Guide.session
+                session
             )
-            reminder = Reminder.get_reminder_by_show(show['title'], Guide.session)
+            reminder = Reminder.get_reminder_by_show(show['title'], session)
             guide_episode = GuideEpisode(
                 show['title'],
                 show['channel'],
@@ -83,11 +81,11 @@ class Guide():
                 show_episode.id if show_episode is not None else None,
                 reminder.id if reminder is not None else None
             )
-            guide_episode.add_episode(Guide.session)
-            guide_episode.check_repeat(Guide.session)
+            guide_episode.add_episode(session)
+            guide_episode.check_repeat(session)
             guide_episode.set_reminder(scheduler)
             if 'HD' not in guide_episode.channel:
-                guide_episode.capture_db_event(Guide.session)
+                guide_episode.capture_db_event(session)
             shows_on.append(guide_episode)
         
         return shows_on
@@ -110,7 +108,7 @@ class Guide():
             bbc_first_data = database_service.get_source_data('BBC First')['schedule']
             bbc_uktv_data = database_service.get_source_data('BBC UKTV')['schedule']
 
-        search_list = SearchItem.get_active_searches(Guide.session)
+        search_list = SearchItem.get_active_searches(session)
 
         show_list = []
 
@@ -179,7 +177,7 @@ class Guide():
         # self.bbc_shows = self.search_bbc_australia()
     
     def get_shows(self):
-        self.fta_shows = GuideEpisode.get_shows_for_date(self.date, Guide.session)
+        self.fta_shows = GuideEpisode.get_shows_for_date(self.date, session)
 
 
     def compose_message(self):

@@ -5,7 +5,7 @@ from zipfile import ZipFile
 import os
 
 from aux_methods.helper_methods import parse_date_from_command, split_message_by_time
-from config import scheduler
+from config import scheduler, session
 from data_validation.validation import Validation
 from database.models import Reminder, SearchItem, ShowDetails, ShowEpisode
 from database.models.GuideModel import Guide
@@ -14,10 +14,9 @@ from log import get_date_from_tvguide_message
 from services.hermes.hermes import hermes
 from services.tvmaze import tvmaze_api
 
-
 @hermes.command()
 async def show_list(ctx: Context):
-    all_search_items = [search_item.show for search_item in SearchItem.get_active_searches()]
+    all_search_items = [search_item.show for search_item in SearchItem.get_active_searches(session)]
     show_list = '\n'.join([all_search_items])
     await ctx.send(f"The Search List includes:\n{show_list}")
 
@@ -32,7 +31,7 @@ async def add_show(ctx: Context, show: str, season_start: int = 0, season_end: i
             tvmaze_data['genres'],
             tvmaze_data['image']['original']
         )
-        show_details.add_show()
+        show_details.add_show(session)
 
         show_episodes = tvmaze_api.get_show_episodes(str(tvmaze_data['id']), season_start, include_specials=include_specials)
         show_episodes = [
@@ -46,7 +45,7 @@ async def add_show(ctx: Context, show: str, season_start: int = 0, season_end: i
             )
             for episode in show_episodes
         ]
-        ShowEpisode.add_all_episodes(show_episodes)
+        ShowEpisode.add_all_episodes(show_episodes, session)
 
         conditions = {}
         if season_start > 0:
@@ -54,8 +53,8 @@ async def add_show(ctx: Context, show: str, season_start: int = 0, season_end: i
         if season_end > 0:
             conditions['max_season_number'] = season_end
         search_item = SearchItem(tvmaze_data['name'], False, conditions, show_details.id)
-        search_item.add_search_item()
-        all_search_items = [search_item.show for search_item in SearchItem.get_active_searches()]
+        search_item.add_search_item(session)
+        all_search_items = [search_item.show for search_item in SearchItem.get_active_searches(session)]
         show_list = '\n'.join([all_search_items])
         reply = f'{show} has been added to the SearchList. The list now includes:\n{show_list}'
     except (SearchItemAlreadyExistsError, DatabaseError) as err:
@@ -64,10 +63,10 @@ async def add_show(ctx: Context, show: str, season_start: int = 0, season_end: i
 
 @hermes.command()
 async def remove_show(ctx: Context, show: str):
-    search_item = SearchItem.get_search_item(show)
+    search_item = SearchItem.get_search_item(show, session)
     if search_item:
-        search_item.delete_search()
-        all_search_items = [search_item.show for search_item in SearchItem.get_active_searches()]
+        search_item.delete_search(session)
+        all_search_items = [search_item.show for search_item in SearchItem.get_active_searches(session)]
         show_list = '\n'.join([all_search_items])
         reply = f'{show} has been removed from the SearchList. The list now includes:\n{show_list}'
     else:
@@ -171,21 +170,21 @@ async def revert_tvguide(ctx: Context, date_to_delete: str = None):
 
 @hermes.command()
 async def create_reminder(ctx: Context, show: str, reminder_alert: str = 'Before', warning_time: str = '3', occasions: str = 'All'):
-    show_details = ShowDetails.get_show_by_title(show)
-    reminder_exists = Reminder.get_reminder_by_show(show)
-    search_item_exists = SearchItem.get_search_item(show)
+    show_details = ShowDetails.get_show_by_title(show, session)
+    reminder_exists = Reminder.get_reminder_by_show(show, session)
+    search_item_exists = SearchItem.get_search_item(show, session)
     if not reminder_exists:
         await ctx.send(f'A reminder already exists for {show}')
     elif not search_item_exists:
         await ctx.send(f'A reminder cannot be created for {show} as it is not being searched for.')
     else:
         reminder = Reminder(show, reminder_alert, int(warning_time), occasions, show_details.id)
-        reminder.add_reminder()
+        reminder.add_reminder(session)
         await ctx.send(f'A reminder has been created for {show}')
 
 @hermes.command()
 async def view_reminder(ctx: Context, show: str):
-    reminder = Reminder.get_reminder_by_show(show)
+    reminder = Reminder.get_reminder_by_show(show, session)
     if reminder:
         await ctx.send(reminder.message_format())
     else:
@@ -193,20 +192,20 @@ async def view_reminder(ctx: Context, show: str):
 
 @hermes.command()
 async def update_reminder(ctx: Context, show: str, attribute: str, value: str):
-    reminder = Reminder.get_reminder_by_show(show)
+    reminder = Reminder.get_reminder_by_show(show, session)
     if reminder:
         if attribute == 'warning_time':
             value = int(value)
-        reminder.update_reminder(attribute, value)
+        reminder.update_reminder(attribute, value, session)
         await ctx.send(f"The reminder for '{show}' has been updated. It's details are now:\n{reminder.message_format()}")
     else:
         await ctx.send(f"A reminder for '{show}' could not be found")
 
 @hermes.command()
 async def delete_reminder(ctx: Context, show: str):
-    reminder = Reminder.get_reminder_by_show(show)
+    reminder = Reminder.get_reminder_by_show(show, session)
     if reminder:
-        reminder.delete_reminder()
+        reminder.delete_reminder(session)
         await ctx.send(f'The Reminder for {show} has been removed')
     else:
         await ctx.send(f'A Reminder for {show} could not be found')
