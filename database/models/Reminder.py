@@ -28,52 +28,38 @@ class Reminder(Base):
         self.show_id = show_id
 
     @staticmethod
-    def get_all_reminders():
-        session = Session(engine)
-
+    def get_all_reminders(session: Session):
         query = select(Reminder)
         reminders = session.scalars(query).all()
         
         return [reminder for reminder in reminders]
     
     @staticmethod
-    def get_reminder_by_show(title: str):
-        session = Session(engine)
-
+    def get_reminder_by_show(title: str, session: Session):
         query = select(Reminder).where(Reminder.show == title)
         reminder = session.scalar(query)
 
         return reminder
     
-    def add_reminder(self):
-        session = Session(engine, expire_on_commit=False)
-
+    def add_reminder(self, session: Session):
         session.add(self)
         session.commit()
 
-        session.close()
 
-    def update_reminder(self, field, value):
-        session = Session(engine)
-
+    def update_reminder(self, field: str, value, session: Session):
         setattr(self, field, value)
         session.commit()
 
-        session.close()
 
-    def delete_reminder(self):
-        session = Session(engine)
-
+    def delete_reminder(self, session: Session):
         session.delete(self)
         session.commit()
 
-        session.commit()
-
-    def compare_reminder_interval(self, guide_episode: GuideEpisode):
+    def compare_reminder_interval(self, guide_episode: GuideEpisode, session: Session):
         if self.occasions == 'All':
             return True
         elif self.occasions == 'Latest':
-            return guide_episode.show_episode.is_latest_episode()
+            return guide_episode.show_episode.is_latest_episode(session)
         return False
 
     def calculate_notification_time(self, episode_start_time: datetime):

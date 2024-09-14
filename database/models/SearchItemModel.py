@@ -53,55 +53,37 @@ class SearchItem(Base):
             raise ValueError(f"Minimum season number cannot be greater than maximum season number. Received minimum '{self.min_season_number}' and maximum '{self.max_season_number}'")
 
     @staticmethod
-    def get_all_search_items():
-        session = Session(engine)
-
+    def get_all_search_items(session: Session):
         query = select(SearchItem)
         search_items = session.scalars(query)
 
         return [search_item for search_item in search_items]
     
     @staticmethod
-    def get_active_searches():
-        session = Session(engine)
-
+    def get_active_searches(session: Session):
         query = select(SearchItem).where(SearchItem.search_active == True)
         search_items = session.scalars(query)
 
         return [search_item for search_item in search_items]
     
     @staticmethod
-    def get_search_item(show_title: str):
-        session = Session(engine)
-
+    def get_search_item(show_title: str, session: Session):
         query = select(SearchItem).where(SearchItem.show == show_title)
         search_item = session.scalar(query)
 
         return search_item
     
-    def add_search_item(self):
-        session = Session(engine)
-
+    def add_search_item(self, session: Session):
         session.add(self)
         session.commit()
 
-        session.close()
-
-    def update_search(self, field: str, value):
-        session = Session(engine)
-
+    def update_search(self, field: str, value, session: Session):
         setattr(self, field, value)
         session.commit()
 
-        session.close()
-
-    def delete_search(self):
-        session = Session(engine)
-
+    def delete_search(self, session: Session):
         session.delete(self)
         session.commit()
-
-        session.close()
 
     def conditions_string(self):
         conditions = f"Minimum Season={self.min_season_number}, Maximum Season={self.max_season_number}, "
@@ -120,13 +102,6 @@ class SearchItem(Base):
                 'ignore_seasons': self.ignore_seasons,
                 'ignore_episodes': self.ignore_episodes
             }
-            # search_active = Column('search_active', Boolean)
-            # exact_title_match = Column('exact_title_match', Boolean)
-            # min_season_number: Mapped[int] = Column('min_season_number', Integer)
-            # max_season_number = Column('max_season_number', Integer)
-            # ignore_titles = Column('ignore_titles', ARRAY(Text))
-            # ignore_seasons = Column('ignore_seasons', ARRAY(Integer))
-            # ignore_episodes = Column('ignore_episodes', ARRAY(Text))
         }
     
     def __repr__(self) -> str:

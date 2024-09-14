@@ -42,7 +42,8 @@ def manifest():
 # SEARCH LIST
 @app.route('/api/show-list', methods=['GET'])
 def show_list():
-    return [item.to_dict() for item in SearchItem.get_active_searches()]
+    session = Session(engine)
+    return [item.to_dict() for item in SearchItem.get_active_searches(session)]
 
 @app.route('/api/show-list', methods=['POST'])
 @jwt_required()
@@ -50,13 +51,14 @@ def add_show_list():
     user: User = get_current_user()
     print(user.username)
     body = request.json
+    session = Session(engine)
     
     if 'show' not in body or body['show'] == '':
         return { 'message': "Please provide the name of the show to add the Search Item" }, 400
     show, conditions = body['show'], body['conditions']
 
-    show_details_check = ShowDetails.get_show_by_title(show)
-    search_item_check = SearchItem.get_search_item(show)
+    show_details_check = ShowDetails.get_show_by_title(show, session)
+    search_item_check = SearchItem.get_search_item(show, session)
 
     if show_details_check is None:
         return { 
@@ -66,15 +68,16 @@ def add_show_list():
         return { 'message': f"A Search Item already exists for '{show}'" }, 409
 
     new_search_item = SearchItem(show, False, conditions)
-    new_search_item.add_search_item()
+    new_search_item.add_search_item(session)
     # new_show_data = get_show_data(show, tvmaze_id)
 
 @app.route('/api/show-list/<string:show>', methods=['DELETE'])
 @jwt_required()
 def delete_search_item(show: str):
-    search_item = SearchItem.get_search_item(show)
+    session = Session(engine)
+    search_item = SearchItem.get_search_item(show, session)
     if search_item:
-        search_item.delete_search()
+        search_item.delete_search(session)
         return {'message': f'{show} was deleted from the Search List'}
     return { 'message': f"No search item could be found for '{show}'" }, 404
         
@@ -94,13 +97,15 @@ def guide():
 # RECORDED SHOWS
 @app.route('/api/recorded-shows')
 def recorded_shows():
-    recorded_shows = [show.to_dict() for show in ShowDetails.get_all_shows()]
+    session = Session(engine)
+    recorded_shows = [show.to_dict() for show in ShowDetails.get_all_shows(session)]
     return recorded_shows
 
 @app.route('/api/recorded-show/<string:show>', methods=['GET', 'PUT', 'DELETE'])
 @jwt_required()
 def recorded_show(show: str):
-    show_details = ShowDetails.get_show_by_title(show)
+    session = Session(engine)
+    show_details = ShowDetails.get_show_by_title(show, session)
     if show_details:
         if request.method == 'GET':
             return show_details.to_dict()
@@ -121,7 +126,8 @@ def recorded_show(show: str):
 @app.route('/api/reminders')
 def get_reminders():
     try:
-        reminders = [reminder.to_dict() for reminder in Reminder.get_all_reminders()]
+        session = Session(engine)
+        reminders = [reminder.to_dict() for reminder in Reminder.get_all_reminders(session)]
         return reminders
     except (KeyError, ValueError) as error:
         return {'message': 'There was a problem retrieving the reminders', 'error': str(error)}, 500
@@ -129,17 +135,18 @@ def get_reminders():
 @app.route('/api/reminders', methods=['POST'])
 @jwt_required()
 def reminders():
+    session = Session(engine)
     body = request.json
     show: str = body['show']
-    show_check = ShowDetails.get_show_by_title(show)
-    reminder_check = Reminder.get_reminder_by_show(show)
+    show_check = ShowDetails.get_show_by_title(show, session)
+    reminder_check = Reminder.get_reminder_by_show(show, session)
     if not show_check:
         return {'message': f'{show} is not being searched for'}, 400
     if reminder_check:
         return {'message': f'A reminder already exists for {show}'}, 409
     new_reminder = Reminder(show, body['alert'], body['warning_time'], body['occasions'])
     try:
-        new_reminder.add_reminder()
+        new_reminder.add_reminder(session)
         return {
             'reminders': new_reminder.to_dict()
         }
@@ -148,7 +155,8 @@ def reminders():
     
 @app.route('/api/reminder/<string:show>')
 def get_reminder(show: str):
-    reminder = Reminder.get_reminder_by_show(show)
+    session = Session(engine)
+    reminder = Reminder.get_reminder_by_show(show, session)
     if reminder:
         return reminder.to_dict()
     return {'message': f'A reminder for {show} does not exist'}, 404
@@ -156,11 +164,12 @@ def get_reminder(show: str):
 @app.route('/api/reminder/<string:show>', methods=['PUT', 'DELETE'])
 @jwt_required()
 def reminder(show: str):
-    reminder = Reminder.get_reminder_by_show(show)
+    session = Session(engine)
+    reminder = Reminder.get_reminder_by_show(show, session)
     if reminder:
         if request.method == 'PUT':
             body = dict(request.json)
-            updated_reminder = Reminder.get_reminder_by_show(show)
+            updated_reminder = Reminder.get_reminder_by_show(show, session)
             for key in body.keys():
                 setattr(updated_reminder, key, body[key])
             return updated_reminder.to_dict()
@@ -168,9 +177,9 @@ def reminder(show: str):
             current_user: User = get_current_user()
             if current_user.role != 'Admin':
                 return {'message': f'You are not authorised to delete this reminder. Please make a request to delete it'}, 403
-            reminder = Reminder.get_reminder_by_show(show)
-            reminder.delete_reminder()
-            reminders = [reminder.to_dict() for reminder in Reminder.get_all_reminders()]
+            reminder = Reminder.get_reminder_by_show(show, session)
+            reminder.delete_reminder(session)
+            reminders = [reminder.to_dict() for reminder in Reminder.get_all_reminders(session)]
             return { 'reminders': reminders }
     return {'message': f'A reminder for {show} does not exist'}, 404
 

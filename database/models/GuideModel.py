@@ -29,7 +29,7 @@ class Guide():
         shows_data: list[dict] = []
 
         schedule = self.get_source_data()
-        search_list = SearchItem.get_active_searches()
+        search_list = SearchItem.get_active_searches(Guide.session)
 
         for channel_data in schedule:
             for guide_show in channel_data['listing']:
@@ -62,14 +62,15 @@ class Guide():
 
         shows_on: list['GuideEpisode'] = []
         for show in shows_data:
-            show_details = ShowDetails.get_show_by_title(show['title'])
+            show_details = ShowDetails.get_show_by_title(show['title'], Guide.session)
             show_episode = ShowEpisode.search_for_episode(
                 show['title'],
                 show['season_number'],
                 show['episode_number'],
-                show['episode_title']
+                show['episode_title'],
+                Guide.session
             )
-            reminder = Reminder.get_reminder_by_show(show['title'])
+            reminder = Reminder.get_reminder_by_show(show['title'], Guide.session)
             guide_episode = GuideEpisode(
                 show['title'],
                 show['channel'],
@@ -83,7 +84,7 @@ class Guide():
                 reminder.id if reminder is not None else None
             )
             guide_episode.repeat = guide_episode.check_repeat()
-            guide_episode.add_episode()
+            guide_episode.add_episode(Guide.session)
             guide_episode.set_reminder(scheduler)
             if 'HD' not in guide_episode.channel:
                 guide_episode.capture_db_event(Guide.session)
@@ -110,7 +111,7 @@ class Guide():
             bbc_first_data = database_service.get_source_data('BBC First')['schedule']
             bbc_uktv_data = database_service.get_source_data('BBC UKTV')['schedule']
 
-        search_list = SearchItem.get_active_searches()
+        search_list = SearchItem.get_active_searches(Guide.session)
 
         show_list = []
 
@@ -179,7 +180,7 @@ class Guide():
         # self.bbc_shows = self.search_bbc_australia()
     
     def get_shows(self):
-        self.fta_shows = GuideEpisode.get_shows_for_date(self.date)
+        self.fta_shows = GuideEpisode.get_shows_for_date(self.date, Guide.session)
 
 
     def compose_message(self):

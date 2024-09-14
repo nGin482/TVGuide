@@ -55,12 +55,9 @@ class GuideEpisode(Base):
         self.show_id = show_id
         self.episode_id = episode_id
         self.reminder_id = reminder_id
-        self.session = Session(engine, expire_on_commit=False)
 
     @staticmethod
-    def get_shows_for_date(date: datetime):
-        session = Session(engine)
-
+    def get_shows_for_date(date: datetime, session: Session):
         end_date = date + timedelta(days=1)
 
         query = select(GuideEpisode).where(GuideEpisode.start_time.between(date, end_date))
@@ -68,21 +65,17 @@ class GuideEpisode(Base):
 
         return [guide_episode for guide_episode in guide_episodes]
     
-    def add_episode(self):
-        self.session.add(self)
-        self.session.commit()
+    def add_episode(self, session: Session):
+        session.add(self)
+        session.commit()
 
-    def update_episode(self, field: str, value: str | int | datetime):
+    def update_episode(self, field: str, value: str | int | datetime, session: Session):
         setattr(self, field, value)
-        self.session.commit()
+        session.commit()
 
-        self.session.close()
-
-    def delete_episode(self):
-        self.session.delete(self)
-        self.session.commit()
-
-        self.session.close()
+    def delete_episode(self, session: Session):
+        session.delete(self)
+        session.commit()
 
     def check_repeat(self):
         if self.show_episode:

@@ -47,12 +47,10 @@ class ShowEpisode(Base):
         self.show_id = show_id
 
     @staticmethod
-    def search_for_episode(show_title: str, season_number: int, episode_number: int, episode_title: str):
+    def search_for_episode(show_title: str, season_number: int, episode_number: int, episode_title: str, session: Session):
         if season_number == -1 and episode_number == 0 and episode_title == '':
             return None
         
-        session = Session(engine)
-
         if season_number != -1 and episode_number != 0:
             query = select(ShowEpisode).where(
                 ShowEpisode.show == show_title,
@@ -70,8 +68,6 @@ class ShowEpisode(Base):
 
     @staticmethod
     def get_episodes_by_season(show_title: str, season_number: int, session: Session):
-        # session = Session(engine)
-
         query = select(ShowEpisode).where(ShowEpisode.show == show_title, ShowEpisode.season_number == season_number)
 
         episodes = session.scalars(query)
@@ -79,22 +75,16 @@ class ShowEpisode(Base):
         return [episode for episode in episodes]
     
     @staticmethod
-    def add_all_episodes(episodes: list['ShowEpisode']):
-        session = Session(engine)
-
+    def add_all_episodes(episodes: list['ShowEpisode'], session: Session):
         session.add_all(episodes)
         session.commit()
-
-        session.close()
 
     def add_episode(self, session: Session):
 
         session.add(self)
         session.commit()
 
-    def is_latest_episode(self):
-        session = Session(engine)
-
+    def is_latest_episode(self, session: Session):
         season_check = session.scalar(func.max(ShowEpisode.season_number))
         episode_check = session.scalar(func.max(ShowEpisode.episode_number))
         if self.season_number > season_check:

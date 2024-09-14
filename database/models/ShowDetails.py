@@ -28,45 +28,31 @@ class ShowDetails(Base):
         self.image = image
 
     @staticmethod
-    def get_all_shows():
-        session = Session(engine)
+    def get_all_shows(session: Session):
         query = select(ShowDetails)
         results = session.execute(query).scalars().all()
 
         return [show for show in results]
     
     @staticmethod
-    def get_show_by_title(title: str):
-        session = Session(engine)
-        
+    def get_show_by_title(title: str, session: Session):
         query = select(ShowDetails).where(ShowDetails.title == title)
         show = session.execute(query).scalars().first()
         
         return show
     
-    def add_show(self):
-        session = Session(engine)
-
+    def add_show(self, session: Session):
         session.add(self)
         session.commit()
 
-        session.close()
 
-    def update_show(self, field, value):
-        session = Session(engine)
-
+    def update_show(self, field: str, value, session: Session):
         setattr(self, field, value)
         session.commit()
 
-        session.close()
-
-    def delete_show(self):
-        session = Session(engine)
-
+    def delete_show(self, session: Session):
         session.delete(self)
         session.commit()
-
-        session.close()
 
     def to_dict(self):
         return {
