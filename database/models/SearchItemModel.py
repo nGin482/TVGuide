@@ -21,13 +21,13 @@ class SearchItem(Base):
     show_id = Column('show_id', ForeignKey('ShowDetails.id'))
     show_details: Mapped['ShowDetails'] = relationship('ShowDetails', back_populates='search')
 
-    def __init__(self, show: str, exact_title_match: bool, conditions: dict = {}, show_id: int = None):
+    def __init__(self, show: str, exact_title_match: bool, max_seasons: int, conditions: dict = {}, show_id: int = None):
         super().__init__()
         self.show = show
         self.search_active = True
         self.exact_title_match = exact_title_match
         self.min_season_number = conditions['min_season_number'] if 'min_season_number' in conditions else 1
-        self.max_season_number = conditions['max_season_number'] if 'max_season_number' in conditions else 10
+        self.max_season_number = conditions['max_season_number'] if 'max_season_number' in conditions else max_seasons
         self.ignore_titles = conditions['ignore_titles'] if 'ignore_titles' in conditions else []
         self.ignore_seasons = conditions['ignore_seasons'] if 'ignore_seasons' in conditions else []
         self.ignore_episodes = conditions['ignore_episodes'] if 'ignore_episodes' in conditions else []

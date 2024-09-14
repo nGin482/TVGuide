@@ -12,7 +12,7 @@ from database import engine
 from database.models import Reminder, SearchItem, ShowDetails, ShowEpisode, User, UserSearchSubscription
 from database.models.GuideModel import Guide
 from exceptions.DatabaseError import DatabaseError, InvalidSubscriptions
-from services.tvmaze.tvmaze_api import get_show_data
+from services.tvmaze import tvmaze_api
 
 app = Flask(__name__, template_folder='build', static_folder='build/static')
 CORS(app)
@@ -67,9 +67,10 @@ def add_show_list():
     if search_item_check:
         return { 'message': f"A Search Item already exists for '{show}'" }, 409
 
-    new_search_item = SearchItem(show, False, conditions)
+    new_show_data = tvmaze_api.get_show_episodes(show_details_check.tvmaze_id)
+    max_season_number = max([int(episode['season_number']) for episode in new_show_data])
+    new_search_item = SearchItem(show, False, max_season_number, conditions)
     new_search_item.add_search_item(session)
-    # new_show_data = get_show_data(show, tvmaze_id)
 
 @app.route('/api/show-list/<string:show>', methods=['DELETE'])
 @jwt_required()

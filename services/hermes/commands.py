@@ -52,7 +52,8 @@ async def add_show(ctx: Context, show: str, season_start: int = 0, season_end: i
             conditions['min_season_number'] = season_start
         if season_end > 0:
             conditions['max_season_number'] = season_end
-        search_item = SearchItem(tvmaze_data['name'], False, conditions, show_details.id)
+        max_season_number = max([int(episode.season_number) for episode in show_episodes])
+        search_item = SearchItem(tvmaze_data['name'], False, max_season_number, conditions, show_details.id)
         search_item.add_search_item(session)
         all_search_items = [search_item.show for search_item in SearchItem.get_active_searches(session)]
         show_list = '\n'.join([all_search_items])
