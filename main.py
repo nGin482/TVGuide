@@ -8,7 +8,8 @@ import os
 os.environ['PYTHON_ENV'] = 'production'
 from aux_methods.helper_methods import split_message_by_time
 from config import scheduler
-from guide import run_guide
+from data_validation.validation import Validation
+from database.models.GuideModel import Guide
 from services.hermes.hermes import hermes
 
 load_dotenv('.env')
@@ -44,7 +45,10 @@ async def send_main_message():
     :param `database_service`: The service handler for database operations
     :return: n/a
     """
-    guide_message, reminder_message, events_message = run_guide(scheduler)
+    date = Validation.get_current_date()
+    guide = Guide(date)
+    guide.create_new_guide()
+    guide_message = guide.compose_message()
     
     await hermes.wait_until_ready()
     tvguide_channel: TextChannel = hermes.get_channel(int(os.getenv('TVGUIDE_CHANNEL')))
@@ -73,8 +77,8 @@ async def send_main_message():
     except AttributeError:
         await ngin.send('The channel resolved to NoneType so the message could not be sent')
     finally:
-        await tvguide_channel.send(reminder_message)
-        await ngin.send(events_message)
+        await tvguide_channel.send(guide.compose_reminder_message())
+        await ngin.send(guide.compose_events_message())
 
 
 if __name__ == '__main__':
@@ -87,7 +91,6 @@ if __name__ == '__main__':
         misfire_grace_time=None,
         replace_existing=True
     )
-    scheduler.start()
     hermes.run(os.getenv('HERMES'))
 
     # {"id": "content_wrapper_inner"}
