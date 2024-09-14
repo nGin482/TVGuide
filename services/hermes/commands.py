@@ -18,7 +18,8 @@ from services.tvmaze import tvmaze_api
 @hermes.command()
 async def show_list(ctx: Context):
     all_search_items = [search_item.show for search_item in SearchItem.get_active_searches()]
-    await ctx.send(f"The Search List includes:\n{"\n".join([all_search_items])}")
+    show_list = '\n'.join([all_search_items])
+    await ctx.send(f"The Search List includes:\n{show_list}")
 
 @hermes.command()
 async def add_show(ctx: Context, show: str, season_start: int = 0, season_end: int = 0, include_specials: bool = False):
@@ -55,7 +56,8 @@ async def add_show(ctx: Context, show: str, season_start: int = 0, season_end: i
         search_item = SearchItem(tvmaze_data['name'], False, conditions, show_details.id)
         search_item.add_search_item()
         all_search_items = [search_item.show for search_item in SearchItem.get_active_searches()]
-        reply = f'{show} has been added to the SearchList. The list now includes:\n{"\n".join([all_search_items])}'
+        show_list = '\n'.join([all_search_items])
+        reply = f'{show} has been added to the SearchList. The list now includes:\n{show_list}'
     except (SearchItemAlreadyExistsError, DatabaseError) as err:
         reply = f'Error: {str(err)}. The SearchList has not been modified.'
     await ctx.send(reply)
@@ -66,7 +68,8 @@ async def remove_show(ctx: Context, show: str):
     if search_item:
         search_item.delete_search()
         all_search_items = [search_item.show for search_item in SearchItem.get_active_searches()]
-        reply = f'{show} has been removed from the SearchList. The list now includes:\n{"\n".join(all_search_items)}'
+        show_list = '\n'.join([all_search_items])
+        reply = f'{show} has been removed from the SearchList. The list now includes:\n{show_list}'
     else:
         reply = f"A search item for '{show}' could not be found"    
     await ctx.send(reply)
