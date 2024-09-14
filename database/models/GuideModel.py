@@ -12,7 +12,7 @@ from services.APIClient import APIClient
 
 
 class Guide():
-    session = Session(engine)
+    session = Session(engine, expire_on_commit=False)
     
     def __init__(self, date: datetime):
         self.date = date
@@ -83,14 +83,13 @@ class Guide():
                 show_episode.id if show_episode is not None else None,
                 reminder.id if reminder is not None else None
             )
-            guide_episode.repeat = guide_episode.check_repeat()
             guide_episode.add_episode(Guide.session)
+            guide_episode.check_repeat(Guide.session)
             guide_episode.set_reminder(scheduler)
             if 'HD' not in guide_episode.channel:
                 guide_episode.capture_db_event(Guide.session)
             shows_on.append(guide_episode)
         
-        print(len(shows_on))
         return shows_on
 
     def search_bbc_australia(self):
@@ -175,7 +174,7 @@ class Guide():
                 schedule = json.load(fd)
             return schedule['schedule']
     
-    def create_new_guide(self, scheduler: AsyncIOScheduler):
+    def create_new_guide(self, scheduler: AsyncIOScheduler = None):
         self.fta_shows = self.search_free_to_air(scheduler)
         # self.bbc_shows = self.search_bbc_australia()
     

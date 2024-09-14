@@ -77,10 +77,12 @@ class GuideEpisode(Base):
         session.delete(self)
         session.commit()
 
-    def check_repeat(self):
+    def check_repeat(self, session: Session):
         if self.show_episode:
-            return len(self.show_episode.air_dates) > 0
-        return False
+            self.repeat = len(self.show_episode.air_dates) > 0
+        else:
+            self.repeat = False
+        session.commit()
 
     def set_reminder(self, scheduler: AsyncIOScheduler = None):
         if self.reminder and 'HD' not in self.channel and self.start_time.hour > 9:
@@ -102,7 +104,7 @@ class GuideEpisode(Base):
         if self.show_episode and self.show_details:
             self.show_episode.add_air_date(self.start_time)
             episode_details = f"Season {self.season_number} Episode {self.episode_number} ({self.episode_title})"
-            self.db_event = f" {episode_details} has aired today"
+            self.db_event = f"{episode_details} has aired today"
             if not self.show_episode.channel_check(self.channel):
                 self.db_event = self.show_episode.add_channel(self.channel)
         elif not self.show_episode:
@@ -151,7 +153,8 @@ class GuideEpisode(Base):
         season_number = 'Unknown' if self.season_number == -1 else self.season_number
         return (
             f"GuideEpisode (show={self.title}, channel={self.channel}, time={self.start_time}-{self.end_time}, "
-            f"season number={season_number}, episode number={self.episode_number}, episode title={self.episode_title})"
+            f"season number={season_number}, episode number={self.episode_number}, episode title={self.episode_title}, "
+            f"repeat={self.repeat})"
         )
 
     def to_dict(self):
