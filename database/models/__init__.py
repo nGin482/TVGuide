@@ -1,4 +1,4 @@
-from sqlalchemy.exc import ProgrammingError
+from sqlalchemy.exc import NoReferencedTableError, ProgrammingError
 
 from database import Base, engine
 from database.models.GuideModel import Guide
@@ -23,8 +23,8 @@ def create_tables(tables_to_create: str | list[str] = None):
         print(f"Creating table {table.fullname}")
         try:
             table.create(engine)
-        except ProgrammingError as error:
-            print(f"Error creating table {table.fullname}: {error.statement}")
+        except (ProgrammingError, NoReferencedTableError) as error:
+            print(f"Error creating table {table.fullname}: {error.orig}")
 
 def drop_tables(tables_to_drop: str | list[str] = None):
     tables = Base.metadata.tables.values()

@@ -58,6 +58,20 @@ def tear_down_data(local_db: bool):
     database_service.tear_down_data()
 
 @local_tvguide.command()
+@click.option('-t', '--tables', multiple=True, help="A list of tables to create")
+def create_tables(tables: str):
+
+    from database.models import create_tables
+    create_tables(list(tables))
+
+@local_tvguide.command()
+@click.option('-t', '--tables', multiple=True, help="A list of tables to drop")
+def drop_tables(tables: str):
+
+    from database.models import drop_tables
+    drop_tables(list(tables))
+
+@local_tvguide.command()
 @click.option('--date', default=Validation.get_current_date().strftime('%d-%m-%Y'), help='The date to retrieve the TVGuide schedule')
 @click.option('-d', '--discord', is_flag=True, default=False, help='Whether to send the message via Discord')
 @click.option('-s', '--schedule', is_flag=True, default=False, help='Add reminders to the scheduling service')
