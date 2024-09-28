@@ -7,8 +7,11 @@ import os
 from aux_methods.helper_methods import parse_date_from_command, split_message_by_time
 from config import scheduler, session
 from data_validation.validation import Validation
-from database.models import Reminder, SearchItem, ShowDetails, ShowEpisode
 from database.models.GuideModel import Guide
+from database.models.Reminder import Reminder
+from database.models.SearchItemModel import SearchItem
+from database.models.ShowDetailsModel import ShowDetails
+from database.models.ShowEpisodeModel import ShowEpisode
 from exceptions.DatabaseError import DatabaseError, SearchItemAlreadyExistsError
 from log import get_date_from_tvguide_message
 from services.hermes.hermes import hermes

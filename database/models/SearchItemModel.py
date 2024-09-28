@@ -3,7 +3,7 @@ from sqlalchemy import ARRAY, Boolean, Column, ForeignKey, Integer, select, Text
 from sqlalchemy.orm import Mapped, relationship, Session
 
 from database import Base, engine
-from database.models import ShowDetails
+from database.models.ShowDetailsModel import ShowDetails
 
 
 class SearchItem(Base):

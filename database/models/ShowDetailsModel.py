@@ -1,8 +1,11 @@
 from sqlalchemy import ARRAY, Column, Integer, select, Text
 from sqlalchemy.orm import Mapped, relationship, Session
+from typing import TYPE_CHECKING
 
 from database import engine, Base
-from database.models import GuideEpisode, Reminder, SearchItem, ShowEpisode
+
+if TYPE_CHECKING:
+    from database.models import GuideEpisode, Reminder, SearchItem, ShowEpisode
 
 
 class ShowDetails(Base):

@@ -3,7 +3,8 @@ from sqlalchemy import ARRAY, Column, DateTime, ForeignKey, func, Integer, selec
 from sqlalchemy.orm import Mapped, relationship, Session
 
 from database import Base, engine
-from database.models import GuideEpisode, ShowDetails
+from database.models.GuideEpisode import GuideEpisode
+from database.models.ShowDetailsModel import ShowDetails
 from data_validation.validation import Validation
 
 
