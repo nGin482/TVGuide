@@ -60,7 +60,7 @@ def tear_down_data(local_db: bool):
 @local_tvguide.command()
 @click.option('--discord', default=True, help='Whether to send the message via Discord')
 @click.option('--date', default=Validation.get_current_date().strftime('%d-%m-%Y'), help='The date to retrieve the TVGuide schedule')
-@click.option('--schedule', default=False, description='Add reminders to the scheduling service')
+@click.option('--schedule', default=False, help='Add reminders to the scheduling service')
 def run_guide(discord: bool, date: str, schedule: bool):
     from datetime import datetime
     import re
@@ -78,6 +78,7 @@ def run_guide(discord: bool, date: str, schedule: bool):
     if schedule:
         guide.create_new_guide()
     else:
+        scheduler.remove_all_jobs()
         guide.create_new_guide(scheduler)
     guide_message, reminders_message, events_message = (
         guide.compose_message(),
