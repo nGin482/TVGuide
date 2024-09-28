@@ -4,17 +4,18 @@ from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, select, T
 from sqlalchemy.orm import Mapped, relationship, Session
 from typing import TYPE_CHECKING
 
-from database import Base, engine
-from database.models import Reminder, ShowDetails, ShowEpisode
+from database import Base
 
 if TYPE_CHECKING:
     from apscheduler.schedulers.asyncio import AsyncIOScheduler
+    from database.models import Reminder, ShowDetails, ShowEpisode
 
 
 class GuideEpisode(Base):
     __tablename__ = "GuideEpisode"
 
     id = Column('id', Integer, primary_key=True, autoincrement=True)
+    guide_id: Mapped[int] = Column('guide_id', Integer, ForeignKey('Guide.id'))
     title = Column('title', Text)
     channel = Column('channel', Text)
     start_time = Column('start_time', DateTime)
@@ -40,6 +41,7 @@ class GuideEpisode(Base):
         season_number: int,
         episode_number: int,
         episode_title: str,
+        guide_id: int,
         show_id: int,
         episode_id: int = None,
         reminder_id: int = None
@@ -52,6 +54,7 @@ class GuideEpisode(Base):
         self.season_number = season_number
         self.episode_number = episode_number
         self.episode_title = episode_title
+        self.guide_id = guide_id
         self.show_id = show_id
         self.episode_id = episode_id
         self.reminder_id = reminder_id
@@ -170,5 +173,3 @@ class GuideEpisode(Base):
             'db_event': self.db_event
         }
 
-
-GuideEpisode.metadata.create_all(engine, tables=[GuideEpisode.__table__])

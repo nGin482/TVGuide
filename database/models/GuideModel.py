@@ -1,28 +1,45 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
+from sqlalchemy import Column, DateTime, Integer
+from sqlalchemy.orm import Mapped, Session
 import json
 import os
 
 from aux_methods.helper_methods import build_episode, convert_utc_to_local
 from config import session
-from database.models import GuideEpisode, Reminder, SearchItem, ShowDetails, ShowEpisode
+from database import Base, engine
+from database.models.GuideEpisode import GuideEpisode
+from database.models.Reminder import Reminder
+from database.models.SearchItemModel import SearchItem
+from database.models.ShowDetailsModel import ShowDetails
+from database.models.ShowEpisodeModel import ShowEpisode
 from data_validation.validation import Validation
 from services.APIClient import APIClient
 
 
-class Guide():
+class Guide(Base):
+    __tablename__ = 'Guide'
+
+    id: Mapped[int] = Column('id', Integer, primary_key=True, autoincrement=True)
+    date: Mapped[datetime] = Column('date', DateTime)
     
     def __init__(self, date: datetime):
         self.date = date
         self.fta_shows = []
         self.bbc_shows = []
 
+    def add_guide(self, session: Session):
+        session.add(self)
+        session.commit()
+
+    def delete_guide(self, session: Session):
+        session.delete(self)
+        session.commit()
+
     def search_free_to_air(self, scheduler: AsyncIOScheduler = None):
         """
 
         """
-
-        date = Validation.get_current_date().date()
 
         shows_data: list[dict] = []
 
@@ -77,6 +94,7 @@ class Guide():
                 show_episode.season_number if show_episode is not None else show['season_number'],
                 show_episode.episode_number if show_episode is not None else show['episode_number'],
                 show_episode.episode_title if show_episode is not None else show['episode_title'],
+                self.id,
                 show_details.id,
                 show_episode.id if show_episode is not None else None,
                 reminder.id if reminder is not None else None
@@ -173,6 +191,7 @@ class Guide():
             return schedule['schedule']
     
     def create_new_guide(self, scheduler: AsyncIOScheduler = None):
+        self.add_guide(session)
         self.fta_shows = self.search_free_to_air(scheduler)
         # self.bbc_shows = self.search_bbc_australia()
     
@@ -229,3 +248,5 @@ class Guide():
             'date': self.date.strftime('%d/%m/%Y'),
             'fta': [show.to_dict() for show in self.fta_shows]
         }
+
+Guide.metadata.create_all(engine, tables=[Guide.__table__])
