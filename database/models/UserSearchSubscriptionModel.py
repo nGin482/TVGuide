@@ -40,6 +40,3 @@ class UserSearchSubscription(Base):
     def __repr__(self) -> str:
         return f"Search Subscription (user_id: {self.user_id}, search_id: {self.search_id})"
 
-
-UserSearchSubscription.metadata.create_all(engine, tables=[UserSearchSubscription.__table__])
-

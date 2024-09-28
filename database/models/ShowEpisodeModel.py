@@ -142,5 +142,3 @@ class ShowEpisode(Base):
             'channels': self.channels,
             'air_date': self.air_dates
         }
-
-ShowEpisode.metadata.create_all(engine, tables=[ShowEpisode.__table__])

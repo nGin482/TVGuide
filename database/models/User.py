@@ -81,6 +81,3 @@ class User(Base):
             'role': self.role,
             'show_subscriptions': [subscription.to_dict() for subscription in self.show_subscriptions]
         }
-
-
-User.metadata.create_all(engine, tables=[User.__table__])

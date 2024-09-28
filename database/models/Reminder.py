@@ -89,5 +89,3 @@ class Reminder(Base):
     
     def __repr__(self) -> str:
         return f"Reminder (show={self.show})"
-
-Reminder.metadata.create_all(engine, tables=[Reminder.__table__])

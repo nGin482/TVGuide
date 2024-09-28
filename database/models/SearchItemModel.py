@@ -108,5 +108,3 @@ class SearchItem(Base):
         search_item_string = f"ShowDetails (show={self.show}, search_active={self.search_active}, "
         search_item_string += f"exact_search={self.exact_title_match}, conditions=[{self.conditions_string()}])"
         return search_item_string
-
-SearchItem.metadata.create_all(engine, tables=[SearchItem.__table__])

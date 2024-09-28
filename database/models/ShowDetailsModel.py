@@ -68,5 +68,3 @@ class ShowDetails(Base):
 
     def __repr__(self) -> str:
         return f"ShowDetails (title={self.title}, description={self.description}, tvmaze_id={self.tvmaze_id}, genres={self.genres}, image={self.image})"
-
-ShowDetails.metadata.create_all(engine)

@@ -248,5 +248,3 @@ class Guide(Base):
             'date': self.date.strftime('%d/%m/%Y'),
             'fta': [show.to_dict() for show in self.fta_shows]
         }
-
-Guide.metadata.create_all(engine, tables=[Guide.__table__])
