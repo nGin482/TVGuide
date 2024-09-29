@@ -1,11 +1,15 @@
 from datetime import datetime
 from sqlalchemy import ARRAY, Column, DateTime, ForeignKey, func, Integer, select, Text
 from sqlalchemy.orm import Mapped, relationship, Session
+from typing import TYPE_CHECKING
 
-from database import Base, engine
-from database.models.GuideEpisode import GuideEpisode
-from database.models.ShowDetailsModel import ShowDetails
+from database import Base
 from data_validation.validation import Validation
+
+if TYPE_CHECKING:
+    from database.models.GuideEpisode import GuideEpisode
+    from database.models.ShowDetailsModel import ShowDetails
+
 
 
 class ShowEpisode(Base):
