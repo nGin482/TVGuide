@@ -5,6 +5,8 @@ from sqlalchemy.orm import Mapped, relationship, Session
 from typing import TYPE_CHECKING
 
 from database import Base
+from database.models.ShowDetailsModel import ShowDetails
+from database.models.ShowEpisodeModel import ShowEpisode
 
 if TYPE_CHECKING:
     from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -104,29 +106,48 @@ class GuideEpisode(Base):
 
     def capture_db_event(self, session: Session):
 
+        def create_show_details():
+            show_details = ShowDetails(
+                self.title,
+                '',
+                '',
+                [],
+                ''
+            )
+            show_details.add_show(session)
+            return show_details
+        def create_show_episode():
+            show_episode = ShowEpisode(
+                self.title,
+                self.season_number,
+                self.episode_number,
+                self.episode_title,
+                '',
+                [],
+                [self.channel],
+                [self.start_time],
+                self.show_details.id
+            )
+            show_episode.add_episode(session)
+            return show_episode
+
         if self.show_episode and self.show_details:
             self.show_episode.add_air_date(self.start_time)
             episode_details = f"Season {self.season_number} Episode {self.episode_number} ({self.episode_title})"
             self.db_event = f"{episode_details} has aired today"
             if not self.show_episode.channel_check(self.channel):
                 self.db_event = self.show_episode.add_channel(self.channel)
-        elif not self.show_episode:
-            season_episodes = ShowEpisode.get_episodes_by_season(self.title, self.season_number, session)
-            if len(season_episodes) == 0:
-                show_episode = ShowEpisode(
-                    self.title,
-                    self.season_number,
-                    self.episode_title,
-                    self.episode_title,
-                    '',
-                    [],
-                    [self.channel],
-                    [self.start_time],
-                    self.show_details.id
-                )
-                show_episode.add_episode(session)
-                episode_details = f"Season {self.season_number} Episode {self.episode_number} ({self.episode_title})"
-                self.db_event = f"{episode_details} has been inserted"
+        elif self.show_details is None and self.show_episode is None:
+            self.show_details = create_show_details()
+            self.show_episode = create_show_episode()
+            self.db_event = "This show is now being recorded"
+        elif self.show_episode is None and self.show_details is not None:
+            self.show_episode = create_show_episode()
+            episode_details = f"Season {self.season_number} Episode {self.episode_number} ({self.episode_title})"
+            self.db_event = f"{episode_details} has been inserted"
+        else:
+            self.show_details = create_show_details()
+            self.db_event = "This show is now being recorded"
 
         session.merge(self)
         session.commit()
