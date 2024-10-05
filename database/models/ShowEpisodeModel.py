@@ -146,3 +146,6 @@ class ShowEpisode(Base):
             'channels': self.channels,
             'air_date': self.air_dates
         }
+    
+    def __repr__(self) -> str:
+        return f"ShowEpisode [show={self.show}, season_number={self.season_number}, episode_number={self.episode_number}]"
