@@ -6,8 +6,9 @@ import json
 import os
 
 from aux_methods.helper_methods import build_episode, convert_utc_to_local
+from aux_methods.types import ShowData
 from config import session
-from database import Base, engine
+from database import Base
 from database.models.GuideEpisode import GuideEpisode
 from database.models.Reminder import Reminder
 from database.models.SearchItemModel import SearchItem
@@ -41,7 +42,7 @@ class Guide(Base):
 
         """
 
-        shows_data: list[dict] = []
+        shows_data: list[ShowData] = []
 
         schedule = self.get_source_data()
         search_list = SearchItem.get_active_searches(session)
