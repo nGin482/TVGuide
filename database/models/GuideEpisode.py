@@ -185,7 +185,7 @@ class GuideEpisode(Base):
         return {
             'title': self.title,
             'start_time': self.start_time.strftime('%H:%M'),
-            'start_time': self.start_time.strftime('%H:%M'),
+            'end_time': self.end_time.strftime('%H:%M'),
             'channel': self.channel,
             'season_number': self.season_number,
             'episode_number': self.episode_number,
