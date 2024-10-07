@@ -15,16 +15,16 @@ if TYPE_CHECKING:
 class ShowEpisode(Base):
     __tablename__ = 'ShowEpisode'
 
-    id = Column('id', Integer, primary_key=True, autoincrement=True)
-    show = Column('show', Text)
-    season_number = Column('season_number', Integer)
-    episode_number = Column('episode_number', Integer)
-    episode_title = Column('episode_title', Text)
-    alternative_titles = Column('alternative_titles', ARRAY(Text))
-    summary = Column('summary', Text)
-    channels = Column('channels', ARRAY(Text))
-    air_dates = Column('air_dates', ARRAY(DateTime))
-    show_id = Column('show_id', ForeignKey('ShowDetails.id'))
+    id: Mapped[int] = Column('id', Integer, primary_key=True, autoincrement=True)
+    show: Mapped[str] = Column('show', Text)
+    season_number: Mapped[int] = Column('season_number', Integer)
+    episode_number: Mapped[int] = Column('episode_number', Integer)
+    episode_title: Mapped[str] = Column('episode_title', Text)
+    alternative_titles: Mapped[list[str]] = Column('alternative_titles', ARRAY(Text))
+    summary: Mapped[str] = Column('summary', Text)
+    channels: Mapped[list[str]] = Column('channels', ARRAY(Text))
+    air_dates: Mapped[list[datetime]] = Column('air_dates', ARRAY(DateTime))
+    show_id: Mapped[int] = Column('show_id', ForeignKey('ShowDetails.id'))
     show_details: Mapped['ShowDetails'] = relationship('ShowDetails', back_populates='show_episodes')
     guide_episodes: Mapped[list['GuideEpisode']] = relationship('GuideEpisode', back_populates='show_episode')
 
