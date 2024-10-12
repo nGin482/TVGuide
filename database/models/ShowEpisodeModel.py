@@ -62,7 +62,7 @@ class ShowEpisode(Base):
                 ShowEpisode.season_number == season_number,
                 ShowEpisode.episode_number == episode_number
             )
-        else:    
+        else:
             query = select(ShowEpisode).where(
                 ShowEpisode.show == show_title,
                 ShowEpisode.episode_title.ilike(episode_title)
@@ -94,7 +94,7 @@ class ShowEpisode(Base):
         episode_check = session.scalar(func.max(ShowEpisode.episode_number))
         if self.season_number > season_check:
             return True
-        return self.season_number == season_check and self.episode_number > episode_check
+        return self.season_number == season_check and self.episode_number >= episode_check
     
     def channel_check(self, channel: str):
         """Check that the given episode is present in the episode's channel list. Return True if present, False if not.\n
@@ -119,13 +119,13 @@ class ShowEpisode(Base):
         If the channel is `SBS`, `SBSHD` will also be added.\n"""
         if channel not in self.channels:
             self.channels.append(channel)
-        if 'ABC1' in channel or ('ABC1' in self.channels and 'ABCHD' not in self.channels):
+        if ('ABC1' in channel or 'ABC1' in self.channels) and 'ABCHD' not in self.channels:
             self.channels.append('ABCHD')
             return f'{channel} and ABCHD have been added to the channel list.'
-        elif ('TEN' in channel or '10' in channel) or ('10' in self.channels and 'TENHD' not in self.channels):
+        elif (('TEN' in channel or '10' in channel) or ('10' in self.channels or 'TEN' in self.channels)) and 'TENHD' not in self.channels:
             self.channels.append('TENHD')
             return f'{channel} and TENHD have been added to the channel list.'
-        elif 'SBS' in channel or ('SBS' in self.channels and 'SBSHD' not in self.channels):
+        elif ('SBS' in channel or 'SBS' in self.channels) and 'SBSHD' not in self.channels:
             self.channels.append('SBSHD')
             return f'{channel} and SBSHD have been added to the channel list.'
         else:
@@ -144,7 +144,7 @@ class ShowEpisode(Base):
             'summary': self.summary,
             'alternative_titles': self.alternative_titles,
             'channels': self.channels,
-            'air_date': self.air_dates
+            'air_dates': self.air_dates
         }
     
     def __repr__(self) -> str:
