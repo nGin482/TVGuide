@@ -4,14 +4,10 @@ from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 import os
 
+load_dotenv('.env')
+
 from database import engine
 
-if os.environ['PYTHON_ENV'] == 'testing':
-    load_dotenv('.env.local.test')
-elif os.environ['PYTHON_ENV'] == 'development':
-    load_dotenv('.env.local.dev')
-else:
-    load_dotenv('.env')
 
 
 database = os.getenv('DATABASE_NAME')
