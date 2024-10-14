@@ -70,7 +70,7 @@ class TestShowEpisode(TestCase):
         ShowEpisode.add_all_episodes(dw_show_episodes, mock_session)
         store = add_episodes(dw_show_episodes)
 
-        self.assertEqual(len(store), 5)
+        self.assertEqual(len(store), 11)
 
     @patch('sqlalchemy.orm.session')
     def test_add_single_episodes(self, mock_session: MagicMock):
@@ -156,7 +156,7 @@ class TestShowEpisode(TestCase):
         self.assertEqual(result, "ABC2 has been added to the channel list.")
 
     def test_show_episode_add_channel_not_added_if_exists(self):
-        result = add_channel_show_episodes[3].add_channel("ABC2")
+        add_channel_show_episodes[3].add_channel("ABC2")
 
         self.assertEqual(len(add_channel_show_episodes[3].channels), 1)
     
