@@ -82,7 +82,73 @@ dw_show_episodes = [
         ["ABC1", "ABCHD", "ABC2"],
         [datetime(2023, 9, 15, hour=20, minute=30)],
         None
-    )
+    ),
+    ShowEpisode(
+        'Doctor Who',
+        4,
+        2,
+        'Fires of Pompeii',
+        "Pompeii and it's Volcano Day",
+        [],
+        ["ABC1", "ABCHD", "ABC2"],
+        [datetime(2023, 9, 15, hour=20, minute=30)],
+        None
+    ),
+    ShowEpisode(
+        'Doctor Who',
+        4,
+        3,
+        'Planet of the Ood',
+        '',
+        [],
+        ["ABC1", "ABCHD", "ABC2"],
+        [datetime(2023, 9, 15, hour=20, minute=30)],
+        None
+    ),
+    ShowEpisode(
+        'Doctor Who',
+        4,
+        4,
+        'The Sontaran Strategem',
+        'Sontarans return',
+        [],
+        ["ABC1", "ABCHD", "ABC2"],
+        [datetime(2023, 9, 15, hour=20, minute=30)],
+        None
+    ),
+    ShowEpisode(
+        'Doctor Who',
+        4,
+        5,
+        'The Poison Sky',
+        'Sontarans return',
+        [],
+        ["ABC1", "ABCHD", "ABC2"],
+        [datetime(2023, 9, 15, hour=20, minute=30)],
+        None
+    ),
+    ShowEpisode(
+        'Doctor Who',
+        4,
+        6,
+        "The Doctor's Daughter",
+        'Jenny',
+        [],
+        ["ABC1", "ABCHD", "ABC2"],
+        [datetime(2023, 9, 15, hour=20, minute=30)],
+        None
+    ),
+    ShowEpisode(
+        'Doctor Who',
+        4,
+        7,
+        'The Unicorn and the Wasp',
+        'Agatha Christie',
+        [],
+        ["ABC1", "ABCHD", "ABC2"],
+        [datetime(2023, 9, 15, hour=20, minute=30)],
+        None
+    ),
 ]
 
 channel_check_show_episodes = [
@@ -170,7 +236,7 @@ add_channel_show_episodes = [
         'Doctor Who',
         4,
         4,
-        'The Sontaren Strategem',
+        'The Sontaran Strategem',
         'The Doctor meets Martha again',
         [],
         [],
