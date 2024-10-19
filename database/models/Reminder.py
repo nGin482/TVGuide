@@ -31,7 +31,7 @@ class Reminder(Base):
     @staticmethod
     def get_all_reminders(session: Session):
         query = select(Reminder)
-        reminders = session.scalars(query).all()
+        reminders = session.scalars(query)
         
         return [reminder for reminder in reminders]
     
