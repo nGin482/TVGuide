@@ -3,7 +3,7 @@ from sqlalchemy.orm import Mapped, relationship, Session
 from typing import TYPE_CHECKING
 import bcrypt
 
-from database import Base, engine
+from database import Base
 if TYPE_CHECKING:
     from database.models import UserSearchSubscription
 
@@ -23,11 +23,11 @@ class User(Base):
         self.password = self.encrypt_password(password)
         self.role = role
 
-    def get_all_users():
-        session = Session(engine)
+    @staticmethod
+    def get_all_users(session: Session):
 
         query = select(User)
-        users = session.scalars(query).all()
+        users = session.scalars(query)
 
         return [user for user in users]
     
@@ -63,18 +63,6 @@ class User(Base):
     def promote_role(self):
         self.role = 'Admin'
 
-    def is_authorised(self, operation: str):
-        if self.role == 'Admin':
-            return True
-        else:
-            if 'delete' in operation:
-                if 'own-account' in operation:
-                    return True
-                return False
-            if 'recorded_shows' in operation:
-                return False
-            return True
-        
     def to_dict(self):
         return {
             'username': self.username,
