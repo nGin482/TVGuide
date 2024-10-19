@@ -19,9 +19,20 @@ class TestShowEpisode(TestCase):
     def setUp(self):
         super().setUp()
 
+    @patch('sqlalchemy.orm.session')
+    def test_show_episode_returns_episode_by_id(self, mock_session: MagicMock):
+        mock_session.scalar.return_value = show_episodes[1]
+
+        episode = ShowEpisode.get_episode_by_id(20, mock_session)
+
+        self.assertEqual(episode.show, "Endeavour")
+        self.assertEqual(episode.season_number, 5)
+        self.assertEqual(episode.episode_number, 6)
+        self.assertEqual(episode.episode_title, "Icarus")
+    
     @patch('sqlalchemy.select')
     @patch('sqlalchemy.orm.session')
-    def test_search_for_episode_season_number(self, mock_session: MagicMock, mock_select: MagicMock):
+    def test_show_episode_returns_episodes_by_season_number(self, mock_session: MagicMock, mock_select: MagicMock):
         episode = find_episode(show_episodes, "Doctor Who", 2, 5, "Rise of the Cybermen")
         mock_select.where.side_effect = find_episode(show_episodes, "Doctor Who", 2, 5, "Rise of the Cybermen")
         mock_session.scalar.return_value = episode
@@ -35,7 +46,7 @@ class TestShowEpisode(TestCase):
 
     @patch('sqlalchemy.select')
     @patch('sqlalchemy.orm.session')
-    def test_search_for_episode_episode_title(self, mock_session: MagicMock, mock_select: MagicMock):
+    def test_show_episode_returns_episode_by_episode_title(self, mock_session: MagicMock, mock_select: MagicMock):
         episode = find_episode(show_episodes, "Endeavour", -1, 0, "Icarus")
         mock_select.where.side_effect = find_episode(show_episodes, "Endeavour", -1, 0, "Icarus")
         mock_session.scalar.return_value = episode
@@ -47,12 +58,9 @@ class TestShowEpisode(TestCase):
         self.assertEqual(episode.episode_number, 6)
         self.assertEqual(episode.episode_title, "Icarus")
 
-    @patch('sqlalchemy.select')
     @patch('sqlalchemy.orm.session')
-    def test_search_for_episodes_by_season(self, mock_session: MagicMock, mock_select: MagicMock):
-        episodes = find_episodes_by_season(dw_show_episodes, "Doctor Who", 2)
-        mock_select.where.side_effect = find_episodes_by_season(dw_show_episodes, "Doctor Who", 2)
-        mock_session.scalars.return_value = episodes
+    def test_show_episode_returns_episodes_by_season(self, mock_session: MagicMock):
+        mock_session.scalars.return_value = find_episodes_by_season(dw_show_episodes, "Doctor Who", 2)
 
         doctor_who_s2 = ShowEpisode.get_episodes_by_season("Doctor Who", 2, mock_session)
 
@@ -64,7 +72,7 @@ class TestShowEpisode(TestCase):
             self.assertEqual(episode.season_number, 2)
 
     @patch('sqlalchemy.orm.session')
-    def test_add_all_episodes(self, mock_session: MagicMock):
+    def test_show_episode_adds_all_episodes(self, mock_session: MagicMock):
         mock_session.add_all.return_value = add_episodes(dw_show_episodes)
 
         ShowEpisode.add_all_episodes(dw_show_episodes, mock_session)
@@ -73,7 +81,7 @@ class TestShowEpisode(TestCase):
         self.assertEqual(len(store), 11)
 
     @patch('sqlalchemy.orm.session')
-    def test_add_single_episodes(self, mock_session: MagicMock):
+    def test_show_episode_adds_single_episodes(self, mock_session: MagicMock):
         mock_session.add.return_value = add_episode(dw_show_episodes)
 
         ShowEpisode.add_all_episodes(dw_show_episodes, mock_session)
@@ -83,6 +91,41 @@ class TestShowEpisode(TestCase):
         self.assertEqual(store[0].show, "Doctor Who")
         self.assertEqual(store[0].season_number, 2)
         self.assertEqual(store[0].episode_number, 1)
+
+    @patch('sqlalchemy.orm.session')
+    def test_show_episode_updates_full_episode(self, mock_session: MagicMock):
+
+        show_episode = ShowEpisode(
+            "Code Geass",
+            1,
+            1,
+            "The Day a Demon was Born",
+            "First episode"
+        )
+
+        show_episode_dict = show_episode.to_dict()
+        show_episode_dict['episode_title'] = "Stage 01 - The Day a New Demon Was Born"
+
+        show_episode.update_full_episode(show_episode_dict, mock_session)
+
+        self.assertEqual(show_episode.episode_title, "Stage 01 - The Day a New Demon Was Born")
+        mock_session.commit.assert_called()
+
+    @patch('sqlalchemy.orm.session')
+    def test_show_episode_deletes_episode(self, mock_session: MagicMock):
+
+        show_episode = ShowEpisode(
+            "Code Geass",
+            1,
+            1,
+            "The Day a Demon was Born",
+            "First episode"
+        )
+
+        show_episode.delete_episode(mock_session)
+
+        mock_session.delete.assert_called()
+        mock_session.commit.assert_called()
 
     @patch('sqlalchemy.orm.session')
     def test_show_episode_latest_season(self, mock_session: MagicMock):

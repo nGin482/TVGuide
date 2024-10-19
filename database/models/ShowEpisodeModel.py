@@ -52,6 +52,13 @@ class ShowEpisode(Base):
         self.show_id = show_id
 
     @staticmethod
+    def get_episode_by_id(episode_id: int, session: Session):
+        query = select(ShowEpisode).where(ShowEpisode.id == episode_id)
+
+        episode = session.scalar(query)
+        return episode
+    
+    @staticmethod
     def search_for_episode(show_title: str, season_number: int, episode_number: int, episode_title: str, session: Session):
         if season_number == -1 and episode_number == 0 and episode_title == '':
             return None
@@ -74,6 +81,7 @@ class ShowEpisode(Base):
     @staticmethod
     def get_episodes_by_season(show_title: str, season_number: int, session: Session):
         query = select(ShowEpisode).where(ShowEpisode.show == show_title, ShowEpisode.season_number == season_number)
+        print(query)
 
         episodes = session.scalars(query)
         
@@ -85,8 +93,16 @@ class ShowEpisode(Base):
         session.commit()
 
     def add_episode(self, session: Session):
-
         session.add(self)
+        session.commit()
+
+    def update_full_episode(self, episode_details: dict, session: Session):
+        for key in episode_details.keys():
+            setattr(self, key, episode_details[key])
+        session.commit()
+
+    def delete_episode(self, session: Session):
+        session.delete(self)
         session.commit()
 
     def is_latest_episode(self, session: Session):
@@ -137,6 +153,7 @@ class ShowEpisode(Base):
 
     def to_dict(self):
         return {
+            'id': self.id,
             'show': self.show,
             'season_number': self.season_number,
             'episode_number': self.episode_number,

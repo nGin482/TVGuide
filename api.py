@@ -117,33 +117,25 @@ def guide():
     guide.get_shows()
     return guide.to_dict()
 
-# RECORDED SHOWS
-@app.route('/api/recorded-shows')
-def recorded_shows():
-    session = Session(engine)
-    recorded_shows = [show.to_dict() for show in ShowDetails.get_all_shows(session)]
-    return recorded_shows
-
-@app.route('/api/recorded-show/<string:show>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/api/show-episode/<int:id>', methods=['PUT'])
 @jwt_required()
-def recorded_show(show: str):
+def update_show_episode(id: int):
     session = Session(engine)
-    show_details = ShowDetails.get_show_by_title(show, session)
-    if show_details:
-        if request.method == 'GET':
-            return show_details.to_dict()
-        if request.method == 'PUT':
-            body: dict = request.json
-            for key in body.keys():
-                show_details.update_show(key, body[key])
-            return { 'show_details': show_details.to_dict() }
-        if request.method == 'DELETE':
-            current_user: User = get_current_user()
-            if current_user.role != 'Admin':
-                return { 'message': f"You are not authorised to delete '{show}'. Please make a request to delete it" }, 403
-            show_details.delete_show()
-            return {'message': f'{show} has been deleted'}
-    return {'message': f"Details for '{show}' could not be found"}, 404
+    episode = ShowEpisode.get_episode_by_id(id, session)
+    if episode:
+        episode.update_full_episode(request.json, session)
+        return episode.to_dict()
+    return { 'message': f"This episode could not be found" }, 404
+
+@app.route('/api/show-episode/<int:id>', methods=['DELETE'])
+@jwt_required()
+def delete_show_episode(id: int):
+    session = Session(engine)
+    episode = ShowEpisode.get_episode_by_id(id, session)
+    if episode:
+        episode.delete_episode(session)
+        return '', 204
+    return { 'message': f"This episode could not be found" }, 404
 
 # REMINDERS
 @app.route('/api/reminders')
