@@ -6,4 +6,11 @@ import os
 class Base(DeclarativeBase):
     pass
 
-engine = create_engine(os.getenv('DB_URL'))
+try:
+    db_url = os.getenv("DB_URL")
+    if db_url is not None:
+        engine = create_engine(os.getenv('DB_URL'))
+    else:
+        engine = None
+except KeyError:
+    engine = None
