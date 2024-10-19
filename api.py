@@ -39,15 +39,24 @@ def favicon():
 def manifest():
     return send_from_directory('build', 'manifest.json')
 
-# SEARCH LIST
-@app.route('/api/show-list', methods=['GET'])
-def show_list():
+@app.route('/api/shows', methods=['GET'])
+def shows():
     session = Session(engine)
-    return [item.to_dict() for item in SearchItem.get_active_searches(session)]
+    shows = ShowDetails.get_all_shows(session)
+    show_data = []
+    for show in shows:
+        show_json = {
+            "show_name": show.title,
+            "show_details": show.to_dict(),
+            "search_item": show.search.to_dict(),
+            "show_episodes": [episode.to_dict() for episode in show.show_episodes]
+        }
+        show_data.append(show_json)
+    return show_data
 
-@app.route('/api/show-list', methods=['POST'])
+@app.route('/api/search_item', methods=['POST'])
 @jwt_required()
-def add_show_list():
+def add_search_item():
     user: User = get_current_user()
     print(user.username)
     body = request.json
@@ -72,7 +81,20 @@ def add_show_list():
     new_search_item = SearchItem(show, False, max_season_number, conditions)
     new_search_item.add_search_item(session)
 
-@app.route('/api/show-list/<string:show>', methods=['DELETE'])
+@app.route('/api/search-item/<string:show>', methods=['PUT'])
+@jwt_required()
+def update_search_item(show: str):
+    body = request.json
+    if not bool(body):
+        return { 'message': "No information was provided to update the search item with" }, 400
+    session = Session(engine)
+    search_item = SearchItem.get_search_item(show, session)
+    if search_item:
+        search_item.update_search(body, session)
+        return search_item.to_dict()
+    return { 'message': f"No search item could be found for '{show}'" }, 404
+
+@app.route('/api/search-item/<string:show>', methods=['DELETE'])
 @jwt_required()
 def delete_search_item(show: str):
     session = Session(engine)
