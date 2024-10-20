@@ -48,11 +48,65 @@ def shows():
         show_json = {
             "show_name": show.title,
             "show_details": show.to_dict(),
-            "search_item": show.search.to_dict(),
+            "search_item": show.search.to_dict() if show.search else None,
             "show_episodes": [episode.to_dict() for episode in show.show_episodes]
         }
         show_data.append(show_json)
     return show_data
+
+@app.route('/api/shows', methods=['POST'])
+@jwt_required()
+def add_show():
+    session = Session(engine)
+    body = request.json
+
+    if ShowDetails.get_show_by_title(body['name'], session):
+        return { 'message': f"'{body['name']}' is already listed" }, 409
+
+    tvmaze_details = tvmaze_api.get_show(body['name'])
+    show_detail = ShowDetails(
+        tvmaze_details['name'],
+        tvmaze_details['summary'],
+        tvmaze_details['id'],
+        tvmaze_details['genres'],
+        tvmaze_details['image']['original']
+    )
+    show_detail.add_show(session)
+
+    return show_detail.to_dict()
+
+@app.route('/api/shows/<string:show>', methods=['PUT'])
+@jwt_required()
+def update_show_detail(show: str):
+    session = Session(engine)
+    body = request.json
+
+    show_detail = ShowDetails.get_show_by_title(show, session)
+    
+    if not show_detail:
+        return { 'message': f"Unable to find any details for '{show}'" }, 404
+
+    show_detail.update_full_show_details(body, session)
+
+    return show_detail.to_dict()
+
+@app.route('/api/shows/<string:show>', methods=['DELETE'])
+@jwt_required()
+def delete_show_detail(show: str):
+    session = Session(engine)
+
+    show_detail = ShowDetails.get_show_by_title(show, session)
+
+    user: User = get_current_user()
+    if user.role != "Admin":
+        return { 'message': f"You do not have permission to delete the details for {show}" }, 403
+    
+    if not show_detail:
+        return { 'message': f"Unable to find any details for '{show}'" }, 404
+
+    show_detail.delete_show(session)
+
+    return '', 204
 
 @app.route('/api/search_item', methods=['POST'])
 @jwt_required()

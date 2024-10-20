@@ -48,9 +48,13 @@ class ShowDetails(Base):
         session.add(self)
         session.commit()
 
-
     def update_show(self, field: str, value, session: Session):
         setattr(self, field, value)
+        session.commit()
+
+    def update_full_show_details(self, data: dict, session: Session):
+        for key in data.keys():
+            setattr(self, key, data[key])
         session.commit()
 
     def delete_show(self, session: Session):
