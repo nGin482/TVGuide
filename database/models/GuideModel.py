@@ -44,7 +44,9 @@ class Guide(Base):
 
         shows_data: list[ShowData] = []
 
-        schedule = self.get_source_data()
+        schedule = self.get_source_data(
+            f"https://cdn.iview.abc.net.au/epg/processed/Sydney_{self.date.strftime('%Y-%m-%d')}.json"
+        )['schedule']
         search_list = SearchItem.get_active_searches(session)
 
         for channel_data in schedule:
@@ -114,18 +116,12 @@ class Guide(Base):
         current_date = Validation.get_current_date().date()
         search_date = current_date.strftime('%Y-%m-%d')
         
-        environment = os.getenv('PYTHON_ENV')
-        if environment == 'production' or environment == 'testing':
-            api_client = APIClient()
-            bbc_first_data: dict = api_client.get(
-                f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-first?timezone=Australia%2FSydney&date={search_date}'
-            )
-            bbc_uktv_data = api_client.get(
-                f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-uktv?timezone=Australia%2FSydney&date={search_date}'
-            )
-        else:
-            bbc_first_data = database_service.get_source_data('BBC First')['schedule']
-            bbc_uktv_data = database_service.get_source_data('BBC UKTV')['schedule']
+        bbc_first_data = self.get_source_data(
+            f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-first?timezone=Australia%2FSydney&date={search_date}'
+        )
+        bbc_uktv_data = self.get_source_data(
+            f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-uktv?timezone=Australia%2FSydney&date={search_date}'
+        )
 
         search_list = SearchItem.get_active_searches(session)
 
@@ -174,14 +170,11 @@ class Guide(Base):
 
         return shows_on
     
-    def get_source_data(self):
-        environment = os.getenv('PYTHON_ENV')
-        if environment == 'production' or environment == 'testing':
+    def get_source_data(self, endpoint: str = None):
+        if endpoint:
             try:
                 api_client = APIClient()
-                schedule = api_client.get(
-                    f"https://cdn.iview.abc.net.au/epg/processed/Sydney_{self.date.strftime('%Y-%m-%d')}.json"
-                )['schedule']
+                schedule = api_client.get(endpoint)
                 return schedule
             except Exception as error:
                 from services.hermes.hermes import hermes
@@ -189,7 +182,7 @@ class Guide(Base):
         else:
             with open(f"dev-data/free_to_air/{self.date.strftime('%Y-%m-%d')}.json") as fd:
                 schedule = json.load(fd)
-            return schedule['schedule']
+            return schedule
     
     def create_new_guide(self, scheduler: AsyncIOScheduler = None):
         self.add_guide(session)

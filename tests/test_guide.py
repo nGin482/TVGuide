@@ -37,7 +37,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit: MagicMock,
         mock_session_merge: MagicMock
     ):
-        mock_source_data.return_value = self.fta_data['schedule']
+        mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
         mock_show_detail.return_value = show_details[0]
         mock_show_episode.side_effect = [
@@ -82,7 +82,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit: MagicMock,
         mock_session_merge: MagicMock
     ):
-        mock_source_data.return_value = self.fta_data['schedule']
+        mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
         mock_show_detail.return_value = show_details[0]
         mock_show_episode.side_effect = [
@@ -120,7 +120,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit: MagicMock,
         mock_session_merge: MagicMock
     ):
-        mock_source_data.return_value = self.fta_data['schedule']
+        mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
         mock_show_detail.return_value = show_details[0]
         mock_show_episode.side_effect = [
@@ -161,7 +161,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit: MagicMock,
         mock_session_merge: MagicMock
     ):
-        mock_source_data.return_value = self.fta_data['schedule']
+        mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
         mock_search_conditions.side_effect = [True, True, False, True, True]
         mock_show_detail.return_value = show_details[0]
@@ -198,7 +198,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit: MagicMock,
         mock_session_merge: MagicMock
     ):
-        mock_source_data.return_value = self.fta_data['schedule']
+        mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
         mock_show_detail.return_value = show_details[0]
         mock_show_episode.side_effect = [
@@ -234,7 +234,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit: MagicMock,
         mock_session_merge: MagicMock
     ):
-        mock_source_data.return_value = self.fta_data['schedule']
+        mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
         mock_show_detail.return_value = show_details[0]
         mock_show_episode.side_effect = [
@@ -274,19 +274,18 @@ class TestGuide(unittest.TestCase):
 
     @patch('services.APIClient.APIClient.get')
     def test_guide_gets_source_data(self, mock_api_client: MagicMock):
-        import os
         mock_api_client.return_value = self.fta_data
 
         guide = Guide(datetime(2024, 10, 12))
 
-        os.environ['PYTHON_ENV'] = "testing"
-        data = guide.get_source_data()
+        data = guide.get_source_data("https://source-data.com")
 
-        self.assertEqual(len(data), 2)
-        self.assertEqual(data[0]['channel'], "ABC1")
-        self.assertEqual(len(data[0]['listing']), 4)
-        self.assertEqual(data[1]['channel'], "ABC2")
-        self.assertEqual(len(data[1]['listing']), 1)
+        schedule = data['schedule']
+        self.assertEqual(len(schedule), 2)
+        self.assertEqual(schedule[0]['channel'], "ABC1")
+        self.assertEqual(len(schedule[0]['listing']), 4)
+        self.assertEqual(schedule[1]['channel'], "ABC2")
+        self.assertEqual(len(schedule[1]['listing']), 1)
     
     @patch('sqlalchemy.orm.session.Session.merge')
     @patch('sqlalchemy.orm.session.Session.commit')
@@ -305,7 +304,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit: MagicMock,
         mock_session_merge: MagicMock
     ):
-        mock_source_data.return_value = self.fta_data['schedule']
+        mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
         mock_show_detail.return_value = show_details[0]
         mock_show_episode.side_effect = [
@@ -341,7 +340,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit: MagicMock,
         mock_session_merge: MagicMock
     ):
-        mock_source_data.return_value = []
+        mock_source_data.return_value = { 'schedule': [] }
         mock_search_items.return_value = search_items
         mock_show_detail.return_value = show_details[0]
         mock_show_episode.side_effect = [
@@ -377,7 +376,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit: MagicMock,
         mock_session_merge: MagicMock
     ):
-        mock_source_data.return_value = self.fta_data['schedule']
+        mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
         mock_show_detail.return_value = show_details[0]
         mock_show_episode.side_effect = [
@@ -422,7 +421,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit: MagicMock,
         mock_session_merge: MagicMock
     ):
-        mock_source_data.return_value = self.fta_data['schedule']
+        mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
         mock_show_detail.return_value = show_details[0]
         mock_show_episode.side_effect = [
@@ -458,7 +457,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit: MagicMock,
         mock_session_merge: MagicMock
     ):
-        mock_source_data.return_value = self.fta_data['schedule']
+        mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
         mock_show_detail.return_value = show_details[0]
         mock_show_episode.side_effect = [
@@ -503,7 +502,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit: MagicMock,
         mock_session_merge: MagicMock
     ):
-        mock_source_data.return_value = self.fta_data['schedule']
+        mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
         mock_show_detail.return_value = show_details[0]
         mock_show_episode.side_effect = [
