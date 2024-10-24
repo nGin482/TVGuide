@@ -37,7 +37,7 @@ class SearchItem:
             only_season_check = int(self.conditions['only_season']) == int(guide_show['season_number'])
         else:
             only_season_check = True
-        
+
         if 'exact_search' in self.conditions:
             if self.conditions['exact_search']:
                 show_title_check = self.show.lower() == str(guide_show['title']).lower()
@@ -45,12 +45,12 @@ class SearchItem:
                 show_title_check = self.show.lower() in str(guide_show['title']).lower()
         else:
             show_title_check = True
-        
+
         if 'exclude_titles' in self.conditions:
             show_title_exclusion_check = guide_show['title'] not in self.conditions['exclude_titles']
         else:
             show_title_exclusion_check = True
-        
+
         return show_title_check and show_title_exclusion_check and season_check and only_season_check
 
 

@@ -1,7 +1,4 @@
-from typing import TypeVar
 import requests
-
-TBody = TypeVar('TBody', list, dict)
 
 class APIClient:
 
@@ -23,7 +20,7 @@ class APIClient:
 
         return response
     
-    def get(self, endpoint: str, headers: dict = {}) -> TBody:
+    def get(self, endpoint: str, headers: dict = {}):
         
         response = APIClient._make_request('GET', endpoint, headers)
         if response.status_code == 200:

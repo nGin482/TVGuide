@@ -1,7 +1,13 @@
 from aiohttp.client_exceptions import ClientConnectorError
 from discord import TextChannel
+from dotenv import load_dotenv
 import click
 import os
+
+load_dotenv('.env')
+
+from data_validation.validation import Validation
+from services.hermes.hermes import hermes
 
 
 async def send_main_message(guide_message: str, reminder_message: str, events_message: str):
@@ -10,7 +16,6 @@ async def send_main_message(guide_message: str, reminder_message: str, events_me
     :param send_status:
     :return: n/a
     """
-    from services.hermes.hermes import hermes
     await hermes.wait_until_ready()
     tvguide_channel: TextChannel = hermes.get_channel(int(os.getenv('DEV_CHANNEL')))
     ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
@@ -53,21 +58,47 @@ def tear_down_data(local_db: bool):
     database_service.tear_down_data()
 
 @local_tvguide.command()
-@click.option('--local-db', default=True, help='The database to connect to')
-@click.option('--discord', default=True, help='Whether to send the message via Discord')
-def run_guide(local_db: bool, discord: bool):
-    from dotenv import load_dotenv
+@click.option('-t', '--tables', multiple=True, help="A list of tables to create")
+def create_tables(tables: str):
 
-    if local_db:
-        os.environ['PYTHON_ENV'] = 'development'
-        load_dotenv('.env.local.dev')
+    from database.models import create_tables
+    create_tables(list(tables))
+
+@local_tvguide.command()
+@click.option('-t', '--tables', multiple=True, help="A list of tables to drop")
+def drop_tables(tables: str):
+
+    from database.models import drop_tables
+    drop_tables(list(tables))
+
+@local_tvguide.command()
+@click.option('--date', default=Validation.get_current_date().strftime('%d-%m-%Y'), help='The date to retrieve the TVGuide schedule')
+@click.option('-d', '--discord', is_flag=True, default=False, help='Whether to send the message via Discord')
+@click.option('-s', '--schedule', is_flag=True, default=False, help='Add reminders to the scheduling service')
+def run_guide(date: str, discord: bool, schedule: bool):
+    from datetime import datetime
+    import re
+    import sys
+
+    from config import scheduler
+    from database.models.GuideModel import Guide
+
+    if re.search(r"\d{2}(-|\/)\d{2}(-|\/)\d{4}", date):
+        date = date.replace('/', '-')
     else:
-        os.environ['PYTHON_ENV'] = 'production'
+        sys.exit('Please provide a date in the format of DD-MM-YYYY or DD/MM/YYYY')
     
-    from guide import run_guide
-    from services.hermes.hermes import hermes
-
-    guide_message, reminders_message, events_message = run_guide()
+    guide = Guide(datetime.strptime(date, '%d-%m-%Y'))
+    if schedule:
+        scheduler.remove_all_jobs()
+        guide.create_new_guide(scheduler)
+    else:
+        guide.create_new_guide()
+    guide_message, reminders_message, events_message = (
+        guide.compose_message(),
+        guide.compose_reminder_message(),
+        guide.compose_events_message()
+    )
     if discord:
         try:
             hermes.loop.create_task(send_main_message(guide_message, reminders_message, events_message))

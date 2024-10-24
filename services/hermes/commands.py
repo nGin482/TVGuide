@@ -4,46 +4,89 @@ from discord.errors import HTTPException
 from zipfile import ZipFile
 import os
 
-from aux_methods.helper_methods import show_list_message, parse_date_from_command, split_message_by_time
-from config import database_service, scheduler
+from aux_methods.helper_methods import parse_date_from_command, split_message_by_time
+from config import scheduler, session
 from data_validation.validation import Validation
-from database.models.RecordedShow import RecordedShow
-from database.models.Reminders import Reminder
-from exceptions.DatabaseError import DatabaseError, ReminderNotFoundError, SearchItemAlreadyExistsError, SearchItemNotFoundError, ShowNotFoundError
-from guide import run_guide
+from database.models.GuideModel import Guide
+from database.models.Reminder import Reminder
+from database.models.SearchItemModel import SearchItem
+from database.models.ShowDetailsModel import ShowDetails
+from database.models.ShowEpisodeModel import ShowEpisode
+from exceptions.DatabaseError import DatabaseError, SearchItemAlreadyExistsError
 from log import get_date_from_tvguide_message
 from services.hermes.hermes import hermes
-from services.tvmaze.tvmaze_api import get_show_data
-
+from services.tvmaze import tvmaze_api
 
 @hermes.command()
 async def show_list(ctx: Context):
-    await ctx.send(show_list_message(database_service.get_search_list()))
+    all_search_items = [search_item.show for search_item in SearchItem.get_active_searches(session)]
+    show_list = '\n'.join([all_search_items])
+    await ctx.send(f"The Search List includes:\n{show_list}")
 
 @hermes.command()
-async def add_show(ctx: Context, show: str, tvmaze_id: str, season_start: int = 0, include_specials: bool = False):
+async def add_show(ctx: Context, show: str, season_start: int = 0, season_end: int = 0, include_specials: bool = False):
     try:
-        new_show_data = get_show_data(show, tvmaze_id, season_start, include_specials)
-        new_show = RecordedShow.from_database(new_show_data)
-        database_service.insert_recorded_show_document(new_show)
-        database_service.insert_into_showlist_collection(show)
-        reply = f'{show} has been added to the SearchList. The list now includes:\n{show_list_message(database_service.get_search_list())}'
+        tvmaze_data = tvmaze_api.get_show(show)
+        show_details = ShowDetails(
+            tvmaze_data['name'],
+            tvmaze_data['summary'],
+            str(tvmaze_data['id']), 
+            tvmaze_data['genres'],
+            tvmaze_data['image']['original']
+        )
+        show_details.add_show(session)
+
+        show_episodes = tvmaze_api.get_show_episodes(str(tvmaze_data['id']), season_start, include_specials=include_specials)
+        show_episodes = [
+            ShowEpisode(
+                episode['show'],
+                episode['season_number'],
+                episode['episode_number'],
+                episode['episode_title'],
+                episode['summary'],
+                show_id=show_details.id
+            )
+            for episode in show_episodes
+        ]
+        ShowEpisode.add_all_episodes(show_episodes, session)
+
+        conditions = {}
+        if season_start > 0:
+            conditions['min_season_number'] = season_start
+        if season_end > 0:
+            conditions['max_season_number'] = season_end
+        max_season_number = max([int(episode.season_number) for episode in show_episodes])
+        search_item = SearchItem(tvmaze_data['name'], False, max_season_number, conditions, show_details.id)
+        search_item.add_search_item(session)
+        all_search_items = [search_item.show for search_item in SearchItem.get_active_searches(session)]
+        show_list = '\n'.join([all_search_items])
+        reply = f'{show} has been added to the SearchList. The list now includes:\n{show_list}'
     except (SearchItemAlreadyExistsError, DatabaseError) as err:
         reply = f'Error: {str(err)}. The SearchList has not been modified.'
     await ctx.send(reply)
 
 @hermes.command()
 async def remove_show(ctx: Context, show: str):
-    try:
-        database_service.remove_show_from_list(show)
-        reply = f'{show} has been removed from the SearchList. The list now includes:\n{show_list_message(database_service.get_search_list())}'
-    except (DatabaseError, SearchItemNotFoundError) as err:
-        reply = f'Error: {str(err)}. The list remains as:\n{show_list_message(database_service.get_search_list())}'
+    search_item = SearchItem.get_search_item(show, session)
+    if search_item:
+        search_item.delete_search(session)
+        all_search_items = [search_item.show for search_item in SearchItem.get_active_searches(session)]
+        show_list = '\n'.join([all_search_items])
+        reply = f'{show} has been removed from the SearchList. The list now includes:\n{show_list}'
+    else:
+        reply = f"A search item for '{show}' could not be found"    
     await ctx.send(reply)
 
 @hermes.command()
-async def send_guide(ctx: Context):
-    guide_message, reminders_message, events_message = run_guide(scheduler)
+async def send_guide(ctx: Context, date = None):
+    date = Validation.get_current_date() if date is None else date
+    guide = Guide(date)
+    guide.create_new_guide(scheduler)
+    guide_message, reminders_message, events_message = (
+        guide.compose_message(),
+        guide.compose_reminder_message(),
+        guide.compose_events_message()
+    )
     ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
     try:
         await ctx.send(guide_message)
@@ -73,7 +116,8 @@ async def send_guide(ctx: Context):
 @hermes.command()
 async def send_guide_record(ctx: Context, date_to_send: str):
     convert_date = parse_date_from_command(date_to_send).strftime('%d/%m/%Y')
-    guide = database_service.get_guide_date(convert_date)
+    guide = Guide(convert_date)
+    guide.get_shows()
     if guide is not None:
         await ctx.send(guide.compose_message())
     else:
@@ -105,101 +149,98 @@ async def revert_tvguide(ctx: Context, date_to_delete: str = None):
         await ctx.send('The message to delete could not be found')
     await ctx.send('The TVGuide has been reverted.')
 
-@hermes.command()
-async def recorded_show(ctx: Context, show: str):
-    show_record = database_service.get_one_recorded_show(show)
-    if show_record is not None:
-        await ctx.send(show_record.message_format())
-    else:
-        await ctx.send(f'{show} could not be found in the database')
+# @hermes.command()
+# async def recorded_show(ctx: Context, show: str):
+#     show_record = database_service.get_one_recorded_show(show)
+#     if show_record is not None:
+#         await ctx.send(show_record.message_format())
+#     else:
+#         await ctx.send(f'{show} could not be found in the database')
 
-@hermes.command()
-async def season_details(ctx: Context, show: str, season: str):
-    show_record = database_service.get_one_recorded_show(show)
-    if show_record is not None:
-        season_record = show_record.find_season(season)
-        if season_record is not None:
-            await ctx.send(season_record.message_format())
-        else:
-            if season == 'Unknown':
-                await ctx.send(f'{show} does not have an {season} season')
-            else:
-                await ctx.send(f'{show} does not have {season} seasons')
-    else:
-        await ctx.send(f'{show} could not be found in the database')
+# @hermes.command()
+# async def season_details(ctx: Context, show: str, season: str):
+#     show_record = database_service.get_one_recorded_show(show)
+#     if show_record is not None:
+#         season_record = show_record.find_season(season)
+#         if season_record is not None:
+#             await ctx.send(season_record.message_format())
+#         else:
+#             if season == 'Unknown':
+#                 await ctx.send(f'{show} does not have an {season} season')
+#             else:
+#                 await ctx.send(f'{show} does not have {season} seasons')
+#     else:
+#         await ctx.send(f'{show} could not be found in the database')
 
 @hermes.command()
 async def create_reminder(ctx: Context, show: str, reminder_alert: str = 'Before', warning_time: str = '3', occasions: str = 'All'):
-    try:
-        reminder_exists = database_service.get_one_reminder(show)
-        if reminder_exists is not None:
-            await ctx.send(f'A reminder already exists for {show}')
-    except ReminderNotFoundError:
-        if show in database_service.get_search_list():
-            reminder = Reminder.from_values(show, reminder_alert, int(warning_time), occasions)
-            database_service.insert_new_reminder(reminder)
-        else:
-            await ctx.send(f'A reminder cannot be created for {show} as it is not being searched for.')
+    show_details = ShowDetails.get_show_by_title(show, session)
+    reminder_exists = Reminder.get_reminder_by_show(show, session)
+    search_item_exists = SearchItem.get_search_item(show, session)
+    if not reminder_exists:
+        await ctx.send(f'A reminder already exists for {show}')
+    elif not search_item_exists:
+        await ctx.send(f'A reminder cannot be created for {show} as it is not being searched for.')
+    else:
+        reminder = Reminder(show, reminder_alert, int(warning_time), occasions, show_details.id)
+        reminder.add_reminder(session)
         await ctx.send(f'A reminder has been created for {show}')
 
 @hermes.command()
 async def view_reminder(ctx: Context, show: str):
-    try:
-        reminder = database_service.get_one_reminder(show)
-        await ctx.send(reminder.reminder_details())
-    except ReminderNotFoundError as err:
-        await ctx.send(f'Error: {err}')
+    reminder = Reminder.get_reminder_by_show(show, session)
+    if reminder:
+        await ctx.send(reminder.message_format())
+    else:
+        await ctx.send(f"A reminder for '{show}' could not be found")
 
 @hermes.command()
 async def update_reminder(ctx: Context, show: str, attribute: str, value: str):
-    try:
-        reminder = database_service.get_one_reminder(show)
-        if attribute in Validation.valid_reminder_fields():
-            if attribute == 'warning_time':
-                value = int(value)
-            setattr(reminder, attribute, value)
-            database_service.update_reminder(reminder)
-            await ctx.send(f"The reminder for {show} has been updated. It's details are now:\n{reminder.reminder_details()}")
-        else:
-            await ctx.send(f'Error: {attribute} is not a valid property for a reminder')
-    except ReminderNotFoundError as err:
-        await ctx.send(f'Error: {str(err)}')
+    reminder = Reminder.get_reminder_by_show(show, session)
+    if reminder:
+        if attribute == 'warning_time':
+            value = int(value)
+        reminder.update_reminder(attribute, value, session)
+        await ctx.send(f"The reminder for '{show}' has been updated. It's details are now:\n{reminder.message_format()}")
+    else:
+        await ctx.send(f"A reminder for '{show}' could not be found")
 
 @hermes.command()
 async def delete_reminder(ctx: Context, show: str):
-    try:
-        database_service.delete_reminder(show)
+    reminder = Reminder.get_reminder_by_show(show, session)
+    if reminder:
+        reminder.delete_reminder(session)
         await ctx.send(f'The Reminder for {show} has been removed')
-    except ReminderNotFoundError as err:
-        await ctx.send(f'Error: {str(err)}')
+    else:
+        await ctx.send(f'A Reminder for {show} could not be found')
 
-@hermes.command()
-async def backup_shows(ctx: Context):
-    database_service.backup_recorded_shows()
-    date = Validation.get_current_date()
+# @hermes.command()
+# async def backup_shows(ctx: Context):
+#     database_service.backup_recorded_shows()
+#     date = Validation.get_current_date()
 
-    os.mkdir('database/backups/zip')
-    with ZipFile('database/backups/zip/Shows-Archive.zip', 'w') as zip:
-        for file in os.listdir('database/backups/recorded_shows'):
-            zip.write(f'database/backups/recorded_shows/{file}', arcname=file)
-    shows_zip = File('database/backups/zip/Shows-Archive.zip', f'Shows Archive - {date.strftime("%d/%m/%Y")}.zip')
-    await ctx.send('A backup has been made of the Recorded Shows. This can be found attached.', file=shows_zip)
-    os.remove('database/backups/zip/Shows-Archive.zip')
-    os.rmdir('database/backups/zip')
+#     os.mkdir('database/backups/zip')
+#     with ZipFile('database/backups/zip/Shows-Archive.zip', 'w') as zip:
+#         for file in os.listdir('database/backups/recorded_shows'):
+#             zip.write(f'database/backups/recorded_shows/{file}', arcname=file)
+#     shows_zip = File('database/backups/zip/Shows-Archive.zip', f'Shows Archive - {date.strftime("%d/%m/%Y")}.zip')
+#     await ctx.send('A backup has been made of the Recorded Shows. This can be found attached.', file=shows_zip)
+#     os.remove('database/backups/zip/Shows-Archive.zip')
+#     os.rmdir('database/backups/zip')
 
-@hermes.command()
-async def restore_shows(ctx: Context):
-    os.makedirs('database/restore/recorded_shows')
-    message: Message = ctx.message
-    shows_attachment = message.attachments[0]
-    filename = shows_attachment.filename
-    await shows_attachment.save(f'database/restore/recorded_shows/{filename}')
-    with ZipFile(f'database/restore/recorded_shows/{filename}', 'r') as zip:
-        zip.extractall('database/restore/recorded_shows')
+# @hermes.command()
+# async def restore_shows(ctx: Context):
+#     os.makedirs('database/restore/recorded_shows')
+#     message: Message = ctx.message
+#     shows_attachment = message.attachments[0]
+#     filename = shows_attachment.filename
+#     await shows_attachment.save(f'database/restore/recorded_shows/{filename}')
+#     with ZipFile(f'database/restore/recorded_shows/{filename}', 'r') as zip:
+#         zip.extractall('database/restore/recorded_shows')
 
-    database_service.rollback_recorded_shows(directory='restore')
+#     database_service.rollback_recorded_shows(directory='restore')
 
-    for file in os.listdir('database/restore/recorded_shows'):
-        os.remove(f'database/restore/recorded_shows/{file}')
-    os.rmdir('database/restore/recorded_shows')
-    os.removedirs('database/restore')
+#     for file in os.listdir('database/restore/recorded_shows'):
+#         os.remove(f'database/restore/recorded_shows/{file}')
+#     os.rmdir('database/restore/recorded_shows')
+#     os.removedirs('database/restore')
