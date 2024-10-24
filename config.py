@@ -14,8 +14,11 @@ database = os.getenv('DATABASE_NAME')
 database_connection = os.getenv('TVGUIDE_DB')
 
 scheduler = AsyncIOScheduler()
-jobstore = SQLAlchemyJobStore(url=os.getenv('DB_URL'), tablename='Jobs', tableschema=os.getenv('DB_SCHEMA'))
-scheduler.add_jobstore(jobstore)
+if os.getenv("DB_URL"):
+    jobstore = SQLAlchemyJobStore(url=os.getenv('DB_URL'), tablename='Jobs', tableschema=os.getenv('DB_SCHEMA'))
+    scheduler.add_jobstore(jobstore)
+else:
+    print("No database connection string to create JobStore")
 scheduler.start() # table is created when the scheduler is started
 
 session = Session(engine, expire_on_commit=False)
