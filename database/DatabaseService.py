@@ -296,7 +296,8 @@ class DatabaseService:
 
 # GUIDE
     def get_all_guides(self):
-        return list(self.guide_collection.find({}))
+        guides = self.guide_collection.find({})
+        return list(Guide.from_database(guide, self) for guide in guides)
 
     def get_guide_date(self, date: str):
         """Get the Guide data for the date provided. Date should be provided in the format `dd/mm/YYYY`"""
@@ -358,6 +359,10 @@ class DatabaseService:
         self.remove_guide_data(Validation.get_current_date().strftime('%d/%m/%Y'))
         
     # Users
+    def get_all_users(self):
+        users = self.users_collection.find({})
+        return [User.from_database(user) for user in users]
+
     def get_user(self, username: str):
         user_document = self.users_collection.find_one({'username': username})
         if user_document:
