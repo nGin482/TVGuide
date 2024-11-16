@@ -49,7 +49,8 @@ def shows():
             "show_name": show.title,
             "show_details": show.to_dict(),
             "search_item": show.search.to_dict() if show.search else None,
-            "show_episodes": [episode.to_dict() for episode in show.show_episodes]
+            "show_episodes": [episode.to_dict() for episode in show.show_episodes],
+            "reminder": show.reminder.to_dict() if show.reminder else None
         }
         show_data.append(show_json)
     return show_data
