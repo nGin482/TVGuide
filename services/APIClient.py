@@ -25,7 +25,7 @@ class APIClient:
     def get(self, endpoint: str, headers: dict = {}):
         
         response = APIClient._make_request('GET', endpoint, headers)
-        if response.ok == 200:
+        if response.ok:
             return response.json()
         else:
             raise HTTPRequestError(f'Response returned status {response.status_code} {response.reason}')
