@@ -67,7 +67,11 @@ def add_show():
     if ShowDetails.get_show_by_title(body['name'], session):
         return { 'message': f"'{body['name']}' is already listed" }, 409
 
-    tvmaze_details = tvmaze_api.get_show(body['name'])
+    try:
+        tvmaze_details = tvmaze_api.get_show(body['name'])
+    except HTTPRequestError as error:
+        print(f"Could not find {body['name']} on TVMaze: {error}")
+        return { "message": f"Could not find {body['name']} on TVMaze: {error}" }, 404
     show_detail = ShowDetails(
         tvmaze_details['name'],
         tvmaze_details['summary'],
@@ -86,25 +90,34 @@ def add_show():
     )
     show_episodes: list[ShowEpisode] = []
     for episode in tvmaze_episodes:
-        show_episode = ShowEpisode(
-            tvmaze_details['name'],
-            episode['season_number'],
-            episode['episode_number'],
-            episode['episode_title'],
-            episode['summary'],
-            show_id=show_detail.id
-        )
-        show_episodes.append(show_episode)
+        try:
+            show_episode = ShowEpisode(
+                tvmaze_details['name'],
+                episode['season_number'],
+                episode['episode_number'],
+                episode['episode_title'],
+                episode['summary'],
+                show_id=show_detail.id
+            )
+            show_episodes.append(show_episode)
+        except KeyError as error:
+            print("Error:", error)
+            print("TVMaze Episode: ", episode)
+            return { "message": f"Unable to add an episode for {tvmaze_details['name']}" }, 500
     ShowEpisode.add_all_episodes(show_episodes, session)
 
-    search_criteria = SearchItem(
-        tvmaze_details['name'],
-        conditions['exact_title_match'],
-        conditions['max_season_number'],
-        conditions,
-        show_id=show_detail.id
-    )
-    search_criteria.add_search_item(session)
+    try:
+        search_criteria = SearchItem(
+            tvmaze_details['name'],
+            conditions['exact_title_match'],
+            conditions['max_season_number'],
+            conditions,
+            show_id=show_detail.id
+        )
+        search_criteria.add_search_item(session)
+    except KeyError as error:
+        print("Error:", error)
+        return { "message": f"Unable to add search criteria for {tvmaze_details['name']}" }, 500
 
     return show_detail.to_dict()
 
