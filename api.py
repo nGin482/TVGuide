@@ -4,6 +4,8 @@ from flask import Flask, request, render_template, send_from_directory
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_current_user
 from sqlalchemy.orm import Session
+from werkzeug.exceptions import HTTPException
+import json
 import sys
 import os
 
@@ -12,6 +14,7 @@ from database import engine
 from database.models import Reminder, SearchItem, ShowDetails, ShowEpisode, User, UserSearchSubscription
 from database.models.GuideModel import Guide
 from exceptions.DatabaseError import DatabaseError, InvalidSubscriptions
+from exceptions.service_error import HTTPRequestError
 from services.tvmaze import tvmaze_api
 
 app = Flask(__name__, template_folder='build', static_folder='build/static')
@@ -73,6 +76,35 @@ def add_show():
         tvmaze_details['image']['original']
     )
     show_detail.add_show(session)
+    
+    conditions = body['conditions']
+    tvmaze_episodes = tvmaze_api.get_show_episodes(
+        tvmaze_details['id'],
+        conditions['min_season_number'],
+        conditions['max_season_number'],
+        True
+    )
+    show_episodes: list[ShowEpisode] = []
+    for episode in tvmaze_episodes:
+        show_episode = ShowEpisode(
+            tvmaze_details['name'],
+            episode['season_number'],
+            episode['episode_number'],
+            episode['episode_title'],
+            episode['summary'],
+            show_id=show_detail.id
+        )
+        show_episodes.append(show_episode)
+    ShowEpisode.add_all_episodes(show_episodes, session)
+
+    search_criteria = SearchItem(
+        tvmaze_details['name'],
+        conditions['exact_title_match'],
+        conditions['max_season_number'],
+        conditions,
+        show_id=show_detail.id
+    )
+    search_criteria.add_search_item(session)
 
     return show_detail.to_dict()
 
@@ -351,6 +383,20 @@ def login():
             }
         }
     return { 'message': 'Incorrect username or password' }, 401
+
+@app.errorhandler(HTTPException)
+def handle_exception(e: HTTPException):
+    """Return JSON instead of HTML for HTTP errors."""
+    # start with the correct headers and status code from the error
+    response = e.get_response()
+    # replace the body with JSON
+    response.data = json.dumps({
+        "code": e.code,
+        "name": e.name,
+        "description": e.description,
+    })
+    response.content_type = "application/json"
+    return response
 
 if __name__ == '__main__':
     if os.getenv('PYTHON_ENV') == 'production':
