@@ -4,11 +4,7 @@ from services.tvmaze.tvmaze_helpers import format_episode_title, group_seasons
 api_client = APIClient()
 
 def get_show(show: str):
-    try:
-        show_data = api_client.get(f'https://api.tvmaze.com/singlesearch/shows?q={show}')
-    except Exception as err:
-        print(f"Could not find {show} on TVMaze: {err}")
-        show_data = None
+    show_data = api_client.get(f'https://api.tvmaze.com/singlesearch/shows?q={show}')
 
     return show_data
 
