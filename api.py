@@ -119,7 +119,13 @@ def add_show():
         print("Error:", error)
         return { "message": f"Unable to add search criteria for {tvmaze_details['name']}" }, 500
 
-    return show_detail.to_dict()
+    return {
+        "show_name": show_detail.title,
+        "show_details": show_detail.to_dict(),
+        "show_episodes": [episode.to_dict() for episode in show_episodes],
+        "search_item": search_criteria.to_dict() if search_criteria else None,
+        "reminder": None
+    }
 
 @app.route('/api/shows/<string:show>', methods=['PUT'])
 @jwt_required()
