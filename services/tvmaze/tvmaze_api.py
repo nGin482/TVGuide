@@ -1,5 +1,5 @@
 from services.APIClient import APIClient
-from services.tvmaze.tvmaze_helpers import format_episode_title, group_seasons
+from services.tvmaze.tvmaze_helpers import format_episode_title, group_seasons, map_seasons
 from tvguide_types.tvmaze import TVMazeEpisode, TVMazeShow
 
 api_client = APIClient()
@@ -19,6 +19,8 @@ def get_show_episodes(tvmaze_id: str, season_start: int = 0, season_end: int = N
             f'https://api.tvmaze.com/shows/{tvmaze_id}/episodes'
         )
 
+    if api_data[0]['season'] > 1:
+        api_data = map_seasons(api_data)
     show_episodes = [episode for episode in api_data if episode['season'] >= season_start]
 
     if season_end:
