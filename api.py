@@ -182,10 +182,15 @@ def add_search_item():
     if search_item_check:
         return { 'message': f"A Search Item already exists for '{show}'" }, 409
 
-    new_show_data = tvmaze_api.get_show_episodes(show_details_check.tvmaze_id)
-    max_season_number = max([int(episode['season_number']) for episode in new_show_data])
-    new_search_item = SearchItem(show, False, max_season_number, conditions)
+    new_search_item = SearchItem(
+        show,
+        conditions['exact_title_match'],
+        conditions['max_season_number'],
+        conditions,
+        show_details_check.id
+    )
     new_search_item.add_search_item(session)
+    return new_search_item.to_dict()
 
 @app.route('/api/search-item/<string:show>', methods=['PUT'])
 @jwt_required()
