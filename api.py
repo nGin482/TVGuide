@@ -160,7 +160,7 @@ def delete_show_detail(show: str):
 
     return '', 204
 
-@app.route('/api/search_item', methods=['POST'])
+@app.route('/api/search-item', methods=['POST'])
 @jwt_required()
 def add_search_item():
     user: User = get_current_user()
