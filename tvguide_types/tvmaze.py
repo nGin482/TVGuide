@@ -5,7 +5,7 @@ Schedule = TypedDict("Schedule", {
     "days": list[str]
 })
 Rating = TypedDict("Rating", {
-    "average": 8.4
+    "average": str
 })
 Country = TypedDict("Country", {
     "name": str,
@@ -13,7 +13,7 @@ Country = TypedDict("Country", {
     "timezone": str
 })
 Network = TypedDict("Network", {
-    "id": 35,
+    "id": int,
     "name": str,
     "country": Country,
     "officialSite": str

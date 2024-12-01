@@ -4,6 +4,8 @@ from flask import Flask, request, render_template, send_from_directory
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_current_user
 from sqlalchemy.orm import Session
+from werkzeug.exceptions import HTTPException
+import json
 import sys
 import os
 
@@ -12,6 +14,7 @@ from database import engine
 from database.models import Reminder, SearchItem, ShowDetails, ShowEpisode, User, UserSearchSubscription
 from database.models.GuideModel import Guide
 from exceptions.DatabaseError import DatabaseError, InvalidSubscriptions
+from exceptions.service_error import HTTPRequestError
 from services.tvmaze import tvmaze_api
 
 app = Flask(__name__, template_folder='build', static_folder='build/static')
@@ -64,7 +67,11 @@ def add_show():
     if ShowDetails.get_show_by_title(body['name'], session):
         return { 'message': f"'{body['name']}' is already listed" }, 409
 
-    tvmaze_details = tvmaze_api.get_show(body['name'])
+    try:
+        tvmaze_details = tvmaze_api.get_show(body['name'])
+    except HTTPRequestError as error:
+        print(f"Could not find {body['name']} on TVMaze: {error}")
+        return { "message": f"Could not find {body['name']} on TVMaze: {error}" }, 404
     show_detail = ShowDetails(
         tvmaze_details['name'],
         tvmaze_details['summary'],
@@ -73,8 +80,52 @@ def add_show():
         tvmaze_details['image']['original']
     )
     show_detail.add_show(session)
+    
+    conditions = body['conditions']
+    tvmaze_episodes = tvmaze_api.get_show_episodes(
+        tvmaze_details['id'],
+        conditions['min_season_number'],
+        conditions['max_season_number'],
+        True
+    )
+    show_episodes: list[ShowEpisode] = []
+    for episode in tvmaze_episodes:
+        try:
+            show_episode = ShowEpisode(
+                tvmaze_details['name'],
+                episode['season_number'],
+                episode['episode_number'],
+                episode['episode_title'],
+                episode['summary'],
+                show_id=show_detail.id
+            )
+            show_episodes.append(show_episode)
+        except KeyError as error:
+            print("Error:", error)
+            print("TVMaze Episode: ", episode)
+            return { "message": f"Unable to add an episode for {tvmaze_details['name']}" }, 500
+    ShowEpisode.add_all_episodes(show_episodes, session)
 
-    return show_detail.to_dict()
+    try:
+        search_criteria = SearchItem(
+            tvmaze_details['name'],
+            conditions['exact_title_match'],
+            conditions['max_season_number'],
+            conditions,
+            show_id=show_detail.id
+        )
+        search_criteria.add_search_item(session)
+    except KeyError as error:
+        print("Error:", error)
+        return { "message": f"Unable to add search criteria for {tvmaze_details['name']}" }, 500
+
+    return {
+        "show_name": show_detail.title,
+        "show_details": show_detail.to_dict(),
+        "show_episodes": [episode.to_dict() for episode in show_episodes],
+        "search_item": search_criteria.to_dict() if search_criteria else None,
+        "reminder": None
+    }
 
 @app.route('/api/shows/<string:show>', methods=['PUT'])
 @jwt_required()
@@ -109,7 +160,7 @@ def delete_show_detail(show: str):
 
     return '', 204
 
-@app.route('/api/search_item', methods=['POST'])
+@app.route('/api/search-item', methods=['POST'])
 @jwt_required()
 def add_search_item():
     user: User = get_current_user()
@@ -131,10 +182,15 @@ def add_search_item():
     if search_item_check:
         return { 'message': f"A Search Item already exists for '{show}'" }, 409
 
-    new_show_data = tvmaze_api.get_show_episodes(show_details_check.tvmaze_id)
-    max_season_number = max([int(episode['season_number']) for episode in new_show_data])
-    new_search_item = SearchItem(show, False, max_season_number, conditions)
+    new_search_item = SearchItem(
+        show,
+        conditions['exact_title_match'],
+        conditions['max_season_number'],
+        conditions,
+        show_details_check.id
+    )
     new_search_item.add_search_item(session)
+    return new_search_item.to_dict()
 
 @app.route('/api/search-item/<string:show>', methods=['PUT'])
 @jwt_required()
@@ -351,6 +407,20 @@ def login():
             }
         }
     return { 'message': 'Incorrect username or password' }, 401
+
+@app.errorhandler(HTTPException)
+def handle_exception(e: HTTPException):
+    """Return JSON instead of HTML for HTTP errors."""
+    # start with the correct headers and status code from the error
+    response = e.get_response()
+    # replace the body with JSON
+    response.data = json.dumps({
+        "code": e.code,
+        "name": e.name,
+        "description": e.description,
+    })
+    response.content_type = "application/json"
+    return response
 
 if __name__ == '__main__':
     if os.getenv('PYTHON_ENV') == 'production':
