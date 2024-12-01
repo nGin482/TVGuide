@@ -78,13 +78,9 @@ class SearchItem(Base):
         session.commit()
 
     def update_search(self, new_details: dict, session: Session):
-        self.search_active = new_details['search_active']
-        self.exact_title_match = new_details['exact_title_match']
-        self.min_season_number = new_details['conditions']['min_season_number']
-        self.max_season_number = new_details['conditions']['max_season_number']
-        self.ignore_titles = new_details['conditions']['ignore_titles']
-        self.ignore_seasons = new_details['conditions']['ignore_seasons']
-        self.ignore_episodes = new_details['conditions']['ignore_episodes']
+        # self.search_active = new_details['search_active']
+        for key in new_details['conditions']:
+            setattr(self, key, new_details['conditions'][key])
         session.commit()
 
     def delete_search(self, session: Session):
