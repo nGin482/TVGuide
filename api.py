@@ -270,7 +270,13 @@ def reminders():
         return {'message': f'{show} is not being searched for'}, 400
     if reminder_check:
         return {'message': f'A reminder already exists for {show}'}, 409
-    new_reminder = Reminder(show, body['alert'], body['warning_time'], body['occasions'])
+    new_reminder = Reminder(
+        show,
+        body['alert'],
+        body['warning_time'],
+        body['occasions'],
+        show_check.id
+    )
     try:
         new_reminder.add_reminder(session)
         return {
