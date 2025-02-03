@@ -324,6 +324,16 @@ def get_user(username: str):
         return user.to_dict()
     return {'message': f'An account with the username {username} could not be found'}, 404
 
+@app.route('/api/users/<string:username>/subscriptions', methods=['GET'])
+def get_user_subscriptions(username: str):
+    session = Session(engine)
+    user = User.search_for_user(username, session)
+    if user:
+        viewed_user = User.search_for_user(username, session)
+        user_subscriptions = UserSearchSubscription.get_user_subscriptions(session, viewed_user.id)
+        return [subscription.to_dict() for subscription in user_subscriptions]           
+    return {'message': f'A user with the username {username} could not be found'}, 404
+
 @app.route('/api/users/<string:username>/subscriptions', methods=['PUT'])
 @jwt_required()
 def edit_user_subscriptions(username: str):

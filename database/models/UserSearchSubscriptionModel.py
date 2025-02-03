@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy import Column, ForeignKey, Integer, select
 from sqlalchemy.orm import Mapped, relationship, Session
 from typing import TYPE_CHECKING
 
@@ -20,6 +20,13 @@ class UserSearchSubscription(Base):
         super().__init__()
         self.user_id = user_id
         self.search_id = search_id
+
+    @staticmethod
+    def get_user_subscriptions(session: Session, user_id: str):
+        query = select(UserSearchSubscription).where(UserSearchSubscription.user_id == user_id)
+        subscriptions = session.scalars(query)
+        
+        return subscriptions
 
     def add_subscription(self, session: Session):
         session.add(self)
