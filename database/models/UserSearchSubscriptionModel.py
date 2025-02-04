@@ -28,6 +28,10 @@ class UserSearchSubscription(Base):
         
         return subscriptions
 
+    def add_subscription_list(subscription_list: list["UserSearchSubscription"], session: Session):
+        session.add_all(subscription_list)
+        session.commit()
+
     def add_subscription(self, session: Session):
         session.add(self)
         session.commit()

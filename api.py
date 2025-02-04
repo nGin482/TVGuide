@@ -334,19 +334,22 @@ def get_user_subscriptions(username: str):
         return [subscription.to_dict() for subscription in user_subscriptions]           
     return {'message': f'A user with the username {username} could not be found'}, 404
 
-@app.route('/api/users/<string:username>/subscriptions', methods=['PUT'])
+@app.route('/api/users/<string:username>/subscriptions', methods=['POST'])
 @jwt_required()
-def edit_user_subscriptions(username: str):
+def add_user_subscriptions(username: str):
     session = Session(engine)
     user = User.search_for_user(username, session)
     if user:
         current_user: User = get_current_user()
         if current_user.username != username:
             return {'message': "You are not able to update this user's details"}, 403
-        body = request.json
+        body: list[str] = request.json
         try:
-            user_subscription = UserSearchSubscription(user.id, body['search_item_id'])
-            user_subscription.add_subscription(session)
+            user_subscriptions: list[UserSearchSubscription] = []
+            for show in body:
+                search_item = SearchItem.get_search_item(show, session)
+                user_subscriptions.append(UserSearchSubscription(user.id, search_item.id))
+            UserSearchSubscription.add_subscription_list(user_subscriptions, session)
             return { 'user': user.to_dict() }
         except InvalidSubscriptions as err:
             return {'message': str(err)}, 400            
