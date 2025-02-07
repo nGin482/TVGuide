@@ -350,10 +350,27 @@ def add_user_subscriptions(username: str):
                 search_item = SearchItem.get_search_item(show, session)
                 user_subscriptions.append(UserSearchSubscription(user.id, search_item.id))
             UserSearchSubscription.add_subscription_list(user_subscriptions, session)
-            return { 'user': user.to_dict() }
+            return user.to_dict()
         except InvalidSubscriptions as err:
             return {'message': str(err)}, 400            
     return {'message': f'A user with the username {username} could not be found'}, 404
+
+@app.route('/api/users/subscriptions/<string:subscription_id>', methods=['DELETE'])
+@jwt_required()
+def delete_user_subscription(subscription_id: str):
+    session = Session(engine)
+    subscription = UserSearchSubscription.get_subscription_by_id(subscription_id, session)
+    if not subscription:
+        return { 'message': f'This subscription could not be found' }, 404
+    if not subscription.user:
+        return { 'message': f'Unable to find the user account' }, 400
+    if not subscription.search_item:
+        return { 'message': f'This search item does not exist' }, 400
+    try:
+        subscription.remove_subscription(session)
+        return "", 204
+    except InvalidSubscriptions as err:
+        return {'message': str(err)}, 400 
 
 @app.route('/api/user/<string:username>/promote', methods=['PATCH'])
 @jwt_required()

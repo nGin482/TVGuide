@@ -67,5 +67,5 @@ class User(Base):
         return {
             'username': self.username,
             'role': self.role,
-            'show_subscriptions': [subscription.search_item.to_dict() for subscription in self.show_subscriptions]
+            'show_subscriptions': [subscription.to_dict() for subscription in self.show_subscriptions]
         }
