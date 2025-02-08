@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy import Column, ForeignKey, Integer, select
 from sqlalchemy.orm import Mapped, relationship, Session
 from typing import TYPE_CHECKING
 
@@ -21,6 +21,24 @@ class UserSearchSubscription(Base):
         self.user_id = user_id
         self.search_id = search_id
 
+    @staticmethod
+    def get_user_subscriptions(session: Session, user_id: str):
+        query = select(UserSearchSubscription).where(UserSearchSubscription.user_id == user_id)
+        subscriptions = session.scalars(query)
+        
+        return subscriptions
+    
+    @staticmethod
+    def get_subscription_by_id(subscription_id: int, session: Session):
+        query = select(UserSearchSubscription).where(UserSearchSubscription.id == subscription_id)
+        subscription = session.scalar(query)
+
+        return subscription
+
+    def add_subscription_list(subscription_list: list["UserSearchSubscription"], session: Session):
+        session.add_all(subscription_list)
+        session.commit()
+
     def add_subscription(self, session: Session):
         session.add(self)
         session.commit()
@@ -33,8 +51,10 @@ class UserSearchSubscription(Base):
 
     def to_dict(self):
         return {
+            'id': self.id,
             'user_id': self.user_id,
-            'search_item_id': self.search_id
+            'search_item_id': self.search_id,
+            'search_item': self.search_item.to_dict(),
         }
 
     def __repr__(self) -> str:

@@ -61,6 +61,7 @@ class TestUserSearchSubscription(TestCase):
             1,
             10
         )
+        user_sub.search_item = search_items[0]
 
         user_sub_dict = user_sub.to_dict()
 
