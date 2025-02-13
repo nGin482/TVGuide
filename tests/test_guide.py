@@ -22,7 +22,7 @@ class TestGuide(unittest.TestCase):
 
     @patch('sqlalchemy.orm.session.Session.merge')
     @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('database.models.Reminder.get_reminder_by_show')
+    @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
     @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
     @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
@@ -67,7 +67,7 @@ class TestGuide(unittest.TestCase):
 
     @patch('sqlalchemy.orm.session.Session.merge')
     @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('database.models.Reminder.get_reminder_by_show')
+    @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
     @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
     @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
@@ -105,7 +105,7 @@ class TestGuide(unittest.TestCase):
 
     @patch('sqlalchemy.orm.session.Session.merge')
     @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('database.models.Reminder.get_reminder_by_show')
+    @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
     @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
     @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
@@ -144,7 +144,7 @@ class TestGuide(unittest.TestCase):
     # test search item removes one
     @patch('sqlalchemy.orm.session.Session.merge')
     @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('database.models.Reminder.get_reminder_by_show')
+    @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
     @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
     @patch('database.models.SearchItemModel.SearchItem.check_search_conditions')
@@ -183,7 +183,7 @@ class TestGuide(unittest.TestCase):
     
     @patch('sqlalchemy.orm.session.Session.merge')
     @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('database.models.Reminder.get_reminder_by_show')
+    @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
     @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
     @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
@@ -219,7 +219,7 @@ class TestGuide(unittest.TestCase):
     
     @patch('sqlalchemy.orm.session.Session.merge')
     @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('database.models.Reminder.get_reminder_by_show')
+    @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
     @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
     @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
@@ -258,7 +258,7 @@ class TestGuide(unittest.TestCase):
         self.assertEqual(len(guide.fta_shows), 5)
         mock_session_commit.assert_called()
     
-    @patch('database.models.GuideEpisode.get_shows_for_date')
+    @patch('sqlalchemy.orm.session.Session.scalars')
     def test_guide_get_shows_for_date_returns_episodes_from_db(self, mock_guide_episodes: MagicMock):
         mock_guide_episodes.return_value = guide_episodes
 
@@ -289,7 +289,7 @@ class TestGuide(unittest.TestCase):
     
     @patch('sqlalchemy.orm.session.Session.merge')
     @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('database.models.Reminder.get_reminder_by_show')
+    @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
     @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
     @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
@@ -325,7 +325,7 @@ class TestGuide(unittest.TestCase):
 
     @patch('sqlalchemy.orm.session.Session.merge')
     @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('database.models.Reminder.get_reminder_by_show')
+    @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
     @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
     @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
@@ -361,7 +361,7 @@ class TestGuide(unittest.TestCase):
 
     @patch('sqlalchemy.orm.session.Session.merge')
     @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('database.models.Reminder.get_reminder_by_show')
+    @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
     @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
     @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
@@ -406,7 +406,7 @@ class TestGuide(unittest.TestCase):
     
     @patch('sqlalchemy.orm.session.Session.merge')
     @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('database.models.Reminder.get_reminder_by_show')
+    @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
     @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
     @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
@@ -442,7 +442,6 @@ class TestGuide(unittest.TestCase):
 
     @patch('sqlalchemy.orm.session.Session.merge')
     @patch('sqlalchemy.orm.session.Session.commit')
-    # @patch('database.models.Reminder.get_reminder_by_show')
     @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
     @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
@@ -488,7 +487,7 @@ class TestGuide(unittest.TestCase):
 
     @patch('sqlalchemy.orm.session.Session.merge')
     @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('database.models.Reminder.get_reminder_by_show')
+    @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
     @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
     @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
