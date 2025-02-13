@@ -388,15 +388,16 @@ def promote_user(username: str):
         return { 'message': f"Unable to find the user '{username}'" }, 404
     return { 'message': 'You are not authorised to promote this user to an admin role' }, 403
     
-@app.route('/api/user/<string:username>/change_password', methods=['POST'])
+@app.route('/api/user/<string:username>/change_password', methods=['PUT'])
 @jwt_required()
 def change_password(username: str):
     current_user: User = get_current_user()
     session = Session(engine)
     user = User.search_for_user(username, session)
     if user and current_user.username == user.username:
-        user.change_password(request.json['passowrd'])
-        return { 'message': 'Your password has been updated' }
+        user.change_password(request.json['password'])
+        session.commit()
+        return user.to_dict()
     return { 'message': "You are not authorised to change this user's password" }, 403
 
 @app.route('/api/user/<string:username>', methods=['DELETE'])
