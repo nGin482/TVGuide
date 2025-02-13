@@ -442,7 +442,8 @@ class TestGuide(unittest.TestCase):
 
     @patch('sqlalchemy.orm.session.Session.merge')
     @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('database.models.Reminder.get_reminder_by_show')
+    # @patch('database.models.Reminder.get_reminder_by_show')
+    @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
     @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
     @patch('database.models.SearchItemModel.SearchItem.get_active_searches')

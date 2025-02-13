@@ -81,7 +81,6 @@ class ShowEpisode(Base):
     @staticmethod
     def get_episodes_by_season(show_title: str, season_number: int, session: Session):
         query = select(ShowEpisode).where(ShowEpisode.show == show_title, ShowEpisode.season_number == season_number)
-        print(query)
 
         episodes = session.scalars(query)
         

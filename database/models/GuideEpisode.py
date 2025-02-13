@@ -66,7 +66,7 @@ class GuideEpisode(Base):
         end_date = date + timedelta(days=1)
 
         query = select(GuideEpisode).where(GuideEpisode.start_time.between(date, end_date))
-        guide_episodes = session.scalars(query).all()
+        guide_episodes = session.scalars(query)
 
         return [guide_episode for guide_episode in guide_episodes]
     
