@@ -6,8 +6,8 @@ const jestConfig: Config = {
     testEnvironment: "jest-environment-jsdom",
     transform: {
         "^.+\\.(ts|tsx|js|jsx)$": "ts-jest",
-        "\.(scss|sass|css)$": "./src/tests/mocks/style.ts",
-        "\\.(jpg|ico|jpeg|png)": "./src/tests/mocks/style.ts",
+        "\.(scss|sass|css)$": "./tests/mocks/style.ts",
+        "\\.(jpg|ico|jpeg|png)": "./tests/mocks/style.ts",
     },
     setupFilesAfterEnv: [
         "./src/setupTests.js",
