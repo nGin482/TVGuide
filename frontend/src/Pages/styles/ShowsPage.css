@@ -1,0 +1,22 @@
+#shows-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    width: 80%;
+    margin: 0 auto;
+    column-gap: 20px;
+}
+
+.show {
+    border: solid 4px #555;
+    margin: 3%;
+    box-shadow: 8px 8px #aaa;
+}
+.show .ant-card-head-title {
+    text-align: center;
+}
+
+.show:hover {
+    background-color: #02b102;
+    color: white;
+    cursor: pointer;
+}

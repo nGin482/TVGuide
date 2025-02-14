@@ -1,0 +1,30 @@
+#subscription-list-container {
+    display: flex;
+    margin: 0 auto;
+    margin-top: 50px;
+    justify-content: space-evenly;
+}
+
+.subscription-list {
+    border: 6px solid #00b96b;
+    width: 30%;
+}
+
+.subscription-list .ant-list-item {
+    text-align: center;
+}
+
+.subscription-list .ant-list-header {
+    border-bottom: solid 3px #00b96b;
+}
+.subscription-list .ant-list-footer {
+    border-top: solid 3px #00b96b;
+}
+
+.user-alert {
+    width: 50%;
+    margin: 0 auto;
+    margin-top: 25vh;
+    align-items: center;
+    height: 200px;
+}
