@@ -1,8 +1,5 @@
 ### Ticket
-[link to ticket]
-
-### Description
-[description of issue that necessitated PR and the changes made]
+[TVG-?](https://natalie-g-projects.atlassian.net/browse/TVG-?)
 
 ### ENV variable changes
 [any environment variables changed]
