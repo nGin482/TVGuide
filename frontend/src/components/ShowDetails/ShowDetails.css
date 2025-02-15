@@ -1,0 +1,13 @@
+.show-description {
+    background-color: #888888ff;
+    width: 50%;
+    margin: 3% auto;
+    border-radius: 10px;
+    padding: 1%;
+    border: solid 5px #222;
+    color: #fff;
+}
+
+.genres-list {
+    width: 20%
+}

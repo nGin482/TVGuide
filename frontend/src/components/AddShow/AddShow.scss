@@ -1,0 +1,27 @@
+.ant-carousel {
+    width: 800px;
+    margin: 0 auto;
+
+    & .slick-prev::before, .slick-next::before {
+        content: '';
+    }
+}
+
+.result {
+    text-align: center;
+    cursor: pointer;
+    border-radius: 10px;
+
+    &:hover {
+        background-color: #00b96b80;
+    }
+}
+
+.result-selected {
+    border: solid 5px #00b96b;
+    border-right-width: 4px;
+    background-color: #00b96b80;
+    width: 97% !important;
+    margin: 0 auto;
+    box-shadow: 7px 10px #88888880;
+}

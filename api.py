@@ -4,6 +4,8 @@ from flask import Flask, request, render_template, send_from_directory
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_current_user
 from sqlalchemy.orm import Session
+from werkzeug.exceptions import HTTPException
+import json
 import sys
 import os
 
@@ -12,6 +14,7 @@ from database import engine
 from database.models import Reminder, SearchItem, ShowDetails, ShowEpisode, User, UserSearchSubscription
 from database.models.GuideModel import Guide
 from exceptions.DatabaseError import DatabaseError, InvalidSubscriptions
+from exceptions.service_error import HTTPRequestError
 from services.tvmaze import tvmaze_api
 
 app = Flask(__name__, template_folder='build', static_folder='build/static')
@@ -49,7 +52,8 @@ def shows():
             "show_name": show.title,
             "show_details": show.to_dict(),
             "search_item": show.search.to_dict() if show.search else None,
-            "show_episodes": [episode.to_dict() for episode in show.show_episodes]
+            "show_episodes": [episode.to_dict() for episode in show.show_episodes],
+            "reminder": show.reminder.to_dict() if show.reminder else None
         }
         show_data.append(show_json)
     return show_data
@@ -63,7 +67,11 @@ def add_show():
     if ShowDetails.get_show_by_title(body['name'], session):
         return { 'message': f"'{body['name']}' is already listed" }, 409
 
-    tvmaze_details = tvmaze_api.get_show(body['name'])
+    try:
+        tvmaze_details = tvmaze_api.get_show(body['name'])
+    except HTTPRequestError as error:
+        print(f"Could not find {body['name']} on TVMaze: {error}")
+        return { "message": f"Could not find {body['name']} on TVMaze: {error}" }, 404
     show_detail = ShowDetails(
         tvmaze_details['name'],
         tvmaze_details['summary'],
@@ -72,8 +80,52 @@ def add_show():
         tvmaze_details['image']['original']
     )
     show_detail.add_show(session)
+    
+    conditions = body['conditions']
+    tvmaze_episodes = tvmaze_api.get_show_episodes(
+        tvmaze_details['id'],
+        conditions['min_season_number'],
+        conditions['max_season_number'],
+        True
+    )
+    show_episodes: list[ShowEpisode] = []
+    for episode in tvmaze_episodes:
+        try:
+            show_episode = ShowEpisode(
+                tvmaze_details['name'],
+                episode['season_number'],
+                episode['episode_number'],
+                episode['episode_title'],
+                episode['summary'],
+                show_id=show_detail.id
+            )
+            show_episodes.append(show_episode)
+        except KeyError as error:
+            print("Error:", error)
+            print("TVMaze Episode: ", episode)
+            return { "message": f"Unable to add an episode for {tvmaze_details['name']}" }, 500
+    ShowEpisode.add_all_episodes(show_episodes, session)
 
-    return show_detail.to_dict()
+    try:
+        search_criteria = SearchItem(
+            tvmaze_details['name'],
+            conditions['exact_title_match'],
+            conditions['max_season_number'],
+            conditions,
+            show_id=show_detail.id
+        )
+        search_criteria.add_search_item(session)
+    except KeyError as error:
+        print("Error:", error)
+        return { "message": f"Unable to add search criteria for {tvmaze_details['name']}" }, 500
+
+    return {
+        "show_name": show_detail.title,
+        "show_details": show_detail.to_dict(),
+        "show_episodes": [episode.to_dict() for episode in show_episodes],
+        "search_item": search_criteria.to_dict() if search_criteria else None,
+        "reminder": None
+    }
 
 @app.route('/api/shows/<string:show>', methods=['PUT'])
 @jwt_required()
@@ -108,7 +160,7 @@ def delete_show_detail(show: str):
 
     return '', 204
 
-@app.route('/api/search_item', methods=['POST'])
+@app.route('/api/search-item', methods=['POST'])
 @jwt_required()
 def add_search_item():
     user: User = get_current_user()
@@ -130,10 +182,15 @@ def add_search_item():
     if search_item_check:
         return { 'message': f"A Search Item already exists for '{show}'" }, 409
 
-    new_show_data = tvmaze_api.get_show_episodes(show_details_check.tvmaze_id)
-    max_season_number = max([int(episode['season_number']) for episode in new_show_data])
-    new_search_item = SearchItem(show, False, max_season_number, conditions)
+    new_search_item = SearchItem(
+        show,
+        conditions['exact_title_match'],
+        conditions['max_season_number'],
+        conditions,
+        show_details_check.id
+    )
     new_search_item.add_search_item(session)
+    return new_search_item.to_dict()
 
 @app.route('/api/search-item/<string:show>', methods=['PUT'])
 @jwt_required()
@@ -213,7 +270,13 @@ def reminders():
         return {'message': f'{show} is not being searched for'}, 400
     if reminder_check:
         return {'message': f'A reminder already exists for {show}'}, 409
-    new_reminder = Reminder(show, body['alert'], body['warning_time'], body['occasions'])
+    new_reminder = Reminder(
+        show,
+        body['alert'],
+        body['warning_time'],
+        body['occasions'],
+        show_check.id
+    )
     try:
         new_reminder.add_reminder(session)
         return {
@@ -261,23 +324,53 @@ def get_user(username: str):
         return user.to_dict()
     return {'message': f'An account with the username {username} could not be found'}, 404
 
-@app.route('/api/users/<string:username>/subscriptions', methods=['PUT'])
+@app.route('/api/users/<string:username>/subscriptions', methods=['GET'])
+def get_user_subscriptions(username: str):
+    session = Session(engine)
+    user = User.search_for_user(username, session)
+    if user:
+        viewed_user = User.search_for_user(username, session)
+        user_subscriptions = UserSearchSubscription.get_user_subscriptions(session, viewed_user.id)
+        return [subscription.to_dict() for subscription in user_subscriptions]           
+    return {'message': f'A user with the username {username} could not be found'}, 404
+
+@app.route('/api/users/<string:username>/subscriptions', methods=['POST'])
 @jwt_required()
-def edit_user_subscriptions(username: str):
+def add_user_subscriptions(username: str):
     session = Session(engine)
     user = User.search_for_user(username, session)
     if user:
         current_user: User = get_current_user()
         if current_user.username != username:
             return {'message': "You are not able to update this user's details"}, 403
-        body = request.json
+        body: list[str] = request.json
         try:
-            user_subscription = UserSearchSubscription(user.id, body['search_item_id'])
-            user_subscription.add_subscription(session)
-            return { 'user': user.to_dict() }
+            user_subscriptions: list[UserSearchSubscription] = []
+            for show in body:
+                search_item = SearchItem.get_search_item(show, session)
+                user_subscriptions.append(UserSearchSubscription(user.id, search_item.id))
+            UserSearchSubscription.add_subscription_list(user_subscriptions, session)
+            return user.to_dict()
         except InvalidSubscriptions as err:
             return {'message': str(err)}, 400            
     return {'message': f'A user with the username {username} could not be found'}, 404
+
+@app.route('/api/users/subscriptions/<string:subscription_id>', methods=['DELETE'])
+@jwt_required()
+def delete_user_subscription(subscription_id: str):
+    session = Session(engine)
+    subscription = UserSearchSubscription.get_subscription_by_id(subscription_id, session)
+    if not subscription:
+        return { 'message': f'This subscription could not be found' }, 404
+    if not subscription.user:
+        return { 'message': f'Unable to find the user account' }, 400
+    if not subscription.search_item:
+        return { 'message': f'This search item does not exist' }, 400
+    try:
+        subscription.remove_subscription(session)
+        return "", 204
+    except InvalidSubscriptions as err:
+        return {'message': str(err)}, 400 
 
 @app.route('/api/user/<string:username>/promote', methods=['PATCH'])
 @jwt_required()
@@ -295,15 +388,16 @@ def promote_user(username: str):
         return { 'message': f"Unable to find the user '{username}'" }, 404
     return { 'message': 'You are not authorised to promote this user to an admin role' }, 403
     
-@app.route('/api/user/<string:username>/change_password', methods=['POST'])
+@app.route('/api/user/<string:username>/change_password', methods=['PUT'])
 @jwt_required()
 def change_password(username: str):
     current_user: User = get_current_user()
     session = Session(engine)
     user = User.search_for_user(username, session)
     if user and current_user.username == user.username:
-        user.change_password(request.json['passowrd'])
-        return { 'message': 'Your password has been updated' }
+        user.change_password(request.json['password'])
+        session.commit()
+        return user.to_dict()
     return { 'message': "You are not authorised to change this user's password" }, 403
 
 @app.route('/api/user/<string:username>', methods=['DELETE'])
@@ -350,6 +444,20 @@ def login():
             }
         }
     return { 'message': 'Incorrect username or password' }, 401
+
+@app.errorhandler(HTTPException)
+def handle_exception(e: HTTPException):
+    """Return JSON instead of HTML for HTTP errors."""
+    # start with the correct headers and status code from the error
+    response = e.get_response()
+    # replace the body with JSON
+    response.data = json.dumps({
+        "code": e.code,
+        "name": e.name,
+        "description": e.description,
+    })
+    response.content_type = "application/json"
+    return response
 
 if __name__ == '__main__':
     if os.getenv('PYTHON_ENV') == 'production':

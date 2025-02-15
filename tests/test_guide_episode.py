@@ -20,10 +20,10 @@ class TestGuideEpisode(unittest.TestCase):
 
     
     @patch('sqlalchemy.orm.session')
-    @patch('database.models.GuideEpisode.get_shows_for_date')
-    def test_get_guide_episodes(self, mock_get_shows: MagicMock, mock_session: MagicMock):
-        mock_session.return_value = True
-        mock_get_shows.return_value = guide_episodes
+    # @patch('database.models.GuideEpisode.get_shows_for_date')
+    def test_get_guide_episodes(self, mock_session: MagicMock):
+        mock_session.scalars.return_value = guide_episodes
+        # mock_get_shows.return_value = guide_episodes
         episodes = GuideEpisode.get_shows_for_date(datetime(year=2024, month=8, day=10), mock_session)
         
         self.assertIsInstance(episodes, list)

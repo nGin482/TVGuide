@@ -1,0 +1,13 @@
+.show-data-switch {
+    width: 30%;
+    margin: 0 auto;
+    margin-bottom: 3%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.switch-view-button.active {
+    background-color: #000000;
+    color: #00b96b;
+}

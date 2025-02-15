@@ -16,9 +16,12 @@ If one is found, the following information is collected:
 - `NGIN`: The user id to send direct messages (used for production)
 
 - `PYTHON_ENV`: The runtime environment
-- `TVGUIDE_DB`: The connection string to connect to MongoDB Atlas
-- `LOCAL_DB`: The connection string for the development database
+- `TVGUIDE_DB`: The connection string to connect to MongoDB Atlas     `Deprecated`
+- `LOCAL_DB`: The connection string for the development database      `Deprecated`
 - `JWT_SECRET`: The JWT secret for the Flask API
+
+- `DB_URL`: The Postgres database to connect to
+- `VITE_BASE_URL`: The base URL used for sending API calls to the Flask API
 
 
 ## Running the TVGuide Locally
@@ -33,7 +36,26 @@ If no arguments are passed when running `local_guide.py`, the `development` data
 
 When the TVGuide is run using Discord, the `development` channel will be used (as specified by the `DEV_CHANNEL` environment variable).
 
-### Local Database
+### Running the Flask API
+In the root directory, run:
+```
+- python api.py
+```
+
+### Running the frontend
+Ensure the FLask API is running
+In a separate terminal, run:
+```
+- cd ./frontend
+- npm start
+```
+
+## Local Database
+- Create a local Postgres database
+- Add the connection string to your .env file
+
+
+### Deprecated
 To use the local database, you will need to have MongoDB installed locally.
 Version 7.0 of the Community Edition has been used in setting up the development environment.
 MongoDB Compass can also be optionally installed.
