@@ -19,6 +19,7 @@
 /dev-data/mongo_data
 /build
 /frontend/node_modules
+/frontend/build
 
 # files
 *.pyc
