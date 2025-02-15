@@ -222,7 +222,7 @@ class RecordedShow:
             list_of_seasons = [season for season in self.seasons if season.season_number != 'Tennant Specials' and season.season_number != 'Smith Specials']
         else:
             list_of_seasons = self.seasons
-        latest_season_number = max(int(season.season_number) for season in list_of_seasons)
+        latest_season_number = max(int(season.season_number) for season in list_of_seasons if season.season_number != "Unknown")
         return self.find_season(str(latest_season_number))
     
     def get_unknown_episodes_count(self):

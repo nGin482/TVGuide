@@ -107,6 +107,6 @@ class SearchItem(Base):
         }
     
     def __repr__(self) -> str:
-        search_item_string = f"ShowDetails (show={self.show}, search_active={self.search_active}, "
+        search_item_string = f"SearchItem (show={self.show}, search_active={self.search_active}, "
         search_item_string += f"exact_search={self.exact_title_match}, conditions=[{self.conditions_string()}])"
         return search_item_string

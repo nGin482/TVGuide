@@ -7,6 +7,7 @@ import os
 load_dotenv('.env')
 
 from data_validation.validation import Validation
+from database.migration import migrate
 from services.hermes.hermes import hermes
 
 
@@ -70,6 +71,10 @@ def drop_tables(tables: str):
 
     from database.models import drop_tables
     drop_tables(list(tables))
+
+@local_tvguide.command()
+def migrate_data():
+    migrate()
 
 @local_tvguide.command()
 @click.option('--date', default=Validation.get_current_date().strftime('%d-%m-%Y'), help='The date to retrieve the TVGuide schedule')
