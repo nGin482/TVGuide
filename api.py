@@ -17,7 +17,7 @@ from exceptions.DatabaseError import DatabaseError, InvalidSubscriptions
 from exceptions.service_error import HTTPRequestError
 from services.tvmaze import tvmaze_api
 
-app = Flask(__name__, template_folder='build', static_folder='build/static')
+app = Flask(__name__, template_folder='frontend/build', static_folder='frontend/build/assets')
 CORS(app)
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
 jwt = JWTManager(app)
@@ -36,11 +36,7 @@ def index():
 
 @app.route('/favicon.ico')
 def favicon():
-    return send_from_directory('build', 'favicon.ico')
-
-@app.route('/manifest.json')
-def manifest():
-    return send_from_directory('build', 'manifest.json')
+    return send_from_directory('frontend', 'favicon.ico')
 
 @app.route('/api/shows', methods=['GET'])
 def shows():
