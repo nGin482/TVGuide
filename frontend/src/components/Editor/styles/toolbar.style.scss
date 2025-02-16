@@ -1,0 +1,53 @@
+/* Basic editor styles */
+.toolbar {
+    border-bottom: solid 3px #808080a3;
+    padding: 2% 0;
+
+    display: flex;
+    justify-content: space-evenly;
+
+    /* Code and preformatted text styles */
+    code {
+      background-color: var(--purple-light);
+      border-radius: 0.4rem;
+      color: var(--black);
+      font-size: 0.85rem;
+      padding: 0.25em 0.3em;
+    }
+  
+    pre {
+      background: var(--black);
+      border-radius: 0.5rem;
+      color: var(--white);
+      font-family: 'JetBrainsMono', monospace;
+      margin: 1.5rem 0;
+      padding: 0.75rem 1rem;
+  
+      code {
+        background: none;
+        color: inherit;
+        font-size: 0.8rem;
+        padding: 0;
+      }
+    }
+  
+    blockquote {
+      border-left: 3px solid var(--gray-3);
+      margin: 1.5rem 0;
+      padding-left: 1rem;
+    }
+  
+    button {
+        border-radius: 4px;
+        padding: 1.5%;
+        
+        &:hover {
+          background-color: #00b96b;
+          cursor: pointer;
+        }
+    
+        &.is-active {
+          background-color: #00b96b;
+        }
+    }
+}

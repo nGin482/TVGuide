@@ -1,0 +1,22 @@
+.episodes {
+    width: 90%;
+    margin: 0 auto;
+}
+
+.episodes .ant-btn {
+    margin: 0.5% 0.5%;
+}
+
+.change-season-active {
+    background-color: #000;
+    color: #00b96b;
+}
+.change-season-active:hover {
+    color: #fff;
+}
+
+.episodes .ant-table-thead .ant-table-cell {
+    background-color: #dddf;
+    color: #00b96cd6;
+    text-align: center;
+}

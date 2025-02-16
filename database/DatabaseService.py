@@ -296,7 +296,8 @@ class DatabaseService:
 
 # GUIDE
     def get_all_guides(self):
-        return list(self.guide_collection.find({}))
+        guides = self.guide_collection.find({})
+        return list(Guide.from_database(guide, self) for guide in guides)
 
     def get_guide_date(self, date: str):
         """Get the Guide data for the date provided. Date should be provided in the format `dd/mm/YYYY`"""
@@ -330,12 +331,10 @@ class DatabaseService:
         guides = [Guide.from_database(details) for details in self.get_all_guides()]
         return [{'date': guide.date, 'show': show} for guide in guides for show in guide.search_for_show(show_title)]
 
-    def add_guide_data(self, fta_shows: list['GuideShow'], bbc_shows: list['GuideShow']):
+    def add_guide_data(self, new_guide: Guide):
         """Add the Guide data to the database.\n
         Raises `exceptions.DatabaseError` if the Guide data for the current day already exists or 
         was not able to be inserted."""
-
-        new_guide = Guide.from_runtime(fta_shows, bbc_shows)
 
         check_guide_exists = self.get_guide_date(new_guide.date)
         if check_guide_exists is not None:
@@ -354,7 +353,16 @@ class DatabaseService:
         if delete_result is None:
             raise DatabaseError(f"The Guide data for {date} could not be found")
         
+    def revert_guide(self):
+        "Forget sending a message and rollback the database to its previous state"
+        self.rollback_recorded_shows()
+        self.remove_guide_data(Validation.get_current_date().strftime('%d/%m/%Y'))
+        
     # Users
+    def get_all_users(self):
+        users = self.users_collection.find({})
+        return [User.from_database(user) for user in users]
+
     def get_user(self, username: str):
         user_document = self.users_collection.find_one({'username': username})
         if user_document:

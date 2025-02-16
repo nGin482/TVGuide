@@ -1,0 +1,8 @@
+.editor {
+    border: 3px solid #808080a3;
+    padding: 1%;
+
+    & :focus {
+        outline: none;
+    }
+}

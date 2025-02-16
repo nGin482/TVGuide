@@ -3,10 +3,7 @@ from datetime import date, datetime, timedelta
 import pytz
 import re
 
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from database.models.GuideShow import GuideShow
-    from database.models.SearchItem import SearchItem
+from aux_methods.types import ShowData
 
 def format_time(time):
     """
@@ -35,21 +32,6 @@ def format_time(time):
     return time
 
 
-def remove_doubles(shows_list: list[GuideShow]):
-
-    idx_1 = 0
-    if len(shows_list) > 1:
-        while idx_1 < len(shows_list)-1:
-            show_1 = shows_list[idx_1]
-            idx_2 = idx_1 + 1
-            while idx_2 < len(shows_list):
-                show_2 = shows_list[idx_2]
-                if show_1.channel == show_2.channel and show_1.time == show_2.time:
-                    shows_list.remove(show_2)
-                idx_2 += 1
-            idx_1 += 1
-
-
 def format_title(title: str):
     """
     Format a show's given title into a more reader-friendly appearance
@@ -63,10 +45,6 @@ def format_title(title: str):
         title = f'A {title[0:idx_a]}'
 
     return title
-
-def show_list_message(search_list: list[SearchItem]):
-    """Return a message-friendly version of the shows being searched for"""
-    return '\n'.join([search_item.show for search_item in search_list])
 
 def check_show_titles(show):
     if type(show) is str:
@@ -151,25 +129,23 @@ def parse_date_from_command(date: str):
             return datetime(int(year), month, int(date_values[0]))
         else:
             raise ValueError('The date provided was not in a valid format.')
-        
-def compose_events_message(guide_list: list['GuideShow']):
-    return "\n".join([f"{show.title} - {show.db_event}" for show in guide_list])
 
 def convert_utc_to_local(utc_timestamp: datetime):
     utc_timestamp = utc_timestamp.replace(tzinfo=pytz.utc)
     local_time = utc_timestamp.astimezone(pytz.timezone('Australia/Sydney'))
     return local_time
 
-def build_episode(show_title: str, channel: str, time: datetime, season_number: str, episode_number: int, episode_title: str):
+def build_episode(show_title: str, channel: str, start_time: datetime, end_time: datetime, season_number: str, episode_number: int, episode_title: str):
     from data_validation.validation import Validation
-    episodes = []
+    episodes: list[ShowData] = []
     if 'Cyberverse' in show_title and '/' in episode_title:
         episode_titles = episode_title.split('/')
         for idx, episode in enumerate(episode_titles):
             episodes.append({
                 'title': show_title,
                 'channel': channel,
-                'time': time + timedelta(minutes=14) if idx == 1 else time,
+                'start_time': start_time + timedelta(minutes=14) if idx == 1 else start_time,
+                'end_time': end_time,
                 'season_number': season_number,
                 'episode_number': episode_number,
                 'episode_title': Validation.format_episode_title(episode.title())
@@ -182,7 +158,8 @@ def build_episode(show_title: str, channel: str, time: datetime, season_number: 
         episodes.append({
             'title': show_title,
             'channel': channel,
-            'time': time,
+            'start_time': start_time,
+            'end_time': end_time,
             'season_number': season_number,
             'episode_number': episode_number,
             'episode_title': Validation.format_episode_title(episode_title)

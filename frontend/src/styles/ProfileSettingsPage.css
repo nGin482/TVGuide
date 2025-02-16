@@ -1,0 +1,31 @@
+#change-details {
+    border: solid 3px #00b96b;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+#admin-access-request-section {
+    text-align: left;
+    margin-left: 140px;
+}
+
+.account-settings-wrapper {
+    width: 90%;
+    margin: 0 auto
+}
+
+#delete-account-section {
+    text-align: left;
+    border: solid 3px #ff4d4f;
+    border-radius: 8px;
+    padding: 1%;
+}
+
+#delete-account-section h4 {
+    text-align: center;
+}
+
+.delete-account {
+    display: block;
+    margin: 0 auto;
+}

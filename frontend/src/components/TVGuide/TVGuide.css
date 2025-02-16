@@ -1,0 +1,58 @@
+#tv-guide {
+    max-width: 80%;
+    margin: 0 auto;
+}
+
+.service-header {
+    text-align: left;
+    margin-left: 5%;
+}
+
+.show {
+    text-align: left;
+}
+
+#guide-table {
+    margin: 0 auto;
+}
+
+#service-filter {
+    display: inline;
+}
+#service-filter :first-child {
+    margin: 0 2%;
+}
+#service-filter :last-child {
+    margin: 0 2%;
+}
+
+.select-service {
+    border: solid black 1px;
+    margin-bottom: 20%;
+    padding: 3%;
+}
+
+.select-service:hover {
+    background-color: gray;
+    cursor: default;
+}
+
+#message {
+    margin-left: 5%;
+    text-align: center;
+}
+
+.see-event {
+    margin-left: 10%;
+    padding: 0.5%;
+    border: solid 1px green;
+}
+
+.see-event:hover {
+    padding: 1%;
+    background-color: green;
+    border-radius: 5px;
+    color: white;
+    transition: all 1s ease;
+    cursor: pointer;
+}

@@ -1,3 +1,5 @@
+from tvguide_types.tvmaze import TVMazeEpisode
+
 def format_episode_title(episode_title: str):
     if '(Part ' in episode_title:
         episode_title = episode_title.replace('(Part ', 'Part ')
@@ -24,3 +26,17 @@ def group_seasons(episode_list: list, num_of_seasons: int, season_start: int = 0
             del ep['season_number']
 
     return grouped_seasons
+
+def map_seasons(episode_list: list[TVMazeEpisode]):
+
+    season_numbers = list(set([episode['season'] for episode in episode_list]))
+
+    season_map = {}
+    for idx, season in enumerate(season_numbers):
+        season_map[str(season)] = idx + 1
+    print(season_map)
+
+    for episode in episode_list:
+        episode['season'] = season_map[str(episode['season'])]
+
+    return episode_list
