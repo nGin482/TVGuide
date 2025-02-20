@@ -30,7 +30,18 @@ ignore_shows = [
     "NCIS: New Orleans",
     "NCIS: Los Angeles",
     "Transformers Prime Beast Hunters: Predacons Rising",
-    "Transformers: Robots In Disguise"
+    "Transformers: Robots In Disguise",
+    "Mad As Hell Does Hard Quiz",
+    "Ncis Los Angeles",
+    "Doctor Who: The End Of Time",
+    "vera Cruz",
+    "Wonderland: Lewis Carol To Jrr Tolkien",
+    "The Inspector Lynley Mysteries",
+    "Tupaia's Endeavour",
+    "Silverado",
+    "America Decides",
+    "ABC News",
+    "Governor Macquarie's Silent Witness",
 ]
 
 def db_migrate():
