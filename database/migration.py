@@ -33,7 +33,7 @@ ignore_shows = [
     "Transformers: Robots In Disguise"
 ]
 
-def migrate():
+def db_migrate():
     _migrate_shows()
     _migrate_guides()
     _migrate_reminders()
