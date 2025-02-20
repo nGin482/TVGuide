@@ -17,6 +17,14 @@ from log import get_date_from_tvguide_message
 from services.hermes.hermes import hermes
 from services.tvmaze import tvmaze_api
 
+
+@hermes.command()
+async def migrate(ctx: Context):
+    from database.migration import db_migrate
+    await ctx.send("Migration started")
+    db_migrate()
+    await ctx.send("Migration complete")
+
 @hermes.command()
 async def show_list(ctx: Context):
     all_search_items = [search_item.show for search_item in SearchItem.get_active_searches(session)]
@@ -79,7 +87,7 @@ async def remove_show(ctx: Context, show: str):
 
 @hermes.command()
 async def send_guide(ctx: Context, date = None):
-    date = Validation.get_current_date() if date is None else date
+    date = Validation.get_current_date() if date is None else parse_date_from_command(date)
     guide = Guide(date)
     guide.create_new_guide(scheduler)
     guide_message, reminders_message, events_message = (
