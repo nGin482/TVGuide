@@ -2,8 +2,9 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
 from sqlalchemy import Column, DateTime, Integer
 from sqlalchemy.orm import Mapped, Session
+from sqlalchemy.exc import OperationalError, PendingRollbackError
 import json
-import os
+import logging
 
 from aux_methods.helper_methods import build_episode, convert_utc_to_local
 from aux_methods.types import ShowData
@@ -23,6 +24,8 @@ class Guide(Base):
 
     id: Mapped[int] = Column('id', Integer, primary_key=True, autoincrement=True)
     date: Mapped[datetime] = Column('date', DateTime)
+
+    logger = logging.getLogger("Guide")
     
     def __init__(self, date: datetime):
         self.date = date
@@ -185,8 +188,15 @@ class Guide(Base):
             return schedule
     
     def create_new_guide(self, scheduler: AsyncIOScheduler = None):
-        self.add_guide(session)
-        self.fta_shows = self.search_free_to_air(scheduler)
+        try:
+            self.add_guide(session)
+            self.fta_shows = self.search_free_to_air(scheduler)
+        except OperationalError as error:
+            Guide.logger.error(f"Could not create guide: {str(error)}")
+            session.rollback()
+        except PendingRollbackError as error:
+            Guide.logger.error(f"Could not create guide: {str(error)}")
+            session.rollback()
         # self.bbc_shows = self.search_bbc_australia()
     
     def get_shows(self):
