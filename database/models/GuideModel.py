@@ -6,7 +6,7 @@ from sqlalchemy.exc import OperationalError, PendingRollbackError
 import json
 import logging
 
-from aux_methods.helper_methods import build_episode, convert_utc_to_local
+from aux_methods.helper_methods import build_episode, convert_utc_to_local, show_data_to_file
 from aux_methods.types import ShowData
 from config import session
 from database import Base
@@ -80,6 +80,9 @@ class Guide(Base):
                         shows_data.extend(episodes)
 
         shows_data.sort(key=lambda show: (show['start_time'], show['channel']))
+
+        show_data_to_file(shows_data)
+
 
         shows_on: list['GuideEpisode'] = []
         for show in shows_data:
