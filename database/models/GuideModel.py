@@ -56,6 +56,8 @@ class Guide(Base):
             for guide_show in channel_data['listing']:
                 title: str = guide_show['title']
                 for search_item in search_list:
+                    if "bumblebee" in title.lower():
+                        title = "Transformers: Cyberverse"
                     if search_item.show.lower() in title.lower():
                         start_time = datetime.strptime(guide_show['start_time'], '%Y-%m-%dT%H:%M:%S')
                         end_time = datetime.strptime(guide_show['end_time'], '%Y-%m-%dT%H:%M:%S')
