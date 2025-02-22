@@ -1,3 +1,5 @@
+from discord import File
+
 from services.hermes.hermes import hermes
 from services.hermes.utilities import send_message
 
@@ -28,3 +30,10 @@ async def on_db_not_connected(err: str):
 @hermes.event
 async def on_guide_data_fetch_failed(error: str):
     await send_message(f'There was a problem fetching the guide data.\n Error: {error}')
+
+
+@hermes.event
+async def on_shows_collected():
+    file = File("backup/shows.json", "All Shows.json")
+
+    await send_message("The list of shows collected", file)
