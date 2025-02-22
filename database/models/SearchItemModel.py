@@ -2,7 +2,8 @@ from __future__ import annotations
 from sqlalchemy import ARRAY, Boolean, Column, ForeignKey, Integer, select, Text
 from sqlalchemy.orm import Mapped, relationship, Session
 
-from database import Base, engine
+from aux_methods.types import ShowData
+from database import Base
 from database.models.ShowDetailsModel import ShowDetails
 
 
@@ -33,7 +34,10 @@ class SearchItem(Base):
         self.ignore_episodes = conditions['ignore_episodes'] if 'ignore_episodes' in conditions else []
         self.show_id = show_id
 
-    def check_search_conditions(self, episode: dict):
+    def check_search_conditions(self, episode: ShowData):
+        if self.exact_title_match and episode['title'].lower() != self.show.lower():
+            return False
+        
         if episode['season_number'] == -1 and episode['episode_title'] == "":
             return True
         
