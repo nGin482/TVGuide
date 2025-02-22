@@ -1,10 +1,10 @@
 
 
 def parse_show(title: str, season_number: int, episode_number: int, episode_title: str):
-    from database.models.GuideShowCases import TransformersGuideShow
-    
+    from utils import transformers_handler
+
     if 'Transformers' in title or 'Bumblebee' in title:
-        handle_result = TransformersGuideShow.handle(title)
+        handle_result = transformers_handler.handle_transformers_shows(title)
         if isinstance(handle_result, str):
             return handle_result, season_number, episode_number, episode_title
         return handle_result
