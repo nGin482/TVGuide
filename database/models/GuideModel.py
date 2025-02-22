@@ -79,6 +79,8 @@ class Guide(Base):
                         episodes = [episode for episode in episodes if search_item.check_search_conditions(episode)]
                         shows_data.extend(episodes)
 
+        shows_data = [dict(t) for t in {tuple(d.items()) for d in shows_data}]
+        
         shows_data.sort(key=lambda show: (show['start_time'], show['channel']))
 
         show_data_to_file(shows_data)
