@@ -433,11 +433,9 @@ def login():
     user = User.search_for_user(given_credentials['username'], session)
     if user and user.check_password(given_credentials['password']):
         return {
-            'user': {
-                'username': user.username,
-                'role': user.role,
-                'token': create_access_token(identity=user.username)
-            }
+            'username': user.username,
+            'role': user.role,
+            'token': create_access_token(identity=user.username)
         }
     return { 'message': 'Incorrect username or password' }, 401
 
