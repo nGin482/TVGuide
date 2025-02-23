@@ -82,7 +82,6 @@ const EpisodeForm = (props: EpisodeFormProps) => {
 
     return (
         originalEpisode && formValues && (
-
             <Modal
                 open={open}
                 onOk={updateEpisode}
@@ -164,7 +163,7 @@ const EpisodeForm = (props: EpisodeFormProps) => {
                         initialValue={originalEpisode.channels}
                     >
                         <Select
-                            onChange={event => handleInput("channels", event.currentTarget.value)}
+                            onChange={(channels: string[]) => handleInput("channels", channels)}
                             mode="multiple"
                             options={CHANNELS.map(network => ({
                                 label: network.network,
