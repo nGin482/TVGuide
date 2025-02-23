@@ -206,7 +206,7 @@ class Guide(Base):
             session.rollback()
         # self.bbc_shows = self.search_bbc_australia()
     
-    def get_shows(self):
+    def get_shows(self, session: Session):
         self.fta_shows = GuideEpisode.get_shows_for_date(self.date, session)
 
 

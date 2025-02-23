@@ -258,15 +258,15 @@ class TestGuide(unittest.TestCase):
         self.assertEqual(len(guide.fta_shows), 5)
         mock_session_commit.assert_called()
     
-    @patch('sqlalchemy.orm.session.Session.scalars')
-    def test_guide_get_shows_for_date_returns_episodes_from_db(self, mock_guide_episodes: MagicMock):
-        mock_guide_episodes.return_value = guide_episodes
+    @patch('sqlalchemy.orm.session')
+    def test_guide_get_shows_for_date_returns_episodes_from_db(self, mock_session: MagicMock):
+        mock_session.scalars.return_value = guide_episodes
 
         guide = Guide(datetime(2024, 10, 12))
 
         self.assertEqual(len(guide.fta_shows), 0)
 
-        guide.get_shows()
+        guide.get_shows(mock_session)
 
         self.assertEqual(len(guide.fta_shows), 2)
         self.assertEqual(guide.fta_shows[0].title, "Doctor Who")

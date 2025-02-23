@@ -1,12 +1,13 @@
 from discord import Message, File
 from discord.ext.commands import Context
 from discord.errors import HTTPException
-from zipfile import ZipFile
+from sqlalchemy.orm import Session
 import os
 
 from aux_methods.helper_methods import parse_date_from_command, split_message_by_time
 from config import scheduler, session
 from data_validation.validation import Validation
+from database import engine
 from database.models.GuideModel import Guide
 from database.models.Reminder import Reminder
 from database.models.SearchItemModel import SearchItem
@@ -123,9 +124,12 @@ async def send_guide(ctx: Context, date = None):
 
 @hermes.command()
 async def send_guide_record(ctx: Context, date_to_send: str):
+    session = Session(engine)
+
     convert_date = parse_date_from_command(date_to_send).strftime('%d/%m/%Y')
+    
     guide = Guide(convert_date)
-    guide.get_shows()
+    guide.get_shows(session)
     if guide is not None:
         await ctx.send(guide.compose_message())
     else:
