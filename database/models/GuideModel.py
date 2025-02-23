@@ -2,10 +2,11 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
 from sqlalchemy import Column, DateTime, Integer
 from sqlalchemy.orm import Mapped, Session
+from sqlalchemy.exc import OperationalError, PendingRollbackError
 import json
-import os
+import logging
 
-from aux_methods.helper_methods import build_episode, convert_utc_to_local
+from aux_methods.helper_methods import build_episode, convert_utc_to_local, show_data_to_file
 from aux_methods.types import ShowData
 from config import session
 from database import Base
@@ -23,6 +24,8 @@ class Guide(Base):
 
     id: Mapped[int] = Column('id', Integer, primary_key=True, autoincrement=True)
     date: Mapped[datetime] = Column('date', DateTime)
+
+    logger = logging.getLogger("Guide")
     
     def __init__(self, date: datetime):
         self.date = date
@@ -53,6 +56,8 @@ class Guide(Base):
             for guide_show in channel_data['listing']:
                 title: str = guide_show['title']
                 for search_item in search_list:
+                    if "bumblebee" in title.lower():
+                        title = "Transformers: Cyberverse"
                     if search_item.show.lower() in title.lower():
                         start_time = datetime.strptime(guide_show['start_time'], '%Y-%m-%dT%H:%M:%S')
                         end_time = datetime.strptime(guide_show['end_time'], '%Y-%m-%dT%H:%M:%S')
@@ -76,7 +81,12 @@ class Guide(Base):
                         episodes = [episode for episode in episodes if search_item.check_search_conditions(episode)]
                         shows_data.extend(episodes)
 
+        shows_data = [dict(t) for t in {tuple(d.items()) for d in shows_data}]
+        
         shows_data.sort(key=lambda show: (show['start_time'], show['channel']))
+
+        show_data_to_file(shows_data)
+
 
         shows_on: list['GuideEpisode'] = []
         for show in shows_data:
@@ -185,11 +195,18 @@ class Guide(Base):
             return schedule
     
     def create_new_guide(self, scheduler: AsyncIOScheduler = None):
-        self.add_guide(session)
-        self.fta_shows = self.search_free_to_air(scheduler)
+        try:
+            self.add_guide(session)
+            self.fta_shows = self.search_free_to_air(scheduler)
+        except OperationalError as error:
+            Guide.logger.error(f"Could not create guide: {str(error)}")
+            session.rollback()
+        except PendingRollbackError as error:
+            Guide.logger.error(f"Could not create guide: {str(error)}")
+            session.rollback()
         # self.bbc_shows = self.search_bbc_australia()
     
-    def get_shows(self):
+    def get_shows(self, session: Session):
         self.fta_shows = GuideEpisode.get_shows_for_date(self.date, session)
 
 

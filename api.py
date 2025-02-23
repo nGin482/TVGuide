@@ -215,13 +215,15 @@ def delete_search_item(show: str):
 @app.route('/api/guide')
 def guide():
     from data_validation.validation import Validation
+    session = Session(engine)
+    
     if request.args.get('date'):
         dates = request.args.get('date').split('/')
         date = datetime(year=int(dates[2]), month=int(dates[1]), day=int(dates[0]))
     else:
         date = Validation.get_current_date()
     guide = Guide(date)
-    guide.get_shows()
+    guide.get_shows(session)
     return guide.to_dict()
 
 @app.route('/api/show-episode/<int:id>', methods=['PUT'])
@@ -433,11 +435,9 @@ def login():
     user = User.search_for_user(given_credentials['username'], session)
     if user and user.check_password(given_credentials['password']):
         return {
-            'user': {
-                'username': user.username,
-                'role': user.role,
-                'token': create_access_token(identity=user.username)
-            }
+            'username': user.username,
+            'role': user.role,
+            'token': create_access_token(identity=user.username)
         }
     return { 'message': 'Incorrect username or password' }, 401
 

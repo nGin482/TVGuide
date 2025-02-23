@@ -4,87 +4,8 @@ import pytz
 import re
 
 from aux_methods.types import ShowData
+import utils
 
-def format_time(time):
-    """
-    format a show's start time to 24 hour time
-    :param time: show start_time to format that will be passed as string
-    :return: the formatted time string
-    """
-
-    idx = time.find(':')
-
-    if " " in time:
-        time = time[1:7]
-    if len(time) == 6:
-        time = '0' + time
-    if 'pm' in time:
-        time = time[:-2]
-        if time[:idx] != '12':
-            hour = int(time[:idx]) + 12
-            time = str(hour) + time[idx:]
-    if 'am' in time:
-        time = time[:-2]
-        if time[:idx] == '12':
-            hour = int(time[:idx]) - 12
-            time = str(hour) + '0' + time[idx:]
-
-    return time
-
-
-def format_title(title: str):
-    """
-    Format a show's given title into a more reader-friendly appearance
-    """
-
-    if ', The' in title:
-        idx_the = title.find(', The')
-        title = f'The {title[0:idx_the]}'
-    if ', A' in title:
-        idx_a = title.find(', A')
-        title = f'A {title[0:idx_a]}'
-
-    return title
-
-def check_show_titles(show):
-    if type(show) is str:
-        if 'Maigret' in show:
-            return 'Maigret'
-        if 'Death in Paradise' in show:
-            return 'Death In Paradise'
-        if 'Revenge Of The Fallen' in show or 'Dark Of The Moon' in show \
-                or 'Age of Extinction' in show or 'The Last Knight' in show:
-            return 'Transformers'
-        elif show == 'Transformers':
-            return 'Transformers'
-        else:
-            title = show
-            if ':' in title:
-                idx = title.rfind(':')
-                title = title[:idx] + title[idx+1:]
-            return title
-    else:
-        if 'Maigret' in show['title']:
-            return 'Maigret'
-        if 'Death in Paradise' in show['title']:
-            return 'Death In Paradise'
-        if 'Revenge Of The Fallen' in show['title'] or 'Dark Of The Moon' in show['title'] \
-                or 'Age of Extinction' in show['title'] or 'The Last Knight' in show['title']:
-            return 'Transformers'
-        elif show['title'] == 'Transformers':
-            return 'Transformers'
-        else:
-            title: str = show['title']
-            if ':' in title:
-                idx = title.rfind(':')
-                title = title[:idx] + title[idx+1:]
-            return title
-
-def valid_reminder_fields():
-    """
-    Returns the fields only valid for a reminder document
-    """
-    return ['show', 'reminder time', 'interval']
 
 def get_today_date(return_type):
     if return_type == 'string':
@@ -135,8 +56,22 @@ def convert_utc_to_local(utc_timestamp: datetime):
     local_time = utc_timestamp.astimezone(pytz.timezone('Australia/Sydney'))
     return local_time
 
-def build_episode(show_title: str, channel: str, start_time: datetime, end_time: datetime, season_number: str, episode_number: int, episode_title: str):
-    from data_validation.validation import Validation
+def build_episode(
+    show_title: str,
+    channel: str, 
+    start_time: datetime,
+    end_time: datetime,
+    season_number: int,
+    episode_number: int,
+    episode_title: str
+):
+    show_title, season_number, episode_number, episode_title = utils.parse_show(
+        show_title,
+        season_number,
+        episode_number,
+        episode_title
+    )
+
     episodes: list[ShowData] = []
     if 'Cyberverse' in show_title and '/' in episode_title:
         episode_titles = episode_title.split('/')
@@ -148,7 +83,7 @@ def build_episode(show_title: str, channel: str, start_time: datetime, end_time:
                 'end_time': end_time,
                 'season_number': season_number,
                 'episode_number': episode_number,
-                'episode_title': Validation.format_episode_title(episode.title())
+                'episode_title': utils.format_episode_title(episode.title())
             })
     else:
         if 'SBS' in channel:
@@ -162,7 +97,7 @@ def build_episode(show_title: str, channel: str, start_time: datetime, end_time:
             'end_time': end_time,
             'season_number': season_number,
             'episode_number': episode_number,
-            'episode_title': Validation.format_episode_title(episode_title)
+            'episode_title': utils.format_episode_title(episode_title)
         })
     return episodes
 
@@ -187,3 +122,23 @@ def sbs_episode_format(show_title: str, episode: str):
         return numbers
     else:
         return episode
+
+
+
+def show_data_to_file(shows: list[ShowData]):
+    import copy
+    import json
+    import os
+    from services.hermes.hermes import hermes
+
+    shows_copy = copy.deepcopy(shows)
+    for show in shows_copy:
+        show['start_time'] = datetime.strftime(show['start_time'], "%d-%m-%Y %H:%M")
+        show['end_time'] = datetime.strftime(show['end_time'], "%d-%m-%Y %H:%M")
+
+    if not os.path.isdir("backup"):
+        os.mkdir("backup")
+    with open("backup/shows.json", "w+") as fd:
+        json.dump(shows_copy, fd, indent="\t")
+
+    hermes.dispatch("shows_collected")
