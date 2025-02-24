@@ -85,8 +85,6 @@ class Guide(Base):
         
         shows_data.sort(key=lambda show: (show['start_time'], show['channel']))
 
-        show_data_to_file(shows_data)
-
 
         shows_on: list['GuideEpisode'] = []
         for show in shows_data:
