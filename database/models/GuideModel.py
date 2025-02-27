@@ -91,33 +91,34 @@ class Guide(Base):
         shows_on: list['GuideEpisode'] = []
         for show in shows_data:
             show_details = ShowDetails.get_show_by_title(show['title'], session)
-            show_episode = ShowEpisode.search_for_episode(
-                show['title'],
-                show['season_number'],
-                show['episode_number'],
-                show['episode_title'],
-                session
-            )
-            reminder = Reminder.get_reminder_by_show(show['title'], session)
-            guide_episode = GuideEpisode(
-                show['title'],
-                show['channel'],
-                show['start_time'],
-                show['end_time'],
-                show_episode.season_number if show_episode is not None else show['season_number'],
-                show_episode.episode_number if show_episode is not None else show['episode_number'],
-                show_episode.episode_title if show_episode is not None else show['episode_title'],
-                self.id,
-                show_details.id,
-                show_episode.id if show_episode is not None else None,
-                reminder.id if reminder is not None else None
-            )
-            guide_episode.add_episode(session)
-            guide_episode.check_repeat(session)
-            guide_episode.set_reminder(scheduler)
-            if 'HD' not in guide_episode.channel:
-                guide_episode.capture_db_event(session)
-            shows_on.append(guide_episode)
+            if show_details:
+                show_episode = ShowEpisode.search_for_episode(
+                    show['title'],
+                    show['season_number'],
+                    show['episode_number'],
+                    show['episode_title'],
+                    session
+                )
+                reminder = Reminder.get_reminder_by_show(show['title'], session)
+                guide_episode = GuideEpisode(
+                    show['title'],
+                    show['channel'],
+                    show['start_time'],
+                    show['end_time'],
+                    show_episode.season_number if show_episode is not None else show['season_number'],
+                    show_episode.episode_number if show_episode is not None else show['episode_number'],
+                    show_episode.episode_title if show_episode is not None else show['episode_title'],
+                    self.id,
+                    show_details.id,
+                    show_episode.id if show_episode is not None else None,
+                    reminder.id if reminder is not None else None
+                )
+                guide_episode.add_episode(session)
+                guide_episode.check_repeat(session)
+                guide_episode.set_reminder(scheduler)
+                if 'HD' not in guide_episode.channel:
+                    guide_episode.capture_db_event(session)
+                shows_on.append(guide_episode)
         
         return shows_on
 
