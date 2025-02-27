@@ -1,5 +1,7 @@
+from datetime import datetime
 from discord import File
 
+from aux_methods.types import ShowData
 from services.hermes.hermes import hermes
 from services.hermes.utilities import send_message
 
@@ -30,6 +32,26 @@ async def on_db_not_connected(err: str):
 @hermes.event
 async def on_guide_data_fetch_failed(error: str):
     await send_message(f'There was a problem fetching the guide data.\n Error: {error}')
+
+@hermes.event
+async def on_show_details_not_found(shows_not_found: list[ShowData]):
+    import copy
+    import json
+    import os
+
+    shows_not_found_copy = copy.deepcopy(shows_not_found)
+    for show in shows_not_found_copy:
+        show['start_time'] = datetime.strftime(show['start_time'], "%d-%m-%Y %H:%M")
+        show['end_time'] = datetime.strftime(show['end_time'], "%d-%m-%Y %H:%M")
+
+    if not os.path.isdir("backup"):
+        os.mkdir("backup")
+    with open("backup/shows_not_found.json", "w+") as fd:
+        json.dump(shows_not_found_copy, fd, indent="\t")
+
+    file = File("backup/shows_not_found.json", "Shows not found.json")
+
+    await send_message("The details for these shows were not found", file)
 
 
 @hermes.event

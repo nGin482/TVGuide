@@ -85,10 +85,11 @@ class Guide(Base):
         
         shows_data.sort(key=lambda show: (show['start_time'], show['channel']))
 
-        show_data_to_file(shows_data)
-
+        # show_data_to_file(shows_data)
 
         shows_on: list['GuideEpisode'] = []
+        shows_not_found: list[ShowData] = []
+
         for show in shows_data:
             show_details = ShowDetails.get_show_by_title(show['title'], session)
             if show_details:
@@ -119,6 +120,12 @@ class Guide(Base):
                 if 'HD' not in guide_episode.channel:
                     guide_episode.capture_db_event(session)
                 shows_on.append(guide_episode)
+            else:
+                shows_not_found.append(show)
+        
+        if len(shows_not_found) > 0:
+            from services.hermes.hermes import hermes
+            hermes.dispatch("show_details_not_found", shows_not_found)
         
         return shows_on
 
