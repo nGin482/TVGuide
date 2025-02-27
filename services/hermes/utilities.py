@@ -3,7 +3,7 @@ import os
 
 from services.hermes.hermes import hermes
 
-async def send_message(message: str, file: File = None):
+async def send_channel_message(message: str, file: File = None):
     if os.getenv('PYTHON_ENV') == 'development' or os.getenv('PYTHON_ENV') == 'testing':
         channel_id = int(os.getenv('DEV_CHANNEL'))
     else:
@@ -18,3 +18,12 @@ async def send_message(message: str, file: File = None):
     else:
         ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
         await ngin.send(f'{message}\nHermes was also unable to send this message through the TVGuide channel')
+
+async def send_ngin_message(message: str, file: File = None):
+    ngin_id = int(os.getenv("NGIN"))
+    ngin = await hermes.fetch_user(ngin_id)
+    
+    if file:
+        await ngin.send(message, file=file)
+    else:
+        await ngin.send(message)
