@@ -116,7 +116,6 @@ class Guide(Base):
                 )
                 guide_episode.add_episode(session)
                 guide_episode.check_repeat(session)
-                guide_episode.set_reminder(scheduler)
                 if 'HD' not in guide_episode.channel:
                     guide_episode.capture_db_event(session)
                 shows_on.append(guide_episode)
@@ -206,6 +205,7 @@ class Guide(Base):
         try:
             self.add_guide(session)
             self.fta_shows = self.search_free_to_air(scheduler)
+            self.schedule_reminders(scheduler)
         except OperationalError as error:
             Guide.logger.error(f"Could not create guide: {str(error)}")
             session.rollback()
@@ -217,6 +217,27 @@ class Guide(Base):
     def get_shows(self, session: Session):
         self.fta_shows = GuideEpisode.get_shows_for_date(self.date, session)
 
+    def schedule_reminders(self, scheduler: AsyncIOScheduler):
+        shows_with_reminders = [
+            show for show in self.fta_shows
+            if show.reminder is not None
+            and "HD" not in show.channel
+            and show.start_time > self.date
+        ]
+        
+        if scheduler:
+            from apscheduler.triggers.date import DateTrigger
+            from services.hermes.utilities import send_channel_message
+            for show in shows_with_reminders:
+                show.reminder.calculate_notification_time(show.start_time)
+                scheduler.add_job(
+                    send_channel_message,
+                    DateTrigger(run_date=show.reminder.notify_time, timezone='Australia/Sydney'),
+                    [show.reminder_notification()],
+                    id=f'reminder-{show.reminder.show}-{show.start_time}',
+                    name=f'Send the reminder message for {show.reminder.show}',
+                    misfire_grace_time=None
+                )
 
     def compose_message(self):
         """

@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, select, Text
 from sqlalchemy.orm import Mapped, relationship, Session
 from typing import TYPE_CHECKING
+import logging
 
 from database import Base
 from database.models.ShowDetailsModel import ShowDetails
@@ -33,6 +34,9 @@ class GuideEpisode(Base):
     show_details: Mapped['ShowDetails'] = relationship('ShowDetails', back_populates="guide_episodes", uselist=False)
     show_episode: Mapped['ShowEpisode'] = relationship('ShowEpisode', back_populates='guide_episodes', uselist=False)
     reminder: Mapped['Reminder'] = relationship('Reminder', back_populates='guide_episodes', uselist=False)
+
+    logger = logging.getLogger("GuideEpisode")
+    logger.setLevel(logging.DEBUG)
 
     def __init__(
         self,
@@ -88,21 +92,6 @@ class GuideEpisode(Base):
         else:
             self.repeat = False
         session.commit()
-
-    def set_reminder(self, scheduler: AsyncIOScheduler = None):
-        if self.reminder and 'HD' not in self.channel and self.start_time.hour > 9:
-            self.reminder.calculate_notification_time(self.start_time)
-            if scheduler:
-                from apscheduler.triggers.date import DateTrigger
-                from services.hermes.utilities import send_channel_message
-                scheduler.add_job(
-                    send_channel_message,
-                    DateTrigger(run_date=self.reminder.notify_time, timezone='Australia/Sydney'),
-                    [self.reminder_notification()],
-                    id=f'reminder-{self.reminder.show}-{self.start_time}',
-                    name=f'Send the reminder message for {self.reminder.show}',
-                    misfire_grace_time=None
-                )
 
     def capture_db_event(self, session: Session):
 
