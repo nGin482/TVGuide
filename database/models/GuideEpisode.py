@@ -94,9 +94,9 @@ class GuideEpisode(Base):
             self.reminder.calculate_notification_time(self.start_time)
             if scheduler:
                 from apscheduler.triggers.date import DateTrigger
-                from services.hermes.utilities import send_message
+                from services.hermes.utilities import send_channel_message
                 scheduler.add_job(
-                    send_message,
+                    send_channel_message,
                     DateTrigger(run_date=self.reminder.notify_time, timezone='Australia/Sydney'),
                     [self.reminder_notification()],
                     id=f'reminder-{self.reminder.show}-{self.start_time}',
