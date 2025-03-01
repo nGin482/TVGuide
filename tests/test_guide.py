@@ -20,9 +20,9 @@ class TestGuide(unittest.TestCase):
         with open('tests/test_data/fta_data.json') as fd:
             self.fta_data = json.load(fd)
 
-    @patch('sqlalchemy.orm.session.Session.merge')
     @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('sqlalchemy.orm.session.Session.scalar')
+    @patch('sqlalchemy.orm.session.Session.execute')
+    @patch('database.models.Reminder.get_reminder_by_show')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
     @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
     @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
@@ -34,8 +34,8 @@ class TestGuide(unittest.TestCase):
         mock_show_detail: MagicMock,
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
+        mock_execute: MagicMock,
         mock_session_commit: MagicMock,
-        mock_session_merge: MagicMock
     ):
         mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
@@ -49,7 +49,7 @@ class TestGuide(unittest.TestCase):
         ]
         mock_reminder.return_value = None
         mock_session_commit.return_value = "added"
-        mock_session_merge.side_effect = [True, True, True, True, True]
+        mock_execute.return_value = None
         
         guide = Guide(datetime(2023, 10, 30))
         guide.create_new_guide()
@@ -65,9 +65,9 @@ class TestGuide(unittest.TestCase):
         self.assertEqual(guide_show_all_details[0].episode_title, "The Sontaran Strategem")
         self.assertEqual(mock_session_commit(), "added")
 
-    @patch('sqlalchemy.orm.session.Session.merge')
     @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('sqlalchemy.orm.session.Session.scalar')
+    @patch('sqlalchemy.orm.session.Session.execute')
+    @patch('database.models.Reminder.get_reminder_by_show')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
     @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
     @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
@@ -79,10 +79,11 @@ class TestGuide(unittest.TestCase):
         mock_show_detail: MagicMock,
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
+        mock_execute: MagicMock,
         mock_session_commit: MagicMock,
-        mock_session_merge: MagicMock
     ):
         mock_source_data.return_value = self.fta_data
+        mock_execute.return_value = None
         mock_search_items.return_value = search_items
         mock_show_detail.return_value = show_details[0]
         mock_show_episode.side_effect = [
@@ -94,7 +95,7 @@ class TestGuide(unittest.TestCase):
         ]
         mock_reminder.return_value = None
         mock_session_commit.return_value = "added"
-        mock_session_merge.side_effect = [True, True, True, True, True]
+        # mock_session_execute.return_value = None
         
         guide = Guide(datetime(2024, 10, 12))
         guide.create_new_guide()
@@ -103,7 +104,7 @@ class TestGuide(unittest.TestCase):
         self.assertEqual(guide.fta_shows[3].episode_number, 7)
         self.assertEqual(self.fta_data['schedule'][0]['listing'][2]['episode_title'], "The Unicorn and the Wasp")
 
-    @patch('sqlalchemy.orm.session.Session.merge')
+    @patch('sqlalchemy.orm.session.Session.execute')
     @patch('sqlalchemy.orm.session.Session.commit')
     @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
@@ -118,7 +119,7 @@ class TestGuide(unittest.TestCase):
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
         mock_session_commit: MagicMock,
-        mock_session_merge: MagicMock
+        mock_session_execute: MagicMock
     ):
         mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
@@ -132,7 +133,7 @@ class TestGuide(unittest.TestCase):
         ]
         mock_reminder.return_value = None
         mock_session_commit.return_value = "added"
-        mock_session_merge.side_effect = [True, True, True, True, True]
+        mock_session_execute.return_value = None
         
         guide = Guide(datetime(2024, 10, 12))
         guide.create_new_guide()
@@ -142,7 +143,7 @@ class TestGuide(unittest.TestCase):
         self.assertEqual(guide.fta_shows[4].episode_title, "")
 
     # test search item removes one
-    @patch('sqlalchemy.orm.session.Session.merge')
+    @patch('sqlalchemy.orm.session.Session.execute')
     @patch('sqlalchemy.orm.session.Session.commit')
     @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
@@ -159,7 +160,7 @@ class TestGuide(unittest.TestCase):
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
         mock_session_commit: MagicMock,
-        mock_session_merge: MagicMock
+        mock_session_execute: MagicMock,
     ):
         mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
@@ -174,14 +175,14 @@ class TestGuide(unittest.TestCase):
         ]
         mock_reminder.return_value = None
         mock_session_commit.return_value = "added"
-        mock_session_merge.side_effect = [True, True, True, True, True]
+        mock_session_execute.return_value = None
         
         guide = Guide(datetime(2024, 10, 12))
         guide.create_new_guide()
 
         self.assertEqual(len(guide.fta_shows), 4)
     
-    @patch('sqlalchemy.orm.session.Session.merge')
+    @patch('sqlalchemy.orm.session.Session.execute')
     @patch('sqlalchemy.orm.session.Session.commit')
     @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
@@ -196,7 +197,7 @@ class TestGuide(unittest.TestCase):
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
         mock_session_commit: MagicMock,
-        mock_session_merge: MagicMock
+        mock_session_execute: MagicMock
     ):
         mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
@@ -210,14 +211,14 @@ class TestGuide(unittest.TestCase):
         ]
         mock_reminder.return_value = None
         mock_session_commit.return_value = "added"
-        mock_session_merge.side_effect = [True, True, True, True, True]
+        mock_session_execute.return_value = None
         
         guide = Guide(datetime(2024, 10, 12))
         guide.create_new_guide()
 
         self.assertTrue(all(guide.fta_shows[i].start_time <= guide.fta_shows[i+1].start_time for i in range(len(guide.fta_shows) - 1)))
     
-    @patch('sqlalchemy.orm.session.Session.merge')
+    @patch('sqlalchemy.orm.session.Session.execute')
     @patch('sqlalchemy.orm.session.Session.commit')
     @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
@@ -232,7 +233,7 @@ class TestGuide(unittest.TestCase):
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
         mock_session_commit: MagicMock,
-        mock_session_merge: MagicMock
+        mock_session_execute: MagicMock
     ):
         mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
@@ -246,7 +247,7 @@ class TestGuide(unittest.TestCase):
         ]
         mock_reminder.return_value = None
         mock_session_commit.return_value = "added"
-        mock_session_merge.side_effect = [True, True, True, True, True]
+        mock_session_execute.return_value = None
 
         guide = Guide(datetime(2024, 10, 12))
 
@@ -287,7 +288,7 @@ class TestGuide(unittest.TestCase):
         self.assertEqual(schedule[1]['channel'], "ABC2")
         self.assertEqual(len(schedule[1]['listing']), 1)
     
-    @patch('sqlalchemy.orm.session.Session.merge')
+    @patch('sqlalchemy.orm.session.Session.execute')
     @patch('sqlalchemy.orm.session.Session.commit')
     @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
@@ -302,7 +303,7 @@ class TestGuide(unittest.TestCase):
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
         mock_session_commit: MagicMock,
-        mock_session_merge: MagicMock
+        mock_session_execute: MagicMock
     ):
         mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
@@ -316,14 +317,14 @@ class TestGuide(unittest.TestCase):
         ]
         mock_reminder.return_value = None
         mock_session_commit.return_value = "added"
-        mock_session_merge.side_effect = [True, True, True, True, True]
+        mock_session_execute = None
         
         guide = Guide(datetime(2024, 10, 12))
         guide.create_new_guide()
 
         self.assertIn('12-10-2024', guide.compose_message())
 
-    @patch('sqlalchemy.orm.session.Session.merge')
+    @patch('sqlalchemy.orm.session.Session.execute')
     @patch('sqlalchemy.orm.session.Session.commit')
     @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
@@ -338,7 +339,7 @@ class TestGuide(unittest.TestCase):
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
         mock_session_commit: MagicMock,
-        mock_session_merge: MagicMock
+        mock_session_execute: MagicMock
     ):
         mock_source_data.return_value = { 'schedule': [] }
         mock_search_items.return_value = search_items
@@ -352,14 +353,14 @@ class TestGuide(unittest.TestCase):
         ]
         mock_reminder.return_value = None
         mock_session_commit.return_value = "added"
-        mock_session_merge.side_effect = [True, True, True, True, True]
+        mock_session_execute.return_value = None
         
         guide = Guide(datetime(2024, 10, 12))
         guide.create_new_guide()
 
         self.assertIn('Nothing on Free to Air today', guide.compose_message())
 
-    @patch('sqlalchemy.orm.session.Session.merge')
+    @patch('sqlalchemy.orm.session.Session.execute')
     @patch('sqlalchemy.orm.session.Session.commit')
     @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
@@ -374,7 +375,7 @@ class TestGuide(unittest.TestCase):
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
         mock_session_commit: MagicMock,
-        mock_session_merge: MagicMock
+        mock_session_execute: MagicMock
     ):
         mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
@@ -388,7 +389,7 @@ class TestGuide(unittest.TestCase):
         ]
         mock_reminder.return_value = None
         mock_session_commit.return_value = "added"
-        mock_session_merge.side_effect = [True, True, True, True, True]
+        mock_session_execute.return_value = None
         
         guide = Guide(datetime(2024, 10, 12))
         guide.create_new_guide()
@@ -404,7 +405,7 @@ class TestGuide(unittest.TestCase):
 
         self.assertIn(expected, guide.compose_message())
     
-    @patch('sqlalchemy.orm.session.Session.merge')
+    @patch('sqlalchemy.orm.session.Session.execute')
     @patch('sqlalchemy.orm.session.Session.commit')
     @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
@@ -419,7 +420,7 @@ class TestGuide(unittest.TestCase):
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
         mock_session_commit: MagicMock,
-        mock_session_merge: MagicMock
+        mock_session_execute: MagicMock
     ):
         mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
@@ -433,16 +434,16 @@ class TestGuide(unittest.TestCase):
         ]
         mock_reminder.return_value = None
         mock_session_commit.return_value = "added"
-        mock_session_merge.side_effect = [True, True, True, True, True]
+        mock_session_execute.return_value = None
         
         guide = Guide(datetime(2024, 10, 12))
         guide.create_new_guide()
 
         self.assertIn('There are no reminders scheduled for today', guide.compose_reminder_message())
 
-    @patch('sqlalchemy.orm.session.Session.merge')
     @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('sqlalchemy.orm.session.Session.scalar')
+    @patch('sqlalchemy.orm.session.Session.execute')
+    @patch('database.models.Reminder.get_reminder_by_show')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
     @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
     @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
@@ -454,8 +455,8 @@ class TestGuide(unittest.TestCase):
         mock_show_detail: MagicMock,
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
+        mock_execute: MagicMock,
         mock_session_commit: MagicMock,
-        mock_session_merge: MagicMock
     ):
         mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
@@ -469,7 +470,7 @@ class TestGuide(unittest.TestCase):
         ]
         mock_reminder.side_effect = [reminders[0], reminders[0], reminders[0], reminders[0], reminders[0]]
         mock_session_commit.return_value = "added"
-        mock_session_merge.side_effect = [True, True, True, True, True]
+        mock_execute.return_value = None
 
         guide = Guide(datetime(2023, 10, 30))
         guide.create_new_guide()
@@ -485,7 +486,7 @@ class TestGuide(unittest.TestCase):
         self.assertIn('REMINDER: Doctor Who is on ABC1 at 03:00', reminders_message)
         self.assertIn('REMINDER: Doctor Who is on ABC1 at 03:50', reminders_message)
 
-    @patch('sqlalchemy.orm.session.Session.merge')
+    @patch('sqlalchemy.orm.session.Session.execute')
     @patch('sqlalchemy.orm.session.Session.commit')
     @patch('sqlalchemy.orm.session.Session.scalar')
     @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
@@ -500,7 +501,7 @@ class TestGuide(unittest.TestCase):
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
         mock_session_commit: MagicMock,
-        mock_session_merge: MagicMock
+        mock_session_execute: MagicMock
     ):
         mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
@@ -514,7 +515,7 @@ class TestGuide(unittest.TestCase):
         ]
         mock_reminder.return_value = None
         mock_session_commit.return_value = "added"
-        mock_session_merge.side_effect = [True, True, True, True, True]
+        mock_session_execute.return_value = None
         
         guide = Guide(datetime(2024, 10, 12))
         guide.create_new_guide()
