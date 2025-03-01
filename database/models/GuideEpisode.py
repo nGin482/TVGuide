@@ -83,6 +83,7 @@ class GuideEpisode(Base):
         session.commit()
 
     def check_repeat(self, session: Session):
+        print("show episode exists", self.show_episode)
         if self.show_episode:
             self.repeat = len(self.show_episode.air_dates) > 0
         else:
@@ -131,25 +132,44 @@ class GuideEpisode(Base):
             show_episode.add_episode(session)
             return show_episode
 
+        from sqlalchemy import insert, update
         if self.show_episode and self.show_details:
-            self.show_episode.add_air_date(self.start_time)
-            episode_details = f"Season {self.season_number} Episode {self.episode_number} ({self.episode_title})"
+            events = {}
+
+            air_dates = self.show_episode.air_dates
+            air_dates.append(self.start_time)
+            events["air_dates"] = air_dates
+
+            episode_details = f"""Season {self.season_number} Episode {self.episode_number} ({self.episode_title})"""
             self.db_event = f"{episode_details} has aired today"
             if not self.show_episode.channel_check(self.channel):
+                self.show_episode.channels.append(self.channel)
+                events["channels"] = self.show_episode.channels
                 self.db_event = self.show_episode.add_channel(self.channel)
+            statement = update(ShowEpisode).where(ShowEpisode.id == self.episode_id).values(events)
         elif self.show_details is None and self.show_episode is None:
             self.show_details = create_show_details()
             self.show_episode = create_show_episode()
+            
+            show_details_statement = insert(ShowDetails).values(self.show_details.__dict__)
+            statement = insert(ShowEpisode).values(self.show_episode.__dict__)
+
+            session.execute(show_details_statement)
             self.db_event = "This show is now being recorded"
         elif self.show_episode is None and self.show_details is not None:
             self.show_episode = create_show_episode()
+
+            statement = insert(ShowEpisode).values(self.show_episode.__dict__)
+            
             episode_details = f"Season {self.season_number} Episode {self.episode_number} ({self.episode_title})"
             self.db_event = f"{episode_details} has been inserted"
         else:
             self.show_details = create_show_details()
+
+            statement = insert(ShowDetails).values(self.show_details.__dict__)
             self.db_event = "This show is now being recorded"
 
-        session.merge(self)
+        session.execute(statement)
         session.commit()
 
     def message_string(self):
