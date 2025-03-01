@@ -41,7 +41,7 @@ class Guide(Base):
         session.delete(self)
         session.commit()
 
-    def search_free_to_air(self, scheduler: AsyncIOScheduler = None):
+    def search_free_to_air(self):
         """
 
         """
