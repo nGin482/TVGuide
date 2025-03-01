@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-from database.models.Reminder import Reminder
+from database.models.ReminderModel import Reminder
 from tests.test_data.guide_episodes import guide_episodes
 from tests.test_data.reminders import reminders
 from tests.test_data.show_episodes import dw_show_episodes
