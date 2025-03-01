@@ -223,10 +223,10 @@ class Guide(Base):
             show for show in self.fta_shows
             if show.reminder is not None
             and "HD" not in show.channel
-            and show.start_time > self.date
+            and show.start_time.hour > 9
         ]
         
-        if scheduler:
+        if len(shows_with_reminders) > 0 and scheduler:
             from apscheduler.triggers.date import DateTrigger
             from services.hermes.utilities import send_channel_message
             for show in shows_with_reminders:
