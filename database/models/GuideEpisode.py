@@ -83,7 +83,6 @@ class GuideEpisode(Base):
         session.commit()
 
     def check_repeat(self, session: Session):
-        print("show episode exists", self.show_episode)
         if self.show_episode:
             self.repeat = len(self.show_episode.air_dates) > 0
         else:
