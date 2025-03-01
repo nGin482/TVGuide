@@ -205,7 +205,7 @@ class Guide(Base):
     def create_new_guide(self, scheduler: AsyncIOScheduler = None):
         try:
             self.add_guide(session)
-            self.fta_shows = self.search_free_to_air(scheduler)
+            self.fta_shows = self.search_free_to_air()
             self.schedule_reminders(scheduler)
         except OperationalError as error:
             Guide.logger.error(f"Could not create guide: {str(error)}")
