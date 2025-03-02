@@ -1,6 +1,6 @@
 
 
-from database.models.Reminder import Reminder
+from database.models.ReminderModel import Reminder
 
 reminders = [
     Reminder(
