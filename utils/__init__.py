@@ -1,4 +1,5 @@
-
+from datetime import datetime
+import pytz
 
 def parse_show(title: str, season_number: int, episode_number: int, episode_title: str):
     from utils import transformers_handler
@@ -44,3 +45,12 @@ def format_episode_title(episode_title: str):
         episode_title = 'A ' + episode_title[0:idx_a]
 
     return episode_title
+
+def parse_datetime(date_time: str, format: str):
+    """
+    Parses a given `date_time` string using a given `format`.\n
+    Returns a timezone aware object
+    """
+    parsed_datetime = datetime.strptime(date_time, format)
+    parsed_datetime = pytz.timezone("Australia/Sydney").localize(parsed_datetime)
+    return parsed_datetime

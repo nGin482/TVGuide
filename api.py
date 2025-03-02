@@ -277,9 +277,7 @@ def reminders():
     )
     try:
         new_reminder.add_reminder(session)
-        return {
-            'reminders': new_reminder.to_dict()
-        }
+        return new_reminder.to_dict()
     except DatabaseError as err:
         return {'message': f'An error occurred creating the reminder for {show}', 'error': str(err)}, 500
     

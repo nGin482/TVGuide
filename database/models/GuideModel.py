@@ -17,6 +17,7 @@ from database.models.ShowDetailsModel import ShowDetails
 from database.models.ShowEpisodeModel import ShowEpisode
 from data_validation.validation import Validation
 from services.APIClient import APIClient
+from utils import parse_datetime
 
 
 class Guide(Base):
@@ -40,7 +41,7 @@ class Guide(Base):
         session.delete(self)
         session.commit()
 
-    def search_free_to_air(self, scheduler: AsyncIOScheduler = None):
+    def search_free_to_air(self):
         """
 
         """
@@ -59,8 +60,8 @@ class Guide(Base):
                     if "bumblebee" in title.lower():
                         title = "Transformers: Cyberverse"
                     if search_item.show.lower() in title.lower():
-                        start_time = datetime.strptime(guide_show['start_time'], '%Y-%m-%dT%H:%M:%S')
-                        end_time = datetime.strptime(guide_show['end_time'], '%Y-%m-%dT%H:%M:%S')
+                        start_time = parse_datetime(guide_show['start_time'], '%Y-%m-%dT%H:%M:%S')
+                        end_time = parse_datetime(guide_show['end_time'], '%Y-%m-%dT%H:%M:%S')
                         season_number = -1
                         episode_number = 0
                         episode_title = ''
@@ -116,7 +117,6 @@ class Guide(Base):
                 )
                 guide_episode.add_episode(session)
                 guide_episode.check_repeat(session)
-                guide_episode.set_reminder(scheduler)
                 if 'HD' not in guide_episode.channel:
                     guide_episode.capture_db_event(session)
                 shows_on.append(guide_episode)
@@ -205,7 +205,8 @@ class Guide(Base):
     def create_new_guide(self, scheduler: AsyncIOScheduler = None):
         try:
             self.add_guide(session)
-            self.fta_shows = self.search_free_to_air(scheduler)
+            self.fta_shows = self.search_free_to_air()
+            self.schedule_reminders(scheduler)
         except OperationalError as error:
             Guide.logger.error(f"Could not create guide: {str(error)}")
             session.rollback()
@@ -217,6 +218,33 @@ class Guide(Base):
     def get_shows(self, session: Session):
         self.fta_shows = GuideEpisode.get_shows_for_date(self.date, session)
 
+    def get_reminders(self):
+        shows_with_reminders = [
+            (show, show.reminder.calculate_notification_time(show.start_time))
+            for show in self.fta_shows
+            if show.reminder is not None
+            and "HD" not in show.channel
+            and show.start_time.hour >= 9
+        ]
+        
+        return shows_with_reminders
+
+    def schedule_reminders(self, scheduler: AsyncIOScheduler):
+        shows_with_reminders = self.get_reminders()
+        
+        if len(shows_with_reminders) > 0 and scheduler:
+            from apscheduler.triggers.date import DateTrigger
+            from services.hermes.utilities import send_channel_message
+            for show_reminder in shows_with_reminders:
+                show, notify_time = show_reminder
+                scheduler.add_job(
+                    send_channel_message,
+                    DateTrigger(run_date=notify_time, timezone='Australia/Sydney'),
+                    [show.reminder_notification()],
+                    id=f'reminder-{show.title}-{show.start_time}',
+                    name=f'Send the reminder message for {show.title}',
+                    misfire_grace_time=None
+                )
 
     def compose_message(self):
         """
@@ -245,13 +273,13 @@ class Guide(Base):
         return message
     
     def compose_reminder_message(self):
-        fta_reminders = [
-            show
-            for show in self.fta_shows
-            if show.reminder is not None and 'notify_time' in show.reminder.__dict__
-        ]
-        if len(fta_reminders) > 0:
-            message = '\n'.join([show.reminder_message() for show in fta_reminders])
+        shows_with_reminders = self.get_reminders()
+        
+        if len(shows_with_reminders) > 0:
+            message = '\n'.join([
+                show.reminder_message(notify_time)
+                for (show, notify_time) in shows_with_reminders
+            ])
         else:
             message = 'There are no reminders scheduled for today'
         
