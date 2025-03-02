@@ -220,10 +220,11 @@ class Guide(Base):
 
     def get_reminders(self):
         shows_with_reminders = [
-            show for show in self.fta_shows
+            (show, show.reminder.calculate_notification_time(show.start_time))
+            for show in self.fta_shows
             if show.reminder is not None
             and "HD" not in show.channel
-            and show.start_time.hour > 9
+            and show.start_time.hour >= 9
         ]
         
         return shows_with_reminders
@@ -234,14 +235,14 @@ class Guide(Base):
         if len(shows_with_reminders) > 0 and scheduler:
             from apscheduler.triggers.date import DateTrigger
             from services.hermes.utilities import send_channel_message
-            for show in shows_with_reminders:
-                show.reminder.calculate_notification_time(show.start_time)
+            for show_reminder in shows_with_reminders:
+                show, notify_time = show_reminder
                 scheduler.add_job(
                     send_channel_message,
-                    DateTrigger(run_date=show.reminder.notify_time, timezone='Australia/Sydney'),
+                    DateTrigger(run_date=notify_time, timezone='Australia/Sydney'),
                     [show.reminder_notification()],
-                    id=f'reminder-{show.reminder.show}-{show.start_time}',
-                    name=f'Send the reminder message for {show.reminder.show}',
+                    id=f'reminder-{show.title}-{show.start_time}',
+                    name=f'Send the reminder message for {show.title}',
                     misfire_grace_time=None
                 )
 
@@ -272,13 +273,13 @@ class Guide(Base):
         return message
     
     def compose_reminder_message(self):
-        fta_reminders = [
-            show
-            for show in self.fta_shows
-            if show.reminder is not None and 'notify_time' in show.reminder.__dict__
-        ]
-        if len(fta_reminders) > 0:
-            message = '\n'.join([show.reminder_message() for show in fta_reminders])
+        shows_with_reminders = self.get_reminders()
+        
+        if len(shows_with_reminders) > 0:
+            message = '\n'.join([
+                show.reminder_message(notify_time)
+                for (show, notify_time) in shows_with_reminders
+            ])
         else:
             message = 'There are no reminders scheduled for today'
         

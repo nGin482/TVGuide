@@ -25,7 +25,6 @@ class Reminder(Base):
         self.alert = alert
         self.warning_time = warning_time
         self.occasions = occasions
-        self.notify_time: datetime = None
         self.show_id = show_id
 
     @staticmethod
@@ -65,11 +64,11 @@ class Reminder(Base):
 
     def calculate_notification_time(self, episode_start_time: datetime):
         if self.alert == 'On-Start':
-            self.notify_time = episode_start_time
+            return episode_start_time
         elif self.alert == 'After':
-            self.notify_time = episode_start_time + timedelta(minutes=self.warning_time)
+            return episode_start_time + timedelta(minutes=self.warning_time)
         else:
-            self.notify_time = episode_start_time - timedelta(minutes=self.warning_time)
+            return episode_start_time - timedelta(minutes=self.warning_time)
 
     def message_format(self):
         return (

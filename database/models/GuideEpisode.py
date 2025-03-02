@@ -178,8 +178,8 @@ class GuideEpisode(Base):
     def reminder_notification(self):
         return f'REMINDER: {self.title} is on {self.channel} at {self.start_time.strftime("%H:%M")}'
     
-    def reminder_message(self):
-        return f"{self.reminder_notification()}.\nYou will be reminded at {self.reminder.notify_time.strftime('%H:%M')}"
+    def reminder_message(self, notify_time: datetime):
+        return f"{self.reminder_notification()}.\nYou will be reminded at {notify_time.strftime('%H:%M')}"
     
     def __repr__(self) -> str:
         season_number = 'Unknown' if self.season_number == -1 else self.season_number

@@ -395,11 +395,11 @@ class TestGuide(unittest.TestCase):
         guide.create_new_guide()
 
         expected = """
-        00:00: Doctor Who is on ABC1 (Season 4, Episode 4: The Sontaran Strategem)
-        00:50: Doctor Who is on ABC1 (Season 4, Episode 5: The Poison Sky)
-        01:30: Doctor Who is on ABC2 (Season 4, Episode 6: The Doctor's Daughter)
-        03:00: Doctor Who is on ABC1 (Season 4, Episode 7: The Unicorn and the Wasp)
-        03:50: Doctor Who is on ABC1 (Season Unknown, Episode 0)
+        09:00: Doctor Who is on ABC1 (Season 4, Episode 4: The Sontaran Strategem)
+        09:50: Doctor Who is on ABC1 (Season 4, Episode 5: The Poison Sky)
+        11:30: Doctor Who is on ABC2 (Season 4, Episode 6: The Doctor's Daughter)
+        13:00: Doctor Who is on ABC1 (Season 4, Episode 7: The Unicorn and the Wasp)
+        13:50: Doctor Who is on ABC1 (Season Unknown, Episode 0)
         """
         expected = dedent(expected)
 
@@ -468,7 +468,7 @@ class TestGuide(unittest.TestCase):
             dw_show_episodes[10],
             None
         ]
-        mock_reminder.side_effect = [reminders[0], reminders[0], reminders[0], reminders[0], reminders[0]]
+        mock_reminder.return_value = reminders[0]
         mock_session_commit.return_value = "added"
         mock_execute.return_value = None
 
@@ -476,15 +476,14 @@ class TestGuide(unittest.TestCase):
         guide.create_new_guide()
         for episode in guide.fta_shows:
             episode.reminder = reminders[0]
-            episode.reminder.notify_time = episode.start_time - timedelta(minutes=3)
 
         reminders_message = guide.compose_reminder_message()
 
-        self.assertIn('REMINDER: Doctor Who is on ABC1 at 00:00', reminders_message)
-        self.assertIn('REMINDER: Doctor Who is on ABC1 at 00:50', reminders_message)
-        self.assertIn('REMINDER: Doctor Who is on ABC2 at 01:30', reminders_message)
-        self.assertIn('REMINDER: Doctor Who is on ABC1 at 03:00', reminders_message)
-        self.assertIn('REMINDER: Doctor Who is on ABC1 at 03:50', reminders_message)
+        self.assertIn('REMINDER: Doctor Who is on ABC1 at 09:00', reminders_message)
+        self.assertIn('REMINDER: Doctor Who is on ABC1 at 09:50', reminders_message)
+        self.assertIn('REMINDER: Doctor Who is on ABC2 at 11:30', reminders_message)
+        self.assertIn('REMINDER: Doctor Who is on ABC1 at 13:00', reminders_message)
+        self.assertIn('REMINDER: Doctor Who is on ABC1 at 13:50', reminders_message)
 
     @patch('sqlalchemy.orm.session.Session.execute')
     @patch('sqlalchemy.orm.session.Session.commit')
