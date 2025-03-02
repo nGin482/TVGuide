@@ -3,7 +3,7 @@ from sqlalchemy.exc import NoReferencedTableError, ProgrammingError
 from database import Base, engine
 from database.models.GuideModel import Guide
 from database.models.GuideEpisode import GuideEpisode
-from database.models.Reminder import Reminder
+from database.models.ReminderModel import Reminder
 from database.models.SearchItemModel import SearchItem
 from database.models.ShowDetailsModel import ShowDetails
 from database.models.ShowEpisodeModel import ShowEpisode

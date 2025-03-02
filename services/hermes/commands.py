@@ -9,7 +9,7 @@ from config import scheduler, session
 from data_validation.validation import Validation
 from database import engine
 from database.models.GuideModel import Guide
-from database.models.Reminder import Reminder
+from database.models.ReminderModel import Reminder
 from database.models.SearchItemModel import SearchItem
 from database.models.ShowDetailsModel import ShowDetails
 from database.models.ShowEpisodeModel import ShowEpisode
