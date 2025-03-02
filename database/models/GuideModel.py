@@ -218,13 +218,18 @@ class Guide(Base):
     def get_shows(self, session: Session):
         self.fta_shows = GuideEpisode.get_shows_for_date(self.date, session)
 
-    def schedule_reminders(self, scheduler: AsyncIOScheduler):
+    def get_reminders(self):
         shows_with_reminders = [
             show for show in self.fta_shows
             if show.reminder is not None
             and "HD" not in show.channel
             and show.start_time.hour > 9
         ]
+        
+        return shows_with_reminders
+
+    def schedule_reminders(self, scheduler: AsyncIOScheduler):
+        shows_with_reminders = self.get_reminders()
         
         if len(shows_with_reminders) > 0 and scheduler:
             from apscheduler.triggers.date import DateTrigger
