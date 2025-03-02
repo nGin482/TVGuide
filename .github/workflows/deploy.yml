@@ -5,6 +5,8 @@ on:
         branches:
             master
 
+env:
+  VITE_BASE_URL: ${{secrets.VITE_BASE_URL}}
 
 jobs:
     deploy:
