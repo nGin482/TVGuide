@@ -34,9 +34,42 @@ def user_lookup_callback(_jwt_header, jwt_data):
 def index():
     return render_template('index.html')
 
+@app.route('/shows')
+def shows_page():
+    return render_template('index.html')
+
+@app.route('/shows/<string:show>')
+def show_page():
+    return render_template('index.html')
+
+@app.route('/shows/<string:show>/episodes')
+def show_episodes_page():
+    return render_template('index.html')
+
+@app.route('/shows/<string:show>/search')
+def show_search_page():
+    return render_template('index.html')
+
+@app.route('/shows/<string:show>/reminder')
+def show_reminder_page():
+    return render_template('index.html')
+
+@app.route('/login')
+def login_page():
+    return render_template('index.html')
+
+@app.route('/profile/<string:user>')
+def profile_page():
+    return render_template('index.html')
+
+@app.route('/profile/<string:user>/settings')
+def profile_settings_page():
+    return render_template('index.html')
+
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory('frontend', 'favicon.ico')
+
 
 @app.route('/api/shows', methods=['GET'])
 def shows():
