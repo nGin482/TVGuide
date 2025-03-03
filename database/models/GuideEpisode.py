@@ -140,7 +140,6 @@ class GuideEpisode(Base):
             self.show_episode = create_show_episode()
             
             show_details_insert_values = self.show_details.to_dict()
-            del show_details_insert_values['id']
             show_episode_insert_values = self.show_episode.to_dict()
             del show_episode_insert_values['id']
 
@@ -163,7 +162,6 @@ class GuideEpisode(Base):
             self.show_details = create_show_details()
 
             show_details_insert_values = self.show_details.to_dict()
-            del show_details_insert_values['id']
 
             statement = insert(ShowDetails).values(show_details_insert_values)
             self.db_event = "This show is now being recorded"
