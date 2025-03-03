@@ -60,8 +60,8 @@ class Guide(Base):
                     if "bumblebee" in title.lower():
                         title = "Transformers: Cyberverse"
                     if search_item.show.lower() in title.lower():
-                        start_time = parse_datetime(guide_show['start_time'], '%Y-%m-%dT%H:%M:%S')
-                        end_time = parse_datetime(guide_show['end_time'], '%Y-%m-%dT%H:%M:%S')
+                        start_time = datetime.strptime(guide_show['start_time'], '%Y-%m-%dT%H:%M:%S')
+                        end_time = datetime.strptime(guide_show['end_time'], '%Y-%m-%dT%H:%M:%S')
                         season_number = -1
                         episode_number = 0
                         episode_title = ''
