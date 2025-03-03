@@ -139,22 +139,33 @@ class GuideEpisode(Base):
             self.show_details = create_show_details()
             self.show_episode = create_show_episode()
             
-            show_details_statement = insert(ShowDetails).values(self.show_details.__dict__)
-            statement = insert(ShowEpisode).values(self.show_episode.__dict__)
+            show_details_insert_values = self.show_details.to_dict()
+            del show_details_insert_values['id']
+            show_episode_insert_values = self.show_episode.to_dict()
+            del show_episode_insert_values['id']
+
+            show_details_statement = insert(ShowDetails).values(show_details_insert_values)
+            statement = insert(ShowEpisode).values(show_episode_insert_values)
 
             session.execute(show_details_statement)
             self.db_event = "This show is now being recorded"
         elif self.show_episode is None and self.show_details is not None:
             self.show_episode = create_show_episode()
 
-            statement = insert(ShowEpisode).values(self.show_episode.__dict__)
+            show_episode_insert_values = self.show_episode.to_dict()
+            del show_episode_insert_values['id']
+            
+            statement = insert(ShowEpisode).values(show_episode_insert_values)
             
             episode_details = f"Season {self.season_number} Episode {self.episode_number} ({self.episode_title})"
             self.db_event = f"{episode_details} has been inserted"
         else:
             self.show_details = create_show_details()
 
-            statement = insert(ShowDetails).values(self.show_details.__dict__)
+            show_details_insert_values = self.show_details.to_dict()
+            del show_details_insert_values['id']
+
+            statement = insert(ShowDetails).values(show_details_insert_values)
             self.db_event = "This show is now being recorded"
 
         session.execute(statement)
