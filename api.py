@@ -39,19 +39,19 @@ def shows_page():
     return render_template('index.html')
 
 @app.route('/shows/<string:show>')
-def show_page():
+def show_page(show: str):
     return render_template('index.html')
 
 @app.route('/shows/<string:show>/episodes')
-def show_episodes_page():
+def show_episodes_page(show: str):
     return render_template('index.html')
 
 @app.route('/shows/<string:show>/search')
-def show_search_page():
+def show_search_page(show: str):
     return render_template('index.html')
 
 @app.route('/shows/<string:show>/reminder')
-def show_reminder_page():
+def show_reminder_page(show: str):
     return render_template('index.html')
 
 @app.route('/login')
@@ -59,11 +59,11 @@ def login_page():
     return render_template('index.html')
 
 @app.route('/profile/<string:user>')
-def profile_page():
+def profile_page(user: str):
     return render_template('index.html')
 
 @app.route('/profile/<string:user>/settings')
-def profile_settings_page():
+def profile_settings_page(user: str):
     return render_template('index.html')
 
 @app.route('/favicon.ico')
