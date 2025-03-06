@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, select, Text
 from sqlalchemy.orm import Mapped, relationship, Session
 from typing import TYPE_CHECKING
+import logging
 
 from database import Base
 from database.models.ShowDetailsModel import ShowDetails
@@ -33,6 +34,9 @@ class GuideEpisode(Base):
     show_details: Mapped['ShowDetails'] = relationship('ShowDetails', back_populates="guide_episodes", uselist=False)
     show_episode: Mapped['ShowEpisode'] = relationship('ShowEpisode', back_populates='guide_episodes', uselist=False)
     reminder: Mapped['Reminder'] = relationship('Reminder', back_populates='guide_episodes', uselist=False)
+
+    logger = logging.getLogger("GuideEpisode")
+    logger.setLevel(logging.DEBUG)
 
     def __init__(
         self,
@@ -89,21 +93,6 @@ class GuideEpisode(Base):
             self.repeat = False
         session.commit()
 
-    def set_reminder(self, scheduler: AsyncIOScheduler = None):
-        if self.reminder and 'HD' not in self.channel and self.start_time.hour > 9:
-            self.reminder.calculate_notification_time(self.start_time)
-            if scheduler:
-                from apscheduler.triggers.date import DateTrigger
-                from services.hermes.utilities import send_message
-                scheduler.add_job(
-                    send_message,
-                    DateTrigger(run_date=self.reminder.notify_time, timezone='Australia/Sydney'),
-                    [self.reminder_notification()],
-                    id=f'reminder-{self.reminder.show}-{self.start_time}',
-                    name=f'Send the reminder message for {self.reminder.show}',
-                    misfire_grace_time=None
-                )
-
     def capture_db_event(self, session: Session):
 
         def create_show_details():
@@ -131,25 +120,53 @@ class GuideEpisode(Base):
             show_episode.add_episode(session)
             return show_episode
 
+        from sqlalchemy import insert, update
         if self.show_episode and self.show_details:
-            self.show_episode.add_air_date(self.start_time)
-            episode_details = f"Season {self.season_number} Episode {self.episode_number} ({self.episode_title})"
+            events = {}
+
+            air_dates = self.show_episode.air_dates
+            air_dates.append(self.start_time)
+            events["air_dates"] = air_dates
+
+            episode_details = f"""Season {self.season_number} Episode {self.episode_number} ({self.episode_title})"""
             self.db_event = f"{episode_details} has aired today"
             if not self.show_episode.channel_check(self.channel):
+                self.show_episode.channels.append(self.channel)
+                events["channels"] = self.show_episode.channels
                 self.db_event = self.show_episode.add_channel(self.channel)
+            statement = update(ShowEpisode).where(ShowEpisode.id == self.episode_id).values(events)
         elif self.show_details is None and self.show_episode is None:
             self.show_details = create_show_details()
             self.show_episode = create_show_episode()
+            
+            show_details_insert_values = self.show_details.to_dict()
+            show_episode_insert_values = self.show_episode.to_dict()
+            del show_episode_insert_values['id']
+
+            show_details_statement = insert(ShowDetails).values(show_details_insert_values)
+            statement = insert(ShowEpisode).values(show_episode_insert_values)
+
+            session.execute(show_details_statement)
             self.db_event = "This show is now being recorded"
         elif self.show_episode is None and self.show_details is not None:
             self.show_episode = create_show_episode()
+
+            show_episode_insert_values = self.show_episode.to_dict()
+            del show_episode_insert_values['id']
+            
+            statement = insert(ShowEpisode).values(show_episode_insert_values)
+            
             episode_details = f"Season {self.season_number} Episode {self.episode_number} ({self.episode_title})"
             self.db_event = f"{episode_details} has been inserted"
         else:
             self.show_details = create_show_details()
+
+            show_details_insert_values = self.show_details.to_dict()
+
+            statement = insert(ShowDetails).values(show_details_insert_values)
             self.db_event = "This show is now being recorded"
 
-        session.merge(self)
+        session.execute(statement)
         session.commit()
 
     def message_string(self):
@@ -170,8 +187,8 @@ class GuideEpisode(Base):
     def reminder_notification(self):
         return f'REMINDER: {self.title} is on {self.channel} at {self.start_time.strftime("%H:%M")}'
     
-    def reminder_message(self):
-        return f"{self.reminder_notification()}.\nYou will be reminded at {self.reminder.notify_time.strftime('%H:%M')}"
+    def reminder_message(self, notify_time: datetime):
+        return f"{self.reminder_notification()}.\nYou will be reminded at {notify_time.strftime('%H:%M')}"
     
     def __repr__(self) -> str:
         season_number = 'Unknown' if self.season_number == -1 else self.season_number

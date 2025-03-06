@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-from database.models.Reminder import Reminder
+from database.models.ReminderModel import Reminder
 from tests.test_data.guide_episodes import guide_episodes
 from tests.test_data.reminders import reminders
 from tests.test_data.show_episodes import dw_show_episodes
@@ -116,35 +116,35 @@ class TestReminder(TestCase):
     def test_reminder_calculate_notification_time_before(self):
 
         start_time = datetime(year=2024, month=10, day=19, hour=20, minute=30)
-        reminders[0].calculate_notification_time(start_time)
+        reminder_notify_time = reminders[0].calculate_notification_time(start_time)
 
         notify_time = datetime(year=2024, month=10, day=19, hour=20, minute=27)
         difference = notify_time - start_time
 
         self.assertEqual(abs(difference.total_seconds()) / 60, reminders[0].warning_time)
-        self.assertEqual(reminders[0].notify_time, notify_time)
+        self.assertEqual(reminder_notify_time, notify_time)
 
     def test_reminder_calculate_notification_time_onstart(self):
 
         start_time = datetime(year=2024, month=10, day=19, hour=20, minute=30)
-        reminders[3].calculate_notification_time(start_time)
+        reminder_notify_time = reminders[3].calculate_notification_time(start_time)
 
         notify_time = datetime(year=2024, month=10, day=19, hour=20, minute=30)
         difference = notify_time - start_time
 
         self.assertEqual(abs(difference.total_seconds()) / 60, reminders[3].warning_time)
-        self.assertEqual(reminders[3].notify_time, notify_time)
+        self.assertEqual(reminder_notify_time, notify_time)
 
     def test_reminder_calculate_notification_time_after(self):
 
         start_time = datetime(year=2024, month=10, day=19, hour=20, minute=30)
-        reminders[4].calculate_notification_time(start_time)
+        reminder_notify_time = reminders[4].calculate_notification_time(start_time)
 
         notify_time = datetime(year=2024, month=10, day=19, hour=20, minute=34)
         difference = notify_time - start_time
 
         self.assertEqual(abs(difference.total_seconds()) / 60, reminders[4].warning_time)
-        self.assertEqual(reminders[4].notify_time, notify_time)
+        self.assertEqual(reminder_notify_time, notify_time)
 
     def test_reminder_to_dict(self):
 
