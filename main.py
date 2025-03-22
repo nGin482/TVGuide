@@ -47,7 +47,7 @@ async def send_main_message():
     """
     date = Validation.get_current_date()
     guide = Guide(date)
-    guide.create_new_guide()
+    guide.create_new_guide(scheduler)
     guide_message = guide.compose_message()
     
     await hermes.wait_until_ready()
