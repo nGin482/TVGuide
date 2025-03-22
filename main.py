@@ -55,6 +55,8 @@ async def send_main_message():
     ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
     try:
         await tvguide_channel.send(guide_message)
+        await tvguide_channel.send(guide.compose_reminder_message())
+        await ngin.send(guide.compose_events_message())
     except HTTPException as error:
         if 'In content: Must be 2000 or fewer in length' in error.text:
             bbc_index = guide_message.find('\nBBC:\n')
@@ -74,11 +76,8 @@ async def send_main_message():
                 await tvguide_channel.send(bbc_pm_message)
             else:
                 await tvguide_channel.send(bbc_message)
-    except AttributeError:
-        await ngin.send('The channel resolved to NoneType so the message could not be sent')
-    finally:
-        await tvguide_channel.send(guide.compose_reminder_message())
-        await ngin.send(guide.compose_events_message())
+    except (AttributeError, TypeError, ValueError) as error:
+        await ngin.send(f"There was a problem sending the TVGuide. Error: {str(error)}")
 
 
 if __name__ == '__main__':
