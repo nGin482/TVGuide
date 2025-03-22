@@ -9,12 +9,8 @@ load_dotenv('.env')
 from database import engine
 
 
-
-database = os.getenv('DATABASE_NAME')
-database_connection = os.getenv('TVGUIDE_DB')
-
 scheduler = AsyncIOScheduler()
-if os.getenv("DB_URL"):
+if engine:
     jobstore = SQLAlchemyJobStore(
         engine=engine,
         tablename='Jobs',
