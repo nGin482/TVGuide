@@ -1,6 +1,6 @@
 from __future__ import annotations
 from datetime import datetime, timedelta
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, select, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, insert, Integer, select, Text, update
 from sqlalchemy.orm import Mapped, relationship, Session
 from typing import TYPE_CHECKING
 import logging
@@ -120,7 +120,6 @@ class GuideEpisode(Base):
             show_episode.add_episode(session)
             return show_episode
 
-        from sqlalchemy import insert, update
         if self.show_episode and self.show_details:
             events = {}
 

@@ -3,12 +3,14 @@ from discord import TextChannel
 from discord.errors import HTTPException
 from dotenv import load_dotenv
 from requests import get
+from sqlalchemy.orm import Session
 import os
 
 os.environ['PYTHON_ENV'] = 'production'
 from aux_methods.helper_methods import split_message_by_time
 from config import scheduler
 from data_validation.validation import Validation
+from database import engine
 from database.models.GuideModel import Guide
 from services.hermes.hermes import hermes
 
@@ -46,7 +48,9 @@ async def send_main_message():
     :return: n/a
     """
     date = Validation.get_current_date()
-    guide = Guide(date)
+    session = Session(engine, expire_on_commit=False)
+    
+    guide = Guide(date, session)
     guide.create_new_guide(scheduler)
     guide_message = guide.compose_message()
     
@@ -78,6 +82,8 @@ async def send_main_message():
                 await tvguide_channel.send(bbc_message)
     except (AttributeError, TypeError, ValueError) as error:
         await ngin.send(f"There was a problem sending the TVGuide. Error: {str(error)}")
+    finally:
+        session.close()
 
 
 if __name__ == '__main__':
