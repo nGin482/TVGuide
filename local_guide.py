@@ -1,6 +1,7 @@
 from aiohttp.client_exceptions import ClientConnectorError
 from discord import TextChannel
 from dotenv import load_dotenv
+from sqlalchemy.orm import Session
 import click
 import os
 
@@ -86,14 +87,17 @@ def run_guide(date: str, discord: bool, schedule: bool):
     import sys
 
     from config import scheduler
+    from database import engine
     from database.models.GuideModel import Guide
+
+    session = Session(engine, expire_on_commit=False)
 
     if re.search(r"\d{2}(-|\/)\d{2}(-|\/)\d{4}", date):
         date = date.replace('/', '-')
     else:
         sys.exit('Please provide a date in the format of DD-MM-YYYY or DD/MM/YYYY')
     
-    guide = Guide(datetime.strptime(date, '%d-%m-%Y'))
+    guide = Guide(datetime.strptime(date, '%d-%m-%Y'), session)
     if schedule:
         scheduler.remove_all_jobs()
         guide.create_new_guide(scheduler)
@@ -106,7 +110,9 @@ def run_guide(date: str, discord: bool, schedule: bool):
     )
     if discord:
         try:
-            hermes.loop.create_task(send_main_message(guide_message, reminders_message, events_message))
+            hermes.loop.create_task(
+                send_main_message(guide_message, reminders_message, events_message)
+            )
             hermes.run(os.getenv('HERMES'))
         except ClientConnectorError:
             print(guide_message)
