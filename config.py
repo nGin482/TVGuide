@@ -20,5 +20,3 @@ if engine:
 else:
     print("No database connection string to create JobStore")
 scheduler.start() # table is created when the scheduler is started
-
-session = Session(engine, expire_on_commit=False)

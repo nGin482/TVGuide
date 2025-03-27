@@ -1,8 +1,9 @@
 from psycopg2.errors import Error, InvalidTextRepresentation
 from sqlalchemy.exc import SQLAlchemyError, DataError
+from sqlalchemy.orm import Session
 import os
 
-from config import session
+from database import engine
 from database.DatabaseService import DatabaseService
 from database.models.GuideModel import Guide
 from database.models.GuideEpisode import GuideEpisode
@@ -19,6 +20,7 @@ from services.tvmaze import tvmaze_api
 # migrate reminders
 # migrate users
 
+session = Session(engine)
 database_service = DatabaseService(os.getenv("TVGUIDE_DB"), os.getenv("DATABASE_NAME"))
 search_items = database_service.get_search_list()
 recorded_shows = database_service.get_all_recorded_shows()
