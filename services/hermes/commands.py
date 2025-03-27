@@ -103,13 +103,14 @@ async def remove_show(ctx: Context, show: str):
     else:
         reply = f"A search item for '{show}' could not be found"    
     await ctx.send(reply)
+    session.close()
 
 @hermes.command()
-async def send_guide(ctx: Context, date = None):
-    date = Validation.get_current_date() if date is None else parse_date_from_command(date)
+async def send_guide(ctx: Context, date: str = None):
+    guide_date = Validation.get_current_date() if date is None else parse_date_from_command(date)
     session = Session(engine, expire_on_commit=False)
     
-    guide = Guide(date, session)
+    guide = Guide(guide_date, session)
     guide.create_new_guide(scheduler)
     guide_message, reminders_message, events_message = (
         guide.compose_message(),
@@ -155,6 +156,7 @@ async def send_guide_record(ctx: Context, date_to_send: str):
         await ctx.send(guide.compose_message())
     else:
         await ctx.send(f'A Guide record for {convert_date} could not be found.')
+    session.close()
 
 @hermes.command()
 async def revert_tvguide(ctx: Context, date_to_delete: str = None):
@@ -226,6 +228,7 @@ async def create_reminder(
         reminder = Reminder(show, reminder_alert, int(warning_time), occasions, show_details.id)
         reminder.add_reminder(session)
         await ctx.send(f'A reminder has been created for {show}')
+    session.close()
 
 @hermes.command()
 async def view_reminder(ctx: Context, show: str):
@@ -236,6 +239,7 @@ async def view_reminder(ctx: Context, show: str):
         await ctx.send(reminder.message_format())
     else:
         await ctx.send(f"A reminder for '{show}' could not be found")
+    session.close()    
 
 @hermes.command()
 async def update_reminder(ctx: Context, show: str, attribute: str, value: str):
@@ -249,17 +253,19 @@ async def update_reminder(ctx: Context, show: str, attribute: str, value: str):
         await ctx.send(f"The reminder for '{show}' has been updated. It's details are now:\n{reminder.message_format()}")
     else:
         await ctx.send(f"A reminder for '{show}' could not be found")
+    session.close()
 
 @hermes.command()
 async def delete_reminder(ctx: Context, show: str):
     session = Session(engine)
-    
+
     reminder = Reminder.get_reminder_by_show(show, session)
     if reminder:
         reminder.delete_reminder(session)
         await ctx.send(f'The Reminder for {show} has been removed')
     else:
         await ctx.send(f'A Reminder for {show} could not be found')
+    session.close()
 
 # @hermes.command()
 # async def backup_shows(ctx: Context):

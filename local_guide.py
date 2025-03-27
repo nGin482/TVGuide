@@ -122,6 +122,7 @@ def run_guide(date: str, discord: bool, schedule: bool):
         print(guide_message)
         print(reminders_message)
         print(events_message)
+    session.close()
 
 
 if __name__ == '__main__':
