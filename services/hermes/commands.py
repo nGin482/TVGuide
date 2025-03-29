@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 import os
 
 from aux_methods.helper_methods import parse_date_from_command, split_message_by_time
-from config import scheduler, session
+from config import scheduler
 from data_validation.validation import Validation
 from database import engine
 from database.models.GuideModel import Guide
@@ -28,12 +28,23 @@ async def migrate(ctx: Context):
 
 @hermes.command()
 async def show_list(ctx: Context):
+    session = Session(engine)
+
     all_search_items = [search_item.show for search_item in SearchItem.get_active_searches(session)]
     show_list = '\n'.join([all_search_items])
     await ctx.send(f"The Search List includes:\n{show_list}")
+    session.close()
 
 @hermes.command()
-async def add_show(ctx: Context, show: str, season_start: int = 0, season_end: int = 0, include_specials: bool = False):
+async def add_show(
+    ctx: Context,
+    show: str,
+    season_start: int = 0,
+    season_end: int = 0,
+    include_specials: bool = False
+):
+    session = Session(engine)
+    
     try:
         tvmaze_data = tvmaze_api.get_show(show)
         show_details = ShowDetails(
@@ -45,7 +56,11 @@ async def add_show(ctx: Context, show: str, season_start: int = 0, season_end: i
         )
         show_details.add_show(session)
 
-        show_episodes = tvmaze_api.get_show_episodes(str(tvmaze_data['id']), season_start, include_specials=include_specials)
+        show_episodes = tvmaze_api.get_show_episodes(
+            str(tvmaze_data['id']),
+            season_start,
+            include_specials=include_specials
+        )
         show_episodes = [
             ShowEpisode(
                 episode['show'],
@@ -73,9 +88,12 @@ async def add_show(ctx: Context, show: str, season_start: int = 0, season_end: i
     except (SearchItemAlreadyExistsError, DatabaseError) as err:
         reply = f'Error: {str(err)}. The SearchList has not been modified.'
     await ctx.send(reply)
+    session.close()
 
 @hermes.command()
 async def remove_show(ctx: Context, show: str):
+    session = Session(engine)
+
     search_item = SearchItem.get_search_item(show, session)
     if search_item:
         search_item.delete_search(session)
@@ -85,11 +103,14 @@ async def remove_show(ctx: Context, show: str):
     else:
         reply = f"A search item for '{show}' could not be found"    
     await ctx.send(reply)
+    session.close()
 
 @hermes.command()
-async def send_guide(ctx: Context, date = None):
-    date = Validation.get_current_date() if date is None else parse_date_from_command(date)
-    guide = Guide(date)
+async def send_guide(ctx: Context, date: str = None):
+    guide_date = Validation.get_current_date() if date is None else parse_date_from_command(date)
+    session = Session(engine, expire_on_commit=False)
+    
+    guide = Guide(guide_date, session)
     guide.create_new_guide(scheduler)
     guide_message, reminders_message, events_message = (
         guide.compose_message(),
@@ -121,6 +142,7 @@ async def send_guide(ctx: Context, date = None):
     finally:
         await ctx.send(reminders_message)
         await ngin.send(events_message)
+        session.close()
 
 @hermes.command()
 async def send_guide_record(ctx: Context, date_to_send: str):
@@ -134,6 +156,7 @@ async def send_guide_record(ctx: Context, date_to_send: str):
         await ctx.send(guide.compose_message())
     else:
         await ctx.send(f'A Guide record for {convert_date} could not be found.')
+    session.close()
 
 @hermes.command()
 async def revert_tvguide(ctx: Context, date_to_delete: str = None):
@@ -185,7 +208,15 @@ async def revert_tvguide(ctx: Context, date_to_delete: str = None):
 #         await ctx.send(f'{show} could not be found in the database')
 
 @hermes.command()
-async def create_reminder(ctx: Context, show: str, reminder_alert: str = 'Before', warning_time: str = '3', occasions: str = 'All'):
+async def create_reminder(
+    ctx: Context,
+    show: str,
+    reminder_alert: str = 'Before',
+    warning_time: str = '3', 
+    occasions: str = 'All'
+):
+    session = Session(engine)
+
     show_details = ShowDetails.get_show_by_title(show, session)
     reminder_exists = Reminder.get_reminder_by_show(show, session)
     search_item_exists = SearchItem.get_search_item(show, session)
@@ -197,17 +228,23 @@ async def create_reminder(ctx: Context, show: str, reminder_alert: str = 'Before
         reminder = Reminder(show, reminder_alert, int(warning_time), occasions, show_details.id)
         reminder.add_reminder(session)
         await ctx.send(f'A reminder has been created for {show}')
+    session.close()
 
 @hermes.command()
 async def view_reminder(ctx: Context, show: str):
+    session = Session(engine)
+
     reminder = Reminder.get_reminder_by_show(show, session)
     if reminder:
         await ctx.send(reminder.message_format())
     else:
         await ctx.send(f"A reminder for '{show}' could not be found")
+    session.close()    
 
 @hermes.command()
 async def update_reminder(ctx: Context, show: str, attribute: str, value: str):
+    session = Session(engine)
+
     reminder = Reminder.get_reminder_by_show(show, session)
     if reminder:
         if attribute == 'warning_time':
@@ -216,15 +253,19 @@ async def update_reminder(ctx: Context, show: str, attribute: str, value: str):
         await ctx.send(f"The reminder for '{show}' has been updated. It's details are now:\n{reminder.message_format()}")
     else:
         await ctx.send(f"A reminder for '{show}' could not be found")
+    session.close()
 
 @hermes.command()
 async def delete_reminder(ctx: Context, show: str):
+    session = Session(engine)
+
     reminder = Reminder.get_reminder_by_show(show, session)
     if reminder:
         reminder.delete_reminder(session)
         await ctx.send(f'The Reminder for {show} has been removed')
     else:
         await ctx.send(f'A Reminder for {show} could not be found')
+    session.close()
 
 # @hermes.command()
 # async def backup_shows(ctx: Context):

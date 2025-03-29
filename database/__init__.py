@@ -9,7 +9,7 @@ class Base(DeclarativeBase):
 try:
     db_url = os.getenv("DB_URL")
     if db_url is not None:
-        engine = create_engine(os.getenv('DB_URL'), pool_pre_ping=True)
+        engine = create_engine(db_url, pool_pre_ping=True, pool_recycle=1800)
     else:
         engine = None
 except KeyError:
