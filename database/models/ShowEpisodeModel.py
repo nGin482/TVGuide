@@ -1,5 +1,17 @@
 from datetime import datetime
-from sqlalchemy import ARRAY, Column, DateTime, ForeignKey, func, Integer, select, Text
+from sqlalchemy import (
+    any_,
+    ARRAY,
+    Column,
+    DateTime,
+    ForeignKey,
+    func,
+    Integer,
+    literal,
+    or_,
+    select,
+    Text,
+)
 from sqlalchemy.orm import Mapped, relationship, Session
 from typing import TYPE_CHECKING
 
@@ -59,7 +71,13 @@ class ShowEpisode(Base):
         return episode
     
     @staticmethod
-    def search_for_episode(show_title: str, season_number: int, episode_number: int, episode_title: str, session: Session):
+    def search_for_episode(
+        show_title: str,
+        season_number: int,
+        episode_number: int,
+        episode_title: str,
+        session: Session
+    ):
         if season_number == -1 and episode_number == 0 and episode_title == '':
             return None
         
@@ -72,7 +90,10 @@ class ShowEpisode(Base):
         else:
             query = select(ShowEpisode).where(
                 ShowEpisode.show == show_title,
-                ShowEpisode.episode_title.ilike(episode_title)
+                or_(
+                    ShowEpisode.episode_title.ilike(episode_title),
+                    literal(episode_title).like(any_(ShowEpisode.alternative_titles))
+                )
             )
 
         show_episode = session.scalar(query)
