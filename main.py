@@ -3,12 +3,14 @@ from discord import TextChannel
 from discord.errors import HTTPException
 from dotenv import load_dotenv
 from requests import get
+from sqlalchemy.orm import Session
 import os
 
 os.environ['PYTHON_ENV'] = 'production'
 from aux_methods.helper_methods import split_message_by_time
 from config import scheduler
 from data_validation.validation import Validation
+from database import engine
 from database.models.GuideModel import Guide
 from services.hermes.hermes import hermes
 
@@ -46,8 +48,10 @@ async def send_main_message():
     :return: n/a
     """
     date = Validation.get_current_date()
-    guide = Guide(date)
-    guide.create_new_guide()
+    session = Session(engine, expire_on_commit=False)
+    
+    guide = Guide(date, session)
+    guide.create_new_guide(scheduler)
     guide_message = guide.compose_message()
     
     await hermes.wait_until_ready()
@@ -55,6 +59,8 @@ async def send_main_message():
     ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
     try:
         await tvguide_channel.send(guide_message)
+        await tvguide_channel.send(guide.compose_reminder_message())
+        await ngin.send(guide.compose_events_message())
     except HTTPException as error:
         if 'In content: Must be 2000 or fewer in length' in error.text:
             bbc_index = guide_message.find('\nBBC:\n')
@@ -74,11 +80,10 @@ async def send_main_message():
                 await tvguide_channel.send(bbc_pm_message)
             else:
                 await tvguide_channel.send(bbc_message)
-    except AttributeError:
-        await ngin.send('The channel resolved to NoneType so the message could not be sent')
+    except (AttributeError, TypeError, ValueError) as error:
+        await ngin.send(f"There was a problem sending the TVGuide. Error: {str(error)}")
     finally:
-        await tvguide_channel.send(guide.compose_reminder_message())
-        await ngin.send(guide.compose_events_message())
+        session.close()
 
 
 if __name__ == '__main__':

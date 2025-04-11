@@ -8,7 +8,6 @@ import logging
 
 from aux_methods.helper_methods import build_episode, convert_utc_to_local, show_data_to_file
 from aux_methods.types import ShowData
-from config import session
 from database import Base
 from database.models.GuideEpisode import GuideEpisode
 from database.models.ReminderModel import Reminder
@@ -28,18 +27,19 @@ class Guide(Base):
 
     logger = logging.getLogger("Guide")
     
-    def __init__(self, date: datetime):
+    def __init__(self, date: datetime, session: Session):
         self.date = date
         self.fta_shows = []
         self.bbc_shows = []
+        self.session = session
 
-    def add_guide(self, session: Session):
-        session.add(self)
-        session.commit()
+    def add_guide(self):
+        self.session.add(self)
+        self.session.commit()
 
-    def delete_guide(self, session: Session):
-        session.delete(self)
-        session.commit()
+    def delete_guide(self):
+        self.session.delete(self)
+        self.session.commit()
 
     def search_free_to_air(self):
         """
@@ -51,7 +51,7 @@ class Guide(Base):
         schedule = self.get_source_data(
             f"https://cdn.iview.abc.net.au/epg/processed/Sydney_{self.date.strftime('%Y-%m-%d')}.json"
         )['schedule']
-        search_list = SearchItem.get_active_searches(session)
+        search_list = SearchItem.get_active_searches(self.session)
 
         for channel_data in schedule:
             for guide_show in channel_data['listing']:
@@ -92,16 +92,16 @@ class Guide(Base):
         shows_not_found: list[ShowData] = []
 
         for show in shows_data:
-            show_details = ShowDetails.get_show_by_title(show['title'], session)
+            show_details = ShowDetails.get_show_by_title(show['title'], self.session)
             if show_details:
                 show_episode = ShowEpisode.search_for_episode(
                     show['title'],
                     show['season_number'],
                     show['episode_number'],
                     show['episode_title'],
-                    session
+                    self.session
                 )
-                reminder = Reminder.get_reminder_by_show(show['title'], session)
+                reminder = Reminder.get_reminder_by_show(show['title'], self.session)
                 guide_episode = GuideEpisode(
                     show['title'],
                     show['channel'],
@@ -115,10 +115,10 @@ class Guide(Base):
                     show_episode.id if show_episode is not None else None,
                     reminder.id if reminder is not None else None
                 )
-                guide_episode.add_episode(session)
-                guide_episode.check_repeat(session)
+                guide_episode.add_episode(self.session)
+                guide_episode.check_repeat(self.session)
                 if 'HD' not in guide_episode.channel:
-                    guide_episode.capture_db_event(session)
+                    guide_episode.capture_db_event(self.session)
                 shows_on.append(guide_episode)
             else:
                 shows_not_found.append(show)
@@ -141,7 +141,7 @@ class Guide(Base):
             f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-uktv?timezone=Australia%2FSydney&date={search_date}'
         )
 
-        search_list = SearchItem.get_active_searches(session)
+        search_list = SearchItem.get_active_searches(self.session)
 
         show_list = []
 
@@ -204,19 +204,19 @@ class Guide(Base):
     
     def create_new_guide(self, scheduler: AsyncIOScheduler = None):
         try:
-            self.add_guide(session)
+            self.add_guide()
             self.fta_shows = self.search_free_to_air()
             self.schedule_reminders(scheduler)
         except OperationalError as error:
             Guide.logger.error(f"Could not create guide: {str(error)}")
-            session.rollback()
+            self.session.rollback()
         except PendingRollbackError as error:
             Guide.logger.error(f"Could not create guide: {str(error)}")
-            session.rollback()
+            self.session.rollback()
         # self.bbc_shows = self.search_bbc_australia()
     
-    def get_shows(self, session: Session):
-        self.fta_shows = GuideEpisode.get_shows_for_date(self.date, session)
+    def get_shows(self):
+        self.fta_shows = GuideEpisode.get_shows_for_date(self.date, self.session)
 
     def get_reminders(self):
         shows_with_reminders = [

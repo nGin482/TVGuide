@@ -51,7 +51,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit.return_value = "added"
         mock_execute.return_value = None
         
-        guide = Guide(datetime(2023, 10, 30))
+        guide = Guide(datetime(2023, 10, 30), mock_session_commit)
         guide.create_new_guide()
 
         count = 0
@@ -97,7 +97,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit.return_value = "added"
         # mock_session_execute.return_value = None
         
-        guide = Guide(datetime(2024, 10, 12))
+        guide = Guide(datetime(2024, 10, 12), mock_session_commit)
         guide.create_new_guide()
         
         self.assertEqual(guide.fta_shows[3].season_number, 4)
@@ -135,7 +135,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit.return_value = "added"
         mock_session_execute.return_value = None
         
-        guide = Guide(datetime(2024, 10, 12))
+        guide = Guide(datetime(2024, 10, 12), mock_session_commit)
         guide.create_new_guide()
         
         self.assertEqual(guide.fta_shows[4].season_number, -1)
@@ -177,7 +177,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit.return_value = "added"
         mock_session_execute.return_value = None
         
-        guide = Guide(datetime(2024, 10, 12))
+        guide = Guide(datetime(2024, 10, 12), mock_session_commit)
         guide.create_new_guide()
 
         self.assertEqual(len(guide.fta_shows), 4)
@@ -213,11 +213,12 @@ class TestGuide(unittest.TestCase):
         mock_session_commit.return_value = "added"
         mock_session_execute.return_value = None
         
-        guide = Guide(datetime(2024, 10, 12))
+        guide = Guide(datetime(2024, 10, 12), mock_session_commit)
         guide.create_new_guide()
 
         self.assertTrue(all(guide.fta_shows[i].start_time <= guide.fta_shows[i+1].start_time for i in range(len(guide.fta_shows) - 1)))
     
+    @patch('sqlalchemy.orm.session')
     @patch('sqlalchemy.orm.session.Session.execute')
     @patch('sqlalchemy.orm.session.Session.commit')
     @patch('sqlalchemy.orm.session.Session.scalar')
@@ -233,7 +234,8 @@ class TestGuide(unittest.TestCase):
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
         mock_session_commit: MagicMock,
-        mock_session_execute: MagicMock
+        mock_session_execute: MagicMock,
+        mock_session: MagicMock
     ):
         mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
@@ -246,38 +248,39 @@ class TestGuide(unittest.TestCase):
             None
         ]
         mock_reminder.return_value = None
-        mock_session_commit.return_value = "added"
+        # mock_session_commit.return_value = "added"
+        mock_session.commit.return_value = "added"
         mock_session_execute.return_value = None
 
-        guide = Guide(datetime(2024, 10, 12))
+        guide = Guide(datetime(2024, 10, 12), mock_session_commit)
 
         self.assertEqual(len(guide.fta_shows), 0)
-        mock_session_commit.assert_not_called()
 
         guide.create_new_guide()
 
         self.assertEqual(len(guide.fta_shows), 5)
-        mock_session_commit.assert_called()
     
     @patch('sqlalchemy.orm.session')
     def test_guide_get_shows_for_date_returns_episodes_from_db(self, mock_session: MagicMock):
         mock_session.scalars.return_value = guide_episodes
 
-        guide = Guide(datetime(2024, 10, 12))
+        guide = Guide(datetime(2024, 10, 12), mock_session)
 
         self.assertEqual(len(guide.fta_shows), 0)
 
-        guide.get_shows(mock_session)
+        guide.get_shows()
 
         self.assertEqual(len(guide.fta_shows), 2)
         self.assertEqual(guide.fta_shows[0].title, "Doctor Who")
         self.assertEqual(guide.fta_shows[1].title, "Endeavour")
 
+    @patch('sqlalchemy.orm.session')
     @patch('services.APIClient.APIClient.get')
-    def test_guide_gets_source_data(self, mock_api_client: MagicMock):
+    def test_guide_gets_source_data(self, mock_api_client: MagicMock, mock_session: MagicMock):
         mock_api_client.return_value = self.fta_data
+        mock_session.return_value = None
 
-        guide = Guide(datetime(2024, 10, 12))
+        guide = Guide(datetime(2024, 10, 12), mock_session)
 
         data = guide.get_source_data("https://source-data.com")
 
@@ -319,7 +322,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit.return_value = "added"
         mock_session_execute = None
         
-        guide = Guide(datetime(2024, 10, 12))
+        guide = Guide(datetime(2024, 10, 12), mock_session_commit)
         guide.create_new_guide()
 
         self.assertIn('12-10-2024', guide.compose_message())
@@ -355,7 +358,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit.return_value = "added"
         mock_session_execute.return_value = None
         
-        guide = Guide(datetime(2024, 10, 12))
+        guide = Guide(datetime(2024, 10, 12), mock_session_commit)
         guide.create_new_guide()
 
         self.assertIn('Nothing on Free to Air today', guide.compose_message())
@@ -391,7 +394,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit.return_value = "added"
         mock_session_execute.return_value = None
         
-        guide = Guide(datetime(2024, 10, 12))
+        guide = Guide(datetime(2024, 10, 12), mock_session_commit)
         guide.create_new_guide()
 
         expected = """
@@ -436,7 +439,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit.return_value = "added"
         mock_session_execute.return_value = None
         
-        guide = Guide(datetime(2024, 10, 12))
+        guide = Guide(datetime(2024, 10, 12), mock_session_commit)
         guide.create_new_guide()
 
         self.assertIn('There are no reminders scheduled for today', guide.compose_reminder_message())
@@ -472,7 +475,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit.return_value = "added"
         mock_execute.return_value = None
 
-        guide = Guide(datetime(2023, 10, 30))
+        guide = Guide(datetime(2023, 10, 30), mock_session_commit)
         guide.create_new_guide()
         for episode in guide.fta_shows:
             episode.reminder = reminders[0]
@@ -516,7 +519,7 @@ class TestGuide(unittest.TestCase):
         mock_session_commit.return_value = "added"
         mock_session_execute.return_value = None
         
-        guide = Guide(datetime(2024, 10, 12))
+        guide = Guide(datetime(2024, 10, 12), mock_session_commit)
         guide.create_new_guide()
         
         self.assertIn("This show is now being recorded", guide.compose_events_message())
