@@ -13,10 +13,11 @@ from api_blueprints import (
     reminder_blueprint,
     reminders_blueprint,
     search_items_blueprint,
-    shows_blueprint
+    shows_blueprint,
+    show_episodes_blueprint,
 )
 from database import engine
-from database.models import SearchItem, ShowEpisode, User, UserSearchSubscription
+from database.models import SearchItem, User, UserSearchSubscription
 from exceptions.DatabaseError import InvalidSubscriptions
 
 app = Flask(__name__, template_folder='frontend/build', static_folder='frontend/build/assets')
@@ -76,29 +77,10 @@ def favicon():
 app.register_blueprint(guide_blueprint, url_prefix="/api/guide")
 app.register_blueprint(reminder_blueprint, url_prefix="/api/reminder")
 app.register_blueprint(reminders_blueprint, url_prefix="/api/reminders")
-app.register_blueprint(shows_blueprint, url_prefix="/api/shows")
 app.register_blueprint(search_items_blueprint, url_prefix="/api/search-item")
-        
+app.register_blueprint(shows_blueprint, url_prefix="/api/shows")
+app.register_blueprint(show_episodes_blueprint, url_prefix="/api/show-episode") 
 
-@app.route('/api/show-episode/<int:id>', methods=['PUT'])
-@jwt_required()
-def update_show_episode(id: int):
-    session = Session(engine)
-    episode = ShowEpisode.get_episode_by_id(id, session)
-    if episode:
-        episode.update_full_episode(request.json, session)
-        return episode.to_dict()
-    return { 'message': f"This episode could not be found" }, 404
-
-@app.route('/api/show-episode/<int:id>', methods=['DELETE'])
-@jwt_required()
-def delete_show_episode(id: int):
-    session = Session(engine)
-    episode = ShowEpisode.get_episode_by_id(id, session)
-    if episode:
-        episode.delete_episode(session)
-        return '', 204
-    return { 'message': f"This episode could not be found" }, 404
 
 # USERS
 @app.route('/api/user/<string:username>', methods=['GET'])
