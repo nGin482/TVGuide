@@ -1,4 +1,3 @@
-from datetime import datetime
 from dotenv import load_dotenv
 from flask import Flask, request, render_template, send_from_directory
 from flask_cors import CORS
@@ -10,6 +9,7 @@ import os
 
 load_dotenv('.env')
 from api_blueprints import (
+    guide_blueprint,
     reminder_blueprint,
     reminders_blueprint,
     search_items_blueprint,
@@ -17,7 +17,6 @@ from api_blueprints import (
 )
 from database import engine
 from database.models import SearchItem, ShowEpisode, User, UserSearchSubscription
-from database.models.GuideModel import Guide
 from exceptions.DatabaseError import InvalidSubscriptions
 
 app = Flask(__name__, template_folder='frontend/build', static_folder='frontend/build/assets')
@@ -74,25 +73,12 @@ def favicon():
     return send_from_directory('frontend', 'favicon.ico')
 
 
+app.register_blueprint(guide_blueprint, url_prefix="/api/guide")
 app.register_blueprint(reminder_blueprint, url_prefix="/api/reminder")
 app.register_blueprint(reminders_blueprint, url_prefix="/api/reminders")
 app.register_blueprint(shows_blueprint, url_prefix="/api/shows")
 app.register_blueprint(search_items_blueprint, url_prefix="/api/search-item")
         
-# GUIDE
-@app.route('/api/guide')
-def guide():
-    from data_validation.validation import Validation
-    session = Session(engine)
-    
-    if request.args.get('date'):
-        dates = request.args.get('date').split('/')
-        date = datetime(year=int(dates[2]), month=int(dates[1]), day=int(dates[0]))
-    else:
-        date = Validation.get_current_date()
-    guide = Guide(date, session)
-    guide.get_shows()
-    return guide.to_dict()
 
 @app.route('/api/show-episode/<int:id>', methods=['PUT'])
 @jwt_required()
