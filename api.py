@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
-from flask import Flask, request, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory
 from flask_cors import CORS
-from flask_jwt_extended import create_access_token, JWTManager
+from flask_jwt_extended import JWTManager
 from sqlalchemy.orm import Session
 from werkzeug.exceptions import HTTPException
 import json
@@ -9,6 +9,7 @@ import os
 
 load_dotenv('.env')
 from api_blueprints import (
+    auth_blueprint,
     guide_blueprint,
     reminder_blueprint,
     reminders_blueprint,
@@ -75,6 +76,7 @@ def favicon():
     return send_from_directory('frontend', 'favicon.ico')
 
 
+app.register_blueprint(auth_blueprint, url_prefix="/api/auth")
 app.register_blueprint(guide_blueprint, url_prefix="/api/guide")
 app.register_blueprint(reminder_blueprint, url_prefix="/api/reminder")
 app.register_blueprint(reminders_blueprint, url_prefix="/api/reminders")
@@ -86,31 +88,6 @@ app.register_blueprint(
 app.register_blueprint(shows_blueprint, url_prefix="/api/shows")
 app.register_blueprint(show_episodes_blueprint, url_prefix="/api/show-episode") 
 app.register_blueprint(user_blueprint, url_prefix="/api/user/<string:username>")
-
-@app.route('/api/auth/register', methods=['POST'])
-def register_user():
-    body = request.json
-    session = Session(engine)
-    check_user = User.search_for_user(body['username'], session)
-    if check_user:
-        return {'message': 'This username is already in use'}, 409
-    print(body)
-    user = User(body['username'], body['password'])
-    user.add_user(session)
-    return {'message': 'You have successfully been registered'}
-
-@app.route('/api/auth/login', methods=['POST'])
-def login():
-    session = Session(engine)
-    given_credentials = request.json
-    user = User.search_for_user(given_credentials['username'], session)
-    if user and user.check_password(given_credentials['password']):
-        return {
-            'username': user.username,
-            'role': user.role,
-            'token': create_access_token(identity=user.username)
-        }
-    return { 'message': 'Incorrect username or password' }, 401
 
 @app.errorhandler(HTTPException)
 def handle_exception(e: HTTPException):
