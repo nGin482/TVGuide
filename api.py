@@ -9,11 +9,16 @@ import json
 import os
 
 load_dotenv('.env')
-from api_blueprints import search_items_blueprint, shows_blueprint
+from api_blueprints import (
+    reminder_blueprint,
+    reminders_blueprint,
+    search_items_blueprint,
+    shows_blueprint
+)
 from database import engine
-from database.models import Reminder, SearchItem, ShowDetails, ShowEpisode, User, UserSearchSubscription
+from database.models import SearchItem, ShowEpisode, User, UserSearchSubscription
 from database.models.GuideModel import Guide
-from exceptions.DatabaseError import DatabaseError, InvalidSubscriptions
+from exceptions.DatabaseError import InvalidSubscriptions
 
 app = Flask(__name__, template_folder='frontend/build', static_folder='frontend/build/assets')
 CORS(app)
@@ -69,6 +74,8 @@ def favicon():
     return send_from_directory('frontend', 'favicon.ico')
 
 
+app.register_blueprint(reminder_blueprint, url_prefix="/api/reminder")
+app.register_blueprint(reminders_blueprint, url_prefix="/api/reminders")
 app.register_blueprint(shows_blueprint, url_prefix="/api/shows")
 app.register_blueprint(search_items_blueprint, url_prefix="/api/search-item")
         
@@ -106,71 +113,6 @@ def delete_show_episode(id: int):
         episode.delete_episode(session)
         return '', 204
     return { 'message': f"This episode could not be found" }, 404
-
-# REMINDERS
-@app.route('/api/reminders')
-def get_reminders():
-    try:
-        session = Session(engine)
-        reminders = [reminder.to_dict() for reminder in Reminder.get_all_reminders(session)]
-        return reminders
-    except (KeyError, ValueError) as error:
-        return {'message': 'There was a problem retrieving the reminders', 'error': str(error)}, 500
-
-@app.route('/api/reminders', methods=['POST'])
-@jwt_required()
-def reminders():
-    session = Session(engine)
-    body = request.json
-    show: str = body['show']
-    show_check = ShowDetails.get_show_by_title(show, session)
-    reminder_check = Reminder.get_reminder_by_show(show, session)
-    if not show_check:
-        return {'message': f'{show} is not being searched for'}, 400
-    if reminder_check:
-        return {'message': f'A reminder already exists for {show}'}, 409
-    new_reminder = Reminder(
-        show,
-        body['alert'],
-        body['warning_time'],
-        body['occasions'],
-        show_check.id
-    )
-    try:
-        new_reminder.add_reminder(session)
-        return new_reminder.to_dict()
-    except DatabaseError as err:
-        return {'message': f'An error occurred creating the reminder for {show}', 'error': str(err)}, 500
-    
-@app.route('/api/reminder/<string:show>')
-def get_reminder(show: str):
-    session = Session(engine)
-    reminder = Reminder.get_reminder_by_show(show, session)
-    if reminder:
-        return reminder.to_dict()
-    return {'message': f'A reminder for {show} does not exist'}, 404
-    
-@app.route('/api/reminder/<string:show>', methods=['PUT', 'DELETE'])
-@jwt_required()
-def reminder(show: str):
-    session = Session(engine)
-    reminder = Reminder.get_reminder_by_show(show, session)
-    if reminder:
-        if request.method == 'PUT':
-            body = dict(request.json)
-            updated_reminder = Reminder.get_reminder_by_show(show, session)
-            for key in body.keys():
-                setattr(updated_reminder, key, body[key])
-            return updated_reminder.to_dict()
-        if request.method == 'DELETE':
-            current_user: User = get_current_user()
-            if current_user.role != 'Admin':
-                return {'message': f'You are not authorised to delete this reminder. Please make a request to delete it'}, 403
-            reminder = Reminder.get_reminder_by_show(show, session)
-            reminder.delete_reminder(session)
-            reminders = [reminder.to_dict() for reminder in Reminder.get_all_reminders(session)]
-            return { 'reminders': reminders }
-    return {'message': f'A reminder for {show} does not exist'}, 404
 
 # USERS
 @app.route('/api/user/<string:username>', methods=['GET'])
