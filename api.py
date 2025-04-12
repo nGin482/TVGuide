@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 from flask import Flask, request, render_template, send_from_directory
 from flask_cors import CORS
-from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_current_user
+from flask_jwt_extended import create_access_token, JWTManager
 from sqlalchemy.orm import Session
 from werkzeug.exceptions import HTTPException
 import json
@@ -16,6 +16,7 @@ from api_blueprints import (
     search_subscription_blueprint,
     shows_blueprint,
     show_episodes_blueprint,
+    user_blueprint,
 )
 from database import engine
 from database.models import User
@@ -84,62 +85,7 @@ app.register_blueprint(
 )
 app.register_blueprint(shows_blueprint, url_prefix="/api/shows")
 app.register_blueprint(show_episodes_blueprint, url_prefix="/api/show-episode") 
-
-
-# USERS
-@app.route('/api/user/<string:username>', methods=['GET'])
-def get_user(username: str):
-    session = Session(engine)
-    user = User.search_for_user(username, session)
-    if user:
-        return user.to_dict()
-    return {'message': f'An account with the username {username} could not be found'}, 404
-
-@app.route('/api/user/<string:username>/promote', methods=['PATCH'])
-@jwt_required()
-def promote_user(username: str):
-    session = Session(engine, expire_on_commit=False)
-    current_user: User = get_current_user()
-    if current_user.role == 'Admin':
-        user = User.search_for_user(username, session)
-        if user:
-            user.promote_role()
-            session.commit()
-            session.close()
-            return '', 204
-        session.close()
-        return { 'message': f"Unable to find the user '{username}'" }, 404
-    return { 'message': 'You are not authorised to promote this user to an admin role' }, 403
-    
-@app.route('/api/user/<string:username>/change_password', methods=['PUT'])
-@jwt_required()
-def change_password(username: str):
-    current_user: User = get_current_user()
-    session = Session(engine)
-    user = User.search_for_user(username, session)
-    if user and current_user.username == user.username:
-        user.change_password(request.json['password'])
-        session.commit()
-        return user.to_dict()
-    return { 'message': "You are not authorised to change this user's password" }, 403
-
-@app.route('/api/user/<string:username>', methods=['DELETE'])
-@jwt_required()
-def delete_user(username: str):
-    session = Session(engine)
-    current_user: User = get_current_user()
-    user = User.search_for_user(username, session)
-    if current_user.username == username:
-        user.delete_user(session)
-        return { 'message': 'Your account has been deleted' }
-    elif current_user.role == 'Admin':
-        if user:
-            user.delete_user(session)
-            return { 'message': 'The account has been deleted' }
-        else:
-            return {'message': f"An account with the username '{username}' could not be found"}, 404
-    else:
-        return { 'message': 'You are not authorised to delete this user account' }
+app.register_blueprint(user_blueprint, url_prefix="/api/user/<string:username>")
 
 @app.route('/api/auth/register', methods=['POST'])
 def register_user():
