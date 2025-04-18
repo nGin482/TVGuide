@@ -10,6 +10,7 @@ import os
 load_dotenv('.env')
 from api_blueprints import (
     auth_blueprint,
+    frontend_blueprint,
     guide_blueprint,
     reminder_blueprint,
     reminders_blueprint,
@@ -22,7 +23,7 @@ from api_blueprints import (
 from database import engine
 from database.models import User
 
-app = Flask(__name__, template_folder='frontend/build', static_folder='frontend/build/assets')
+app = Flask(__name__)
 CORS(app)
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
 jwt = JWTManager(app)
@@ -35,48 +36,13 @@ def user_lookup_callback(_jwt_header, jwt_data):
     session = Session(engine)
     return User.search_for_user(jwt_data['sub'], session)
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/shows')
-def shows_page():
-    return render_template('index.html')
-
-@app.route('/shows/<string:show>')
-def show_page(show: str):
-    return render_template('index.html')
-
-@app.route('/shows/<string:show>/episodes')
-def show_episodes_page(show: str):
-    return render_template('index.html')
-
-@app.route('/shows/<string:show>/search')
-def show_search_page(show: str):
-    return render_template('index.html')
-
-@app.route('/shows/<string:show>/reminder')
-def show_reminder_page(show: str):
-    return render_template('index.html')
-
-@app.route('/login')
-def login_page():
-    return render_template('index.html')
-
-@app.route('/profile/<string:user>')
-def profile_page(user: str):
-    return render_template('index.html')
-
-@app.route('/profile/<string:user>/settings')
-def profile_settings_page(user: str):
-    return render_template('index.html')
-
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory('frontend', 'favicon.ico')
 
 
 app.register_blueprint(auth_blueprint, url_prefix="/api/auth")
+app.register_blueprint(frontend_blueprint, url_prefix="")
 app.register_blueprint(guide_blueprint, url_prefix="/api/guide")
 app.register_blueprint(reminder_blueprint, url_prefix="/api/reminder")
 app.register_blueprint(reminders_blueprint, url_prefix="/api/reminders")

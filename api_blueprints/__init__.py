@@ -1,4 +1,5 @@
 from api_blueprints.auth import auth_blueprint
+from api_blueprints.frontend import frontend_blueprint
 from api_blueprints.guide import guide_blueprint
 from api_blueprints.reminders import reminder_blueprint, reminders_blueprint
 from api_blueprints.search_items import search_items_blueprint
