@@ -1,7 +1,6 @@
 
 import { deleteRequest, getRequest, postRequest, putRequest } from "./api-client";
 import {
-    AccountDetailsFormValues,
     Guide,
     ShowEpisode,
     User,
@@ -22,23 +21,6 @@ const updateShowEpisode = async (episode: ShowEpisode, token: string) => {
     );
 };
 
-const getUser = async (username: string) => {
-    return await getRequest<User>(`/user/${username}`);
-};
-
-const changePassword = async (
-    username: string,
-    details: AccountDetailsFormValues,
-    token: string
-) => {
-    const response = await putRequest<{ password: string }, User>(
-        `/user/${username}/change_password`,
-        { password: details.password },
-        { Authorization: `Bearer ${token}` }
-    );
-
-    return response;
-};
 const getUserSubscriptions = async (user: string) => {
     const data = await getRequest(`/users/${user}/subscriptions`);
 };
@@ -64,12 +46,11 @@ export * from "./auth";
 export * from "./reminders";
 export * from "./shows";
 export * from "./search-items";
+export * from "./user";
 
 export {
     getGuide,
     updateShowEpisode,
-    getUser,
-    changePassword,
     getUserSubscriptions,
     addSubscriptions,
     unsubscribeFromSearch,
