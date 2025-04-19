@@ -20,10 +20,10 @@ type DataView = "episodes" | "search" | "reminder";
 
 const ShowPage = () => {
     const { show } = useParams<ShowParam>();
-    const [showData, setshowData] = useState<ShowData>(null);
+    const [showData, setShowData] = useState<ShowData>(null);
     const [dataView, setDataView] = useState<DataView>(null);
 
-    const { shows } = useContext(ShowsContext);
+    const { shows, setShows } = useContext(ShowsContext);
     const { currentUser } = useContext(UserContext);
     const location = useLocation();
     
@@ -34,7 +34,7 @@ const ShowPage = () => {
 
     useEffect(() => {
         const showDetail = shows.find(showData => showData.show_name === show);
-        setshowData(showDetail);
+        setShowData(showDetail);
     }, [show, shows]);
 
     const findViewFromLocation = () => {
@@ -53,6 +53,16 @@ const ShowPage = () => {
     const toggleSearch = async () => {
         const newStatus = showData.search_item.search_active ? false : true;
         const response = await toggleStatus(showData.search_item.id, newStatus, currentUser.token);
+        setShowData(current => ({ ...current, search_item: response }));
+        setShows(current => {
+            const showsList = [...current];
+            return showsList.map(showData => {
+                if (showData.show_name === show) {
+                    return { ...showData, search_item: response };
+                }
+                return showData;
+            });
+        });
     };
 
     return (
