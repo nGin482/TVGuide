@@ -11,6 +11,7 @@ import { ShowsContext, UserContext } from "../contexts";
 import { toggleStatus } from "../requests";
 import { ShowData } from "../utils/types";
 import "./styles/ShowPage.css";
+import { handleErrorResponse } from "../utils";
 
 interface ShowParam {
     show: string
@@ -53,21 +54,33 @@ const ShowPage = () => {
 
     const toggleSearch = async () => {
         const newStatus = showData.search_item.search_active ? false : true;
-        const response = await toggleStatus(showData.search_item.id, newStatus, currentUser.token);
-        setShowData(current => ({ ...current, search_item: response }));
-        setShows(current => {
-            const showsList = [...current];
-            return showsList.map(showData => {
-                if (showData.show_name === show) {
-                    return { ...showData, search_item: response };
-                }
-                return showData;
+        try {
+            const response = await toggleStatus(showData.search_item.id, newStatus, currentUser.token);
+            setShowData(current => ({ ...current, search_item: response }));
+            setShows(current => {
+                const showsList = [...current];
+                return showsList.map(showData => {
+                    if (showData.show_name === show) {
+                        return { ...showData, search_item: response };
+                    }
+                    return showData;
+                });
             });
-        });
-        notification.success({
-            message: "Success!",
-            description: `The search status for ${show} has been updated.`,
-        });
+            notification.success({
+                message: "Success!",
+                description: `The search status for ${show} has been updated.`,
+            });
+        }
+        catch(error) {
+            let message: string = error?.message;
+            if (error?.response) {
+                message = handleErrorResponse(error, "update the search status for this show");
+            }
+            notification.error({
+                message: `There was a problem updating ${show}!`,
+                description: message,
+            });
+        }
     };
 
     return (

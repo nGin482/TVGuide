@@ -140,6 +140,11 @@ interface AccountDetailsFormValues {
 
 type FormMode = "add" | "edit";
 
+export interface ErrorResponse {
+    msg?: string
+    message?: string
+}
+
 
 // Contexts
 interface ShowsContextModel {
