@@ -1,5 +1,5 @@
 
-import { deleteRequest, postRequest, putRequest } from "./api-client";
+import { deleteRequest, patchRequest, postRequest, putRequest } from "./api-client";
 import { SearchItem, SearchItemPayload } from "../utils/types";
 
 export const addSearchCriteria = async (searchCriteria: SearchItemPayload, token: string) => {
@@ -17,6 +17,16 @@ export const editSearchCriteria = async (searchCriteria: SearchItemPayload, toke
         searchCriteria,
         { Authorization: `Bearer ${token}` }
     );
+    return updatedSearchItem;
+};
+
+export const toggleStatus = async (searchId: number, status: boolean, token: string) => {
+    const updatedSearchItem = await patchRequest<{ status: boolean }, SearchItem>(
+        `/search-item/${searchId}/toggle-search`,
+        { status },
+        { Authorization: `Bearer ${token}` }
+    );
+    
     return updatedSearchItem;
 };
 

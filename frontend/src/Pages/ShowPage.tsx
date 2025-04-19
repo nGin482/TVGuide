@@ -7,7 +7,8 @@ import { ShowDetails } from "../components/ShowDetails";
 import { ShowEpisodes } from "../components/ShowEpisode";
 import { SearchItem } from "../components/SearchItem";
 import { Reminder } from "../components/Reminders";
-import { ShowsContext } from "../contexts";
+import { ShowsContext, UserContext } from "../contexts";
+import { toggleStatus } from "../requests";
 import { ShowData } from "../utils/types";
 import "./styles/ShowPage.css";
 
@@ -23,6 +24,7 @@ const ShowPage = () => {
     const [dataView, setDataView] = useState<DataView>(null);
 
     const { shows } = useContext(ShowsContext);
+    const { currentUser } = useContext(UserContext);
     const location = useLocation();
     
     useEffect(() => {
@@ -48,6 +50,11 @@ const ShowPage = () => {
         return className;
     };
 
+    const toggleSearch = async () => {
+        const newStatus = showData.search_item.search_active ? false : true;
+        const response = await toggleStatus(showData.search_item.id, newStatus, currentUser.token);
+    };
+
     return (
         showData ? (
             <div id={showData.show_name} className="show-content">
@@ -55,6 +62,11 @@ const ShowPage = () => {
                     <title>{showData.show_name} Details | TVGuide</title>
                 </Helmet>
                 <h1>{showData.show_name}</h1>
+                {showData.search_item && (
+                    <Button onClick={toggleSearch}>
+                        {showData.search_item.search_active ? "Deactivate Search" : "Activate Search"}
+                    </Button>
+                )}
                 <ShowDetails showDetails={showData.show_details} />
                 <div className="show-data-switch">
                     <NavLink to={`/shows/${showData.show_name}/episodes`}>

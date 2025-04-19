@@ -55,6 +55,7 @@ interface Reminder {
 };
 
 interface SearchItem {
+    id: number
     show: string
     exact_title_match: boolean
     search_active: boolean
