@@ -53,6 +53,22 @@ export const putRequest = async <RequestType, ResponseType>(
     return response.data;
 };
 
+export const patchRequest = async <RequestType, ResponseType>(
+    endpoint: string,
+    data: RequestType,
+    otherHeaders?: AxiosRequestConfig['headers']
+) => {
+    const response = await axios.patch<ResponseType>(
+        baseURL + endpoint,
+        data,
+        {
+            headers: headers(otherHeaders)
+        }
+    );
+
+    return response.data;
+};
+
 export const deleteRequest = async (
     endpoint: string,
     otherHeaders?: AxiosRequestConfig['headers']
