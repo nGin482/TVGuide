@@ -20,24 +20,6 @@ const getGuide = async () => {
     return await getRequest<Guide>(`/guide`);
 };
 
-export const getShows = () => {
-    return getRequest<ShowData[]>("/shows");
-}
-const addNewShow = async (newShowData: NewShowPayload, token: string): Promise<ShowData> => {
-    const newShowDetails = await postRequest<NewShowPayload, ShowData>(
-        "/shows",
-        newShowData,
-        { Authorization: `Bearer ${token}` }
-    );
-    return newShowDetails;
-};
-const removeShowFromList = async (showToRemove: string, token: string) => {
-    await deleteRequest(
-        `/shows/${showToRemove}`,
-        { Authorization: `Bearer ${token}` }
-    );
-};
-
 export const addSearchCriteria = async (searchCriteria: SearchItemPayload, token: string) => {
     const newSearchItem = await postRequest<SearchItemPayload, SearchItem>(
         `/search-item`,
@@ -136,10 +118,10 @@ const login = async (loginDetails: LoginData) => {
     return currentUser;
 };
 
+export * from "./shows";
+
 export {
     getGuide,
-    addNewShow,
-    removeShowFromList,
     getReminders,
     addReminder,
     editReminder,
