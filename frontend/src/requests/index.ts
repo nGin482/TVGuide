@@ -20,27 +20,7 @@ const getGuide = async () => {
     return await getRequest<Guide>(`/guide`);
 };
 
-export const addSearchCriteria = async (searchCriteria: SearchItemPayload, token: string) => {
-    const newSearchItem = await postRequest<SearchItemPayload, SearchItem>(
-        `/search-item`,
-        searchCriteria,
-        { Authorization: `Bearer ${token}` }
-    );
-    return newSearchItem;
-};
 
-export const editSearchCriteria = async (searchCriteria: SearchItemPayload, token: string) => {
-    const updatedSearchItem = await putRequest<SearchItemPayload, SearchItem>(
-        `/search-item/${searchCriteria.show}`,
-        searchCriteria,
-        { Authorization: `Bearer ${token}` }
-    );
-    return updatedSearchItem;
-};
-
-export const deleteSearchCriteria = async (show: string, token: string) => {
-    await deleteRequest(`/search-item/${show}`, { Authorization: `Bearer ${token}` });
-};
 
 const getReminders = async () => {
     const reminders = await getRequest<Reminder[]>("/reminders");
@@ -119,6 +99,7 @@ const login = async (loginDetails: LoginData) => {
 };
 
 export * from "./shows";
+export * from "./search-items";
 
 export {
     getGuide,
