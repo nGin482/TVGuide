@@ -8,6 +8,7 @@ import { ShowEpisodes } from "../components/ShowEpisode";
 import { SearchItem } from "../components/SearchItem";
 import { Reminder } from "../components/Reminders";
 import { ShowsContext, UserContext } from "../contexts";
+import { useShow } from "../hooks/useShow";
 import { toggleStatus } from "../requests";
 import { ShowData } from "../utils/types";
 import "./styles/ShowPage.css";
@@ -24,7 +25,8 @@ const ShowPage = () => {
     const [showData, setShowData] = useState<ShowData>(null);
     const [dataView, setDataView] = useState<DataView>(null);
 
-    const { shows, setShows } = useContext(ShowsContext);
+    const { shows } = useContext(ShowsContext);
+    const { updateShowContext } = useShow();
     const { currentUser } = useContext(UserContext);
     const { notification } = App.useApp();
     const location = useLocation();
@@ -55,17 +57,13 @@ const ShowPage = () => {
     const toggleSearch = async () => {
         const newStatus = showData.search_item.search_active ? false : true;
         try {
-            const response = await toggleStatus(showData.search_item.id, newStatus, currentUser.token);
+            const response = await toggleStatus(
+                showData.search_item.id,
+                newStatus,
+                currentUser.token
+            );
             setShowData(current => ({ ...current, search_item: response }));
-            setShows(current => {
-                const showsList = [...current];
-                return showsList.map(showData => {
-                    if (showData.show_name === show) {
-                        return { ...showData, search_item: response };
-                    }
-                    return showData;
-                });
-            });
+            updateShowContext(show, "search_item", response);
             notification.success({
                 message: "Success!",
                 description: `The search status for ${show} has been updated.`,
