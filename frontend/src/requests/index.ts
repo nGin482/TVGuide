@@ -1,13 +1,10 @@
 
-import { getRequest, putRequest } from "./api-client";
+import { putRequest } from "./api-client";
 import {
-    Guide,
     ShowEpisode,
 } from "../utils/types";
 
-const getGuide = async () => {
-    return await getRequest<Guide>(`/guide`);
-};
+
 
 
 
@@ -22,6 +19,7 @@ const updateShowEpisode = async (episode: ShowEpisode, token: string) => {
 
 
 export * from "./auth";
+export * from "./guide";
 export * from "./reminders";
 export * from "./shows";
 export * from "./search-items";
@@ -29,7 +27,6 @@ export * from "./search-subscriptions";
 export * from "./user";
 
 export {
-    getGuide,
     updateShowEpisode,
 };
 
