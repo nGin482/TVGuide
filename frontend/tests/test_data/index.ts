@@ -63,12 +63,14 @@ export const guide: Guide = {
 
 export const searchList: SearchItem[] = [
     {
+        id: 1,
         show: "Doctor Who",
         conditions: null,
         search_active: true,
         exact_title_match: true,
     },
     {
+        id: 2,
         show: "Endeavour",
         conditions: null,
         search_active: true,
@@ -77,6 +79,7 @@ export const searchList: SearchItem[] = [
 ];
 
 export const addSearchItem: SearchItem = {
+    id: 1,
     show: "Maigret",
     conditions: null,
     search_active: true,
@@ -146,6 +149,7 @@ export const shows: ShowData[] = [
             tvmaze_id: "1234"
         },
         search_item: {
+            id: 1,
             show: "Doctor Who",
             search_active: true,
             exact_title_match: true,
@@ -196,6 +200,7 @@ export const shows: ShowData[] = [
             tvmaze_id: "1234"
         },
         search_item: {
+            id: 2,
             show: "Maigret",
             exact_title_match: true,
             search_active: true,
@@ -269,6 +274,7 @@ export const updateSubscriptionsRes: CurrentUser = {
             search_id: 3,
             user_id: 2,
             search_item: {
+                id: 1,
                 show: "Vera",
                 search_active: true,
                 exact_title_match: true,
