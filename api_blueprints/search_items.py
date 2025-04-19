@@ -55,6 +55,22 @@ def update_search_item(show: str):
         return search_item.to_dict()
     return { 'message': f"No search item could be found for '{show}'" }, 404
 
+@search_items_blueprint.route("/<int:search_id>/toggle-search", methods=['PATCH'])
+@jwt_required()
+def toggle_search(search_id: str):
+    body = request.json
+    if not bool(body) or 'status' not in body:
+        return { 'message': "No data was provided to update the search item's status" }, 400
+    
+    session = Session(engine)
+    
+    search_item = SearchItem.get_search_item_by_id(search_id, session)
+    if search_item:
+        search_item.search_active = body['status']
+        session.commit()
+        return search_item.to_dict()
+    return { 'message': f"No search item could be found for this show" }, 404
+
 @search_items_blueprint.route("/<string:show>", methods=['DELETE'])
 @jwt_required()
 def delete_search_item(show: str):
