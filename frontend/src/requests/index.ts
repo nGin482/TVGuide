@@ -112,7 +112,6 @@ const changePassword = async (
 };
 const getUserSubscriptions = async (user: string) => {
     const data = await getRequest(`/users/${user}/subscriptions`);
-    console.log(data)
 };
 const addSubscriptions = async (
     username: string,

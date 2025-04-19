@@ -127,7 +127,7 @@ class GuideEpisode(Base):
             air_dates.append(self.start_time)
             events["air_dates"] = air_dates
 
-            episode_details = f"""Season {self.season_number} Episode {self.episode_number} ({self.episode_title})"""
+            episode_details = f"Season {self.season_number} Episode {self.episode_number} ({self.episode_title})"
             self.db_event = f"{episode_details} has aired today"
             if not self.show_episode.channel_check(self.channel):
                 self.show_episode.channels.append(self.channel)
