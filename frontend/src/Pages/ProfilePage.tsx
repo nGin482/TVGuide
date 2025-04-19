@@ -13,7 +13,7 @@ import {
     getUserSubscriptions,
     unsubscribeFromSearch
 } from "../requests";
-import { sessionExpiryMessage } from "../utils";
+import { handleErrorResponse } from "../utils";
 import { Guide, SubscriptionsPayload, SubscriptionsAction, User } from "../utils/types";
 import "../styles/ProfilePage.css";
 
@@ -110,11 +110,9 @@ const ProfilePage = () => {
         }
         catch(error) {
             console.error(error)
-            let errorMessage = error?.message;
+            let errorMessage: string = error?.message;
             if (error?.response) {
-                errorMessage = error?.response?.data?.msg
-                    ? sessionExpiryMessage("update your subscriptions")
-                    : error.message;
+                errorMessage = handleErrorResponse(error, "update your subscriptions");
             }
             notification.error({
                 message: "An error occurred updating your show subscriptions!",

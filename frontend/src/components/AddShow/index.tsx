@@ -22,9 +22,8 @@ import { PrevArrow, NextArrow } from "./ArrowComponents";
 import { useShow } from "../../hooks/useShow";
 import { UserContext } from "../../contexts";
 import { addNewShow, getShowSeasons, searchNewShow } from "../../requests";
-import { createSearchItemPayload, sessionExpiryMessage } from "../../utils";
+import { createSearchItemPayload, handleErrorResponse } from "../../utils";
 import {
-    ErrorResponse,
     NewShowPayload,
     SearchItemFormValues,
     TVMazeSeason,
@@ -107,11 +106,12 @@ const AddShow = ({ openModal, setOpenModal }: AddShowProps) => {
             });
         }
         catch(error) {
+            let message: string = error.message;
             if (error?.response) {
-                const response = error.response as ErrorResponse;
-                setError(response.data?.message || sessionExpiryMessage("add this show"));
-                setState('error');
+                message = handleErrorResponse(error, "add this show");
             }
+            setError(message);
+            setState('error');
         }
     };
 

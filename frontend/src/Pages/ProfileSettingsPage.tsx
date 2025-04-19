@@ -4,7 +4,7 @@ import { App, Button, Divider, Flex, Form, Input, Typography } from "antd";
 
 import { UserContext } from "../contexts";
 import { changePassword } from "../requests";
-import { sessionExpiryMessage } from "../utils";
+import { handleErrorResponse } from "../utils";
 import { AccountDetailsFormValues, CurrentUser } from "../utils/types";
 import "../styles/ProfileSettingsPage.css";
 
@@ -29,11 +29,9 @@ const ProfileSettingsPage = ({ user }: SettingsProps) => {
             });
         }
         catch(error) {
-            let message = error?.message;
+            let message: string = error?.message;
             if (error?.response) {
-                message = error?.response?.data?.msg
-                    ? sessionExpiryMessage("change your password")
-                    : error?.response?.data?.message;
+                message = handleErrorResponse(error, "change your password");
             }
             notification.error({
                 message: "An error occurred updating your password",
