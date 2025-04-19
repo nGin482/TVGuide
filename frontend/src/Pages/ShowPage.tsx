@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { NavLink, useLocation, useParams } from "react-router-dom";
-import { Alert, Button } from "antd";
+import { Alert, App, Button } from "antd";
 import { Helmet } from "react-helmet";
 
 import { ShowDetails } from "../components/ShowDetails";
@@ -25,6 +25,7 @@ const ShowPage = () => {
 
     const { shows, setShows } = useContext(ShowsContext);
     const { currentUser } = useContext(UserContext);
+    const { notification } = App.useApp();
     const location = useLocation();
     
     useEffect(() => {
@@ -62,6 +63,10 @@ const ShowPage = () => {
                 }
                 return showData;
             });
+        });
+        notification.success({
+            message: "Success!",
+            description: `The search status for ${show} has been updated.`,
         });
     };
 
