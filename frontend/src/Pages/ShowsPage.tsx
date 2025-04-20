@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet";
 import { Button, Card, Image } from "antd";
 
 import AddShow from "../components/AddShow";
+import { SearchItemTag } from "../components/SearchItemTag";
 import { ShowsContext, UserContext } from "../contexts";
 import { getSeasons } from "../utils";
 import './styles/ShowsPage.css';
@@ -38,7 +39,12 @@ const ShowsPage = () => {
                         key={show.show_name}
                         className="show"
                         onClick={() => history.push(`/shows/${show.show_name}`)}
-                        title={show.show_name}
+                        title={(
+                            <div className="card-title">
+                                <span>{show.show_name}</span>
+                                <SearchItemTag searchItem={show.search_item} />
+                            </div>
+                        )}
                         cover={<Image src={show.show_details.image} />}
                     >
                         <blockquote>

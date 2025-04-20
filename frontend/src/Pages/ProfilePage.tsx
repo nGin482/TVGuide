@@ -16,6 +16,7 @@ import {
 import { handleErrorResponse } from "../utils";
 import { Guide, SubscriptionsPayload, SubscriptionsAction, User } from "../utils/types";
 import "../styles/ProfilePage.css";
+import { SearchItemTag } from "../components/SearchItemTag";
 
 interface UserParam {
     user: string
@@ -144,7 +145,10 @@ const ProfilePage = () => {
                                     <Button onClick={() => unsubscribe(item.id)}>Unsubscribe</Button>
                                 ] : []}
                             >
-                                <span>{item.search_item.show}</span>
+                                <div className="search-item-subscription">
+                                    <Text>{item.search_item.show}</Text> {" "}
+                                    <SearchItemTag searchItem={item.search_item} />
+                                </div>
                             </List.Item>
                         )}
                         header={<strong>{viewingOwnProfile ? 'Your' : `${user}'s`} Show Subscriptions</strong>}
