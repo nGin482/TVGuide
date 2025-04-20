@@ -5,7 +5,11 @@ import { TVMazeEpisode, TVMazeSeason } from "./types/tvmaze";
 
 export const getSeasons = (showEpisodes: ShowEpisode[]) => {
     const seasonNumbers = showEpisodes.map(showEpisode => showEpisode.season_number);
-    return [...new Set(seasonNumbers)];
+    const seasonSet = new Set(seasonNumbers);
+    const seasonArray = Array.from(seasonSet).sort((a, b) => {
+        return a > b ? 1 : a === b ? 0 : -1;
+    })
+    return seasonArray;
 };
 
 export const createSearchItemPayload = (

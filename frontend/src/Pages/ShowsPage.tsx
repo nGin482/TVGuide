@@ -7,6 +7,7 @@ import AddShow from "../components/AddShow";
 import { SearchItemTag } from "../components/SearchItemTag";
 import { ShowsContext, UserContext } from "../contexts";
 import { getSeasons } from "../utils";
+import { ShowData } from "../utils/types";
 import './styles/ShowsPage.css';
 
 const ShowsPage = () => {
@@ -15,6 +16,11 @@ const ShowsPage = () => {
     const history = useHistory();
     const { shows } = useContext(ShowsContext);
     const { currentUser } = useContext(UserContext);
+
+    const seasonCount = (show: ShowData) => {
+        const seasons = getSeasons(show.show_episodes)
+        return `${seasons.length} ${seasons.length === 1 ? "season" : "seasons"}`;
+    };
 
     return (
         <div id="recorded-shows-page">
@@ -47,10 +53,7 @@ const ShowsPage = () => {
                         )}
                         cover={<Image src={show.show_details.image} />}
                     >
-                        <blockquote>
-                            {`${getSeasons(show.show_episodes).length} `}
-                            season{show.show_episodes.length > 1 && 's'}
-                        </blockquote>
+                        <blockquote>{seasonCount(show)}</blockquote>
                     </Card>
                 ))}
             </div>
