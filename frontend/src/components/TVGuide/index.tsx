@@ -22,9 +22,14 @@ const TVGuide = ({ guide, user }: { guide: Guide, user?: User }) => {
     }, []);
 
     const isShowAiring = (episode: GuideShow) => {
-        const start_time = dayjs(episode.start_time, "HH:mm");
-        const end_time = dayjs(episode.end_time, "HH:mm");
-        return currentTime.isBetween(start_time, end_time, null, "[]");
+        const startTime = dayjs(episode.start_time, "HH:mm");
+        const endTime = dayjs(episode.end_time, "HH:mm");
+        if (currentTime.isBetween(startTime, endTime, null, "[]")) {
+            return "airing";
+        }
+        else if (currentTime.isAfter(endTime)) {
+            return "finished";
+        }
     };
 
     useEffect(() => {
@@ -129,7 +134,7 @@ const TVGuide = ({ guide, user }: { guide: Guide, user?: User }) => {
                     emptyText: <EmptyTableView description="No episodes for this day" />,
                 }}
                 rowKey={record => `${record.channel}-${record.start_time}`}
-                rowClassName={(record) => isShowAiring(record) ? "airing" : ""}
+                rowClassName={(record) => isShowAiring(record)}
             />
         </div>
     );
