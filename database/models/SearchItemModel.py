@@ -77,6 +77,13 @@ class SearchItem(Base):
 
         return search_item
     
+    @staticmethod
+    def get_search_item_by_id(search_id: str, session: Session):
+        query = select(SearchItem).where(SearchItem.id == search_id)
+        search_item = session.scalar(query)
+
+        return search_item
+    
     def add_search_item(self, session: Session):
         session.add(self)
         session.commit()
@@ -98,6 +105,7 @@ class SearchItem(Base):
     
     def to_dict(self):
         return {
+            'id': self.id,
             'show': self.show,
             'search_active': self.search_active,
             'exact_title_match': self.exact_title_match,

@@ -13,7 +13,8 @@ import {
     login,
     registerNewUser,
     removeShowFromList,
-    addSubscriptions
+    addSubscriptions,
+    toggleStatus
 } from "../src/requests";
 import {
     addSearchItem,
@@ -26,9 +27,10 @@ import {
     reminders,
     searchList,
     updateSubscriptionsRes,
-    user
+    user,
+    currentUser
 } from "./test_data";
-import { AccountDetailsFormValues, Reminder } from "../src/utils/types";
+import { AccountDetailsFormValues, Reminder, SearchItem } from "../src/utils/types";
 
 jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -167,6 +169,25 @@ describe("Handling Show Data", () => {
         //     }
         // });
         // expect(maigretFound).toBe(false);
+    });
+});
+
+describe("Handle Search Items", () => {
+    test("is able to toggle a search item's status", async () => {
+        const updatedSearchItem: SearchItem = {
+            id: searchList[0].id,
+            conditions: searchList[0].conditions,
+            exact_title_match: searchList[0].exact_title_match,
+            search_active: !searchList[0].search_active,
+            show: searchList[0].show,
+        };
+        response.data = updatedSearchItem;
+
+        mockedAxios.patch.mockResolvedValue(response);
+
+        const res = await toggleStatus(searchList[0].id, false, currentUser.token);
+
+        expect(res.search_active).toEqual(false);
     });
 });
 

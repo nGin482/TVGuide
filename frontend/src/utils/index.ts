@@ -1,9 +1,15 @@
-import { NewShowPayload, SearchItemFormValues, SearchItemPayload, ShowEpisode } from "./types";
+import { AxiosResponse } from "axios";
+
+import { ErrorResponse, SearchItemFormValues, SearchItemPayload, ShowEpisode } from "./types";
 import { TVMazeEpisode, TVMazeSeason } from "./types/tvmaze";
 
 export const getSeasons = (showEpisodes: ShowEpisode[]) => {
     const seasonNumbers = showEpisodes.map(showEpisode => showEpisode.season_number);
-    return [...new Set(seasonNumbers)];
+    const seasonSet = new Set(seasonNumbers);
+    const seasonArray = Array.from(seasonSet).sort((a, b) => {
+        return a > b ? 1 : a === b ? 0 : -1;
+    })
+    return seasonArray;
 };
 
 export const createSearchItemPayload = (
@@ -61,4 +67,18 @@ export const validateTVMazeEpisodes = (episodes: TVMazeEpisode[]) => {
 
 export const sessionExpiryMessage = (action: string) => {
     return `You have been logged out. Please log in again to ${action}.`;
+};
+
+export const handleErrorResponse = (error: any, action: string) => {
+    let message = "";
+    const responseError: AxiosResponse<ErrorResponse> = error.response;
+    
+    if (responseError.data.msg) {
+        message = sessionExpiryMessage(action);
+    }
+    else {
+        message = responseError.data.message;
+    }
+
+    return message;
 };

@@ -2,8 +2,8 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { App, Form, Modal, Input, Select, Typography, Alert } from "antd";
 
-import { sessionExpiryMessage } from "../../utils";
-import { ErrorResponse, FormMode, Reminder } from "../../utils/types";
+import { handleErrorResponse } from "../../utils";
+import { FormMode, Reminder } from "../../utils/types";
 
 
 interface ReminderFormProps {
@@ -66,13 +66,7 @@ const ReminderForm = ({ mode, open, show, closeModal, successHandler, initialVal
         catch(error) {
             let message: string =  error?.message;
             if (error?.response) {
-                const responseError: ErrorResponse = error.response;
-                if (responseError.data.msg) {
-                    message = sessionExpiryMessage("add this reminder");
-                }
-                else {
-                    message = responseError.data.message;
-                }
+                message = handleErrorResponse(error, "add this reminder");
             }
             notification.error({
                 message: `Unable to ${mode} reminder for ${show}`,

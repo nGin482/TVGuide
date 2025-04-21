@@ -3,9 +3,8 @@ import { App, Checkbox, Form, Modal, Radio, Select, Space, Spin } from "antd";
 
 import { ShowsContext } from "../../contexts";
 import { getEpisodes, getShowSeasons } from "../../requests";
-import { createSearchItemPayload, sessionExpiryMessage } from "../../utils";
+import { createSearchItemPayload, handleErrorResponse } from "../../utils";
 import {
-    ErrorResponse,
     SearchItem,
     SearchItemFormValues,
     SearchItemPayload,
@@ -158,13 +157,7 @@ const SearchItemForm = (props: AddSearchItemProps) => {
         catch(error) {
             let message: string =  error?.message;
             if (error?.response) {
-                const responseError: ErrorResponse = error.response;
-                if (responseError.data.msg) {
-                    message = sessionExpiryMessage("add this search criteria");
-                }
-                else {
-                    message = responseError.data.message;
-                }
+                message = handleErrorResponse(error, "add this search criteria");
             }
             notification.error({
                 message: `Unable to add the search criteria for ${show}`,

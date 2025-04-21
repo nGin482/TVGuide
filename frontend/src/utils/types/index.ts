@@ -55,6 +55,7 @@ interface Reminder {
 };
 
 interface SearchItem {
+    id: number
     show: string
     exact_title_match: boolean
     search_active: boolean
@@ -138,6 +139,11 @@ interface AccountDetailsFormValues {
 };
 
 type FormMode = "add" | "edit";
+
+export interface ErrorResponse {
+    msg?: string
+    message?: string
+}
 
 
 // Contexts
