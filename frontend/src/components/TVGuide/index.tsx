@@ -1,13 +1,31 @@
 import { useEffect, useState } from "react";
 import { Button, Table, TableColumnsType, Tag } from "antd";
+import dayjs, { Dayjs } from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
 
 import { Guide, GuideShow, User } from "../../utils/types";
-import './TVGuide.css';
 import { EmptyTableView } from "../EmptyTableView";
+import './TVGuide.css';
+
+dayjs.extend(isBetween);
 
 const TVGuide = ({ guide, user }: { guide: Guide, user?: User }) => {
     const [service, setService] = useState('All');
     const [guideShows, setGuideShows] = useState([]);
+    const [currentTime, setCurrentTime] = useState<Dayjs>(dayjs());
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentTime(dayjs());
+        }, 60000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const isShowAiring = (episode: GuideShow) => {
+        const start_time = dayjs(episode.start_time, "HH:mm");
+        const end_time = dayjs(episode.end_time, "HH:mm");
+        return currentTime.isBetween(start_time, end_time, null, "[]");
+    };
 
     useEffect(() => {
         let guideShows: GuideShow[] = [];
@@ -111,6 +129,7 @@ const TVGuide = ({ guide, user }: { guide: Guide, user?: User }) => {
                     emptyText: <EmptyTableView description="No episodes for this day" />,
                 }}
                 rowKey={record => `${record.channel}-${record.start_time}`}
+                rowClassName={(record) => isShowAiring(record) ? "airing" : ""}
             />
         </div>
     );
