@@ -17,6 +17,7 @@ from database.models.ShowEpisodeModel import ShowEpisode
 from data_validation.validation import Validation
 from services.APIClient import APIClient
 from utils import parse_datetime
+from utils.types.models import TGuide
 
 
 class Guide(Base):
@@ -290,7 +291,7 @@ class Guide(Base):
 
         return "\n".join(fta_events)
 
-    def to_dict(self):
+    def to_dict(self) -> TGuide:
         return {
             'date': self.date.strftime('%d/%m/%Y'),
             'fta': [show.to_dict() for show in self.fta_shows]
