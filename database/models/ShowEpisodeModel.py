@@ -21,6 +21,7 @@ from data_validation.validation import Validation
 if TYPE_CHECKING:
     from database.models.GuideEpisode import GuideEpisode
     from database.models.ShowDetailsModel import ShowDetails
+    from utils.types.models import TShowEpisode
 
 
 
@@ -171,7 +172,7 @@ class ShowEpisode(Base):
         date = Validation.get_current_date() if air_date is None else air_date
         self.air_dates.append(date)
 
-    def to_dict(self):
+    def to_dict(self) -> TShowEpisode:
         return {
             'id': self.id,
             'show': self.show,

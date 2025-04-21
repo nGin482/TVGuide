@@ -6,6 +6,7 @@ from database import engine, Base
 
 if TYPE_CHECKING:
     from database.models import GuideEpisode, Reminder, SearchItem, ShowEpisode
+    from utils.types.models import TShowDetails
 
 
 class ShowDetails(Base):
@@ -61,7 +62,7 @@ class ShowDetails(Base):
         session.delete(self)
         session.commit()
 
-    def to_dict(self):
+    def to_dict(self) -> TShowDetails:
         return {
             'title': self.title,
             'description': self.description,

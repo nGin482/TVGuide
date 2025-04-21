@@ -5,6 +5,7 @@ from sqlalchemy.orm import Mapped, relationship, Session
 from aux_methods.types import ShowData
 from database import Base
 from database.models.ShowDetailsModel import ShowDetails
+from utils.types.models import TSearchItem
 
 
 class SearchItem(Base):
@@ -103,7 +104,7 @@ class SearchItem(Base):
         conditions += f"Ignore Titles={self.ignore_titles}, Ignore Seasons={self.ignore_seasons}, Ignore Episodes={self.ignore_episodes}"
         return conditions
     
-    def to_dict(self):
+    def to_dict(self) -> TSearchItem:
         return {
             'id': self.id,
             'show': self.show,
