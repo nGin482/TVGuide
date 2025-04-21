@@ -11,7 +11,6 @@ from database.models.ShowEpisodeModel import ShowEpisode
 from utils.types.models import TGuideEpisode
 
 if TYPE_CHECKING:
-    from apscheduler.schedulers.asyncio import AsyncIOScheduler
     from database.models import Reminder, ShowDetails, ShowEpisode
 
 

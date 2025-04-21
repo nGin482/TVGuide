@@ -17,11 +17,11 @@ from typing import TYPE_CHECKING
 
 from database import Base
 from data_validation.validation import Validation
+from utils.types.models import TShowEpisode
 
 if TYPE_CHECKING:
     from database.models.GuideEpisode import GuideEpisode
     from database.models.ShowDetailsModel import ShowDetails
-    from utils.types.models import TShowEpisode
 
 
 

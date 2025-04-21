@@ -2,10 +2,11 @@ from sqlalchemy import Column, ForeignKey, Integer, select
 from sqlalchemy.orm import Mapped, relationship, Session
 from typing import TYPE_CHECKING
 
-from database import Base, engine
+from database import Base
+from utils.types.models import TSearchSubscription
+
 if TYPE_CHECKING:
     from database.models import SearchItem, User
-    from utils.types.models import TSearchSubscription
 
 
 class UserSearchSubscription(Base):

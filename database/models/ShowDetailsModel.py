@@ -2,11 +2,11 @@ from sqlalchemy import ARRAY, Column, Integer, select, Text
 from sqlalchemy.orm import Mapped, relationship, Session
 from typing import TYPE_CHECKING
 
-from database import engine, Base
+from database import Base
+from utils.types.models import TShowDetails
 
 if TYPE_CHECKING:
     from database.models import GuideEpisode, Reminder, SearchItem, ShowEpisode
-    from utils.types.models import TShowDetails
 
 
 class ShowDetails(Base):

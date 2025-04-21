@@ -4,9 +4,10 @@ from typing import TYPE_CHECKING
 import bcrypt
 
 from database import Base
+from utils.types.models import TUser
+
 if TYPE_CHECKING:
     from database.models import UserSearchSubscription
-    from utils.types.models import TUser
 
 
 class User(Base):
