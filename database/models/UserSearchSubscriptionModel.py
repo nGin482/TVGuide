@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from database import Base, engine
 if TYPE_CHECKING:
     from database.models import SearchItem, User
+    from utils.types.models import TSearchSubscription
 
 
 class UserSearchSubscription(Base):
@@ -49,7 +50,7 @@ class UserSearchSubscription(Base):
         session.commit()
         print(f"User {self.user.username} has unsubscribed from {self.search_item.show}")
 
-    def to_dict(self):
+    def to_dict(self) -> TSearchSubscription:
         return {
             'id': self.id,
             'user_id': self.user_id,

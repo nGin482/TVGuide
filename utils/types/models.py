@@ -10,12 +10,12 @@ TGuideEpisode = TypedDict("GuideEpisode", {
     'episode_number': int,
     'episode_title': str,
     'repeat': bool,
-    'db_event': str
+    'db_event': str,
 })
 
 TGuide = TypedDict("Guide", {
     'date': str,
-    'fta': list[TGuideEpisode]
+    'fta': list[TGuideEpisode],
 })
 
 TShowEpisode = TypedDict("TShowEpisode", {
@@ -27,7 +27,7 @@ TShowEpisode = TypedDict("TShowEpisode", {
     'summary': str,
     'alternative_titles': list[str],
     'channels': list[str],
-    'air_dates': list[datetime]
+    'air_dates': list[datetime],
 })
 
 TSearchConditions = TypedDict("TSearchConditions", {
@@ -35,7 +35,7 @@ TSearchConditions = TypedDict("TSearchConditions", {
     'max_season_number': int,
     'ignore_titles': list[str],
     'ignore_seasons': list[int],
-    'ignore_episodes': list[str]
+    'ignore_episodes': list[str],
 })
 
 TSearchItem = TypedDict("TSearchItem", {
@@ -43,14 +43,14 @@ TSearchItem = TypedDict("TSearchItem", {
     'show': str,
     'search_active': bool,
     'exact_title_match': bool,
-    'conditions': TSearchConditions
+    'conditions': TSearchConditions,
 })
 
 TReminder = TypedDict("TReminder", {
     'show': str,
     'alert': str,
     'warning_time': int,
-    'occasions': str
+    'occasions': str,
 })
 
 TShowDetails = TypedDict("TShowDetails", {
@@ -58,7 +58,7 @@ TShowDetails = TypedDict("TShowDetails", {
     'description': str,
     'tvmaze_id': str,
     'genres': list[str],
-    'image': str
+    'image': str,
 })
 
 TShowData = TypedDict("TShowData", {
@@ -66,5 +66,18 @@ TShowData = TypedDict("TShowData", {
     "show_details": TShowDetails,
     "search_item": TSearchItem | None,
     "show_episodes": list[TShowEpisode],
-    "reminder": TReminder | None
+    "reminder": TReminder | None,
+})
+
+TSearchSubscription = TypedDict("TSearchSubscription", {
+    'id': int,
+    'user_id': int,
+    'search_item_id': int,
+    'search_item': TSearchItem,
+})
+
+TUser = TypedDict("TUser", {
+    'username': str,
+    'role': str,
+    'show_subscriptions': list[TSearchSubscription],
 })

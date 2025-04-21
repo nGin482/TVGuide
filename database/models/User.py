@@ -6,6 +6,7 @@ import bcrypt
 from database import Base
 if TYPE_CHECKING:
     from database.models import UserSearchSubscription
+    from utils.types.models import TUser
 
 
 class User(Base):
@@ -63,7 +64,7 @@ class User(Base):
     def promote_role(self):
         self.role = 'Admin'
 
-    def to_dict(self):
+    def to_dict(self) -> TUser:
         return {
             'username': self.username,
             'role': self.role,
