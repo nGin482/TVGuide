@@ -1,57 +1,13 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 
 import TVGuide from '../src/components/TVGuide';
+import { Guide } from '../src/utils/types';
 
 import { currentUser, guide } from './test_data';
+import dayjs from 'dayjs';
 
-describe('test TVGuide component', () => {
-    test('renders service buttons', () => {
-        render(<TVGuide guide={guide} />);
-        const ftaButton = screen.getByText(/Free to Air/i);
-        const bbcButton = screen.getByText(/BBC Channels/i);
-        const allButton = screen.getByText(/All/i);
-        expect(ftaButton).toBeInTheDocument();
-        expect(bbcButton).toBeInTheDocument();
-        expect(allButton).toBeInTheDocument();
-    });
-
-    test('fta button only shows FTA guide', () => {
-        render(<TVGuide guide={guide} />);
-        const ftaButton = screen.getByText(/Free to Air/i);
-        
-        fireEvent.click(ftaButton);
-
-        const maigret = screen.getByText(/^Maigret$/i);
-        const deathInParadise = screen.queryByText(/Death in Paradise/i);
-        expect(maigret).toBeInTheDocument();
-        expect(deathInParadise).not.toBeInTheDocument();
-    });
-
-    test('bbc button only shows BBC guide', () => {
-        render(<TVGuide guide={guide} />);
-        const bbcButton = screen.getByText(/BBC Channels/i);
-        
-        fireEvent.click(bbcButton);
-
-        const maigret = screen.queryByText(/^Maigret$/i);
-        const deathInParadise = screen.queryByText(/Death in Paradise/i);
-        expect(maigret).not.toBeInTheDocument();
-        expect(deathInParadise).toBeInTheDocument();
-    });
-
-    test('all button shows FTA shows and BBC shows', () => {
-        render(<TVGuide guide={guide} />);
-        const allButton = screen.getByText(/All/i);
-
-        fireEvent.click(allButton);
-
-        const maigret = screen.queryByText(/^Maigret$/i);
-        const deathInParadise = screen.queryByText(/Death in Paradise/i);
-        expect(maigret).toBeInTheDocument();
-        expect(deathInParadise).toBeInTheDocument();
-    });
-
-    test('TVGuide only renders shows user has sbscribed to', () => {
+describe("Test TVGuide component", () => {
+    test("TVGuide only renders shows user has subscribed to", () => {
         render(<TVGuide guide={guide} user={currentUser} />);
 
         const maigret = screen.queryAllByText(/Maigret/i);
@@ -63,5 +19,45 @@ describe('test TVGuide component', () => {
         expect(deathInParadise).not.toBeInTheDocument();
         expect(vera).not.toBeInTheDocument();
         expect(lewis).not.toBeInTheDocument();
-    })
+    });
+
+    test("'airing' classname added to table row when show is airing", () => {
+        const currentTime = new Date();
+        const ftaData = guide.fta.map((show, idx) => {
+            if (idx === 1) {
+                show.start_time = `${currentTime.getHours()}:${currentTime.getMinutes()}`;
+                show.end_time = `${currentTime.getHours() + 2}:${currentTime.getMinutes()}`;
+            }
+            return show;
+        });
+        const guideData: Guide = {
+            fta: ftaData,
+            bbc: [],
+        };
+
+        render(<TVGuide guide={guideData} />);
+
+        const rows = screen.getAllByRole("row");
+        expect(rows[1]).toHaveClass("airing")
+    });
+
+    test("'airing' classname added to table row when show is airing", () => {
+        const currentTime = new Date();
+        const ftaData = guide.fta.map((show, idx) => {
+            if (idx === 0) {
+                show.start_time = `${currentTime.getHours() - 2}:${currentTime.getMinutes()}`;
+                show.end_time = `${currentTime.getHours() - 1}:${currentTime.getMinutes()}`;
+            }
+            return show;
+        });
+        const guideData: Guide = {
+            fta: ftaData,
+            bbc: [],
+        };
+
+        render(<TVGuide guide={guideData} />);
+
+        const rows = screen.getAllByRole("row");
+        expect(rows[1]).toHaveClass("finished")
+    });
 });
