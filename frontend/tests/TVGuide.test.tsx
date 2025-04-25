@@ -37,11 +37,13 @@ describe("Test TVGuide component", () => {
 
         render(<TVGuide guide={guideData} />);
 
+        screen.debug()
         const rows = screen.getAllByRole("row");
+        console.log("rows", rows)
         expect(rows[1]).toHaveClass("airing")
     });
 
-    test("'airing' classname added to table row when show is airing", () => {
+    test("'finished' classname added to table row when show has finished", () => {
         const currentTime = new Date();
         const ftaData = guide.fta.map((show, idx) => {
             if (idx === 0) {
