@@ -61,8 +61,14 @@
     background-color: #90ee90;
     transition: background-color 2s linear;
 }
+.ant-table-row.airing:hover {
+    cursor: pointer;
+}
 
 .ant-table-row.finished {
     background-color: #dc143c;
     transition: background-color 2s linear;
+}
+.ant-table-row.finished:hover {
+    cursor: pointer;
 }
