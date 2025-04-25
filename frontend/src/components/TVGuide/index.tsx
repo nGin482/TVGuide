@@ -2,12 +2,16 @@ import { useEffect, useState } from "react";
 import { Table, TableColumnsType, Tag } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
+import Timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 
 import { Guide, GuideShow, User } from "../../utils/types";
 import { EmptyTableView } from "../EmptyTableView";
 import './TVGuide.css';
 
 dayjs.extend(isBetween);
+dayjs.extend(Timezone);
+dayjs.extend(utc);
 
 const TVGuide = ({ guide, user }: { guide: Guide, user?: User }) => {
     const [guideShows, setGuideShows] = useState([]);
@@ -15,7 +19,7 @@ const TVGuide = ({ guide, user }: { guide: Guide, user?: User }) => {
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setCurrentTime(dayjs());
+            setCurrentTime(dayjs().tz("Australia/Sydney"));
         }, 60000);
         return () => clearInterval(interval);
     }, []);
