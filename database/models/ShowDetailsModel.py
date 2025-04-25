@@ -2,7 +2,8 @@ from sqlalchemy import ARRAY, Column, Integer, select, Text
 from sqlalchemy.orm import Mapped, relationship, Session
 from typing import TYPE_CHECKING
 
-from database import engine, Base
+from database import Base
+from utils.types.models import TShowDetails
 
 if TYPE_CHECKING:
     from database.models import GuideEpisode, Reminder, SearchItem, ShowEpisode
@@ -61,7 +62,7 @@ class ShowDetails(Base):
         session.delete(self)
         session.commit()
 
-    def to_dict(self):
+    def to_dict(self) -> TShowDetails:
         return {
             'title': self.title,
             'description': self.description,

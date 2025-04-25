@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING
 import bcrypt
 
 from database import Base
+from utils.types.models import TUser
+
 if TYPE_CHECKING:
     from database.models import UserSearchSubscription
 
@@ -63,7 +65,7 @@ class User(Base):
     def promote_role(self):
         self.role = 'Admin'
 
-    def to_dict(self):
+    def to_dict(self) -> TUser:
         return {
             'username': self.username,
             'role': self.role,
