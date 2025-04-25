@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Table, TableColumnsType, Tag } from "antd";
+import { Table, TableColumnsType, Tag } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 
@@ -10,7 +10,6 @@ import './TVGuide.css';
 dayjs.extend(isBetween);
 
 const TVGuide = ({ guide, user }: { guide: Guide, user?: User }) => {
-    const [service, setService] = useState('All');
     const [guideShows, setGuideShows] = useState([]);
     const [currentTime, setCurrentTime] = useState<Dayjs>(dayjs());
 
@@ -33,16 +32,7 @@ const TVGuide = ({ guide, user }: { guide: Guide, user?: User }) => {
     };
 
     useEffect(() => {
-        let guideShows: GuideShow[] = [];
-        if (service === 'FTA') {
-            guideShows = [...guide.fta];
-        }
-        else if (service === 'BBC') {
-            guideShows = [...guide?.bbc || []];
-        }
-        else {
-            guideShows = [...guide.fta, ...guide?.bbc || []];
-        }
+        let guideShows = guide?.fta || [];
 
         if (user) {
             const userSubscriptions = user.show_subscriptions.map(
@@ -53,11 +43,11 @@ const TVGuide = ({ guide, user }: { guide: Guide, user?: User }) => {
             );
         }
         
-        guideShows.sort((a, b) => sortServices(a, b));
+        guideShows.sort((a, b) => sortShows(a, b));
         setGuideShows(guideShows);
-    }, [service, guide, user]);
+    }, [guide, user]);
 
-    const sortServices = (a: GuideShow, b: GuideShow) => {
+    const sortShows = (a: GuideShow, b: GuideShow) => {
         if (a.start_time > b.start_time) {
             return 1;
         }
@@ -113,11 +103,6 @@ const TVGuide = ({ guide, user }: { guide: Guide, user?: User }) => {
 
     return (
         <div id="tv-guide">
-            <div id="service-filter">
-                <Button className="service-switch" type="primary" onClick={() => setService('FTA')}>Free to Air</Button>
-                <Button className="service-switch" type="primary" onClick={() => setService('BBC')}>BBC Channels</Button>
-                <Button className="service-switch" type="primary" onClick={() => setService('All')}>All</Button>
-            </div>
             <Table
                 className="guide-table"
                 columns={tableColumns}
