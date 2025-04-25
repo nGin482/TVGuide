@@ -10,8 +10,8 @@ import { EmptyTableView } from "../EmptyTableView";
 import './TVGuide.css';
 
 dayjs.extend(isBetween);
-dayjs.extend(Timezone);
 dayjs.extend(utc);
+dayjs.extend(Timezone);
 
 const TVGuide = ({ guide, user }: { guide: Guide, user?: User }) => {
     const [guideShows, setGuideShows] = useState([]);
