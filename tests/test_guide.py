@@ -262,7 +262,7 @@ class TestGuide(unittest.TestCase):
     
     @patch('sqlalchemy.orm.session')
     def test_guide_get_shows_for_date_returns_episodes_from_db(self, mock_session: MagicMock):
-        mock_session.scalars.return_value = guide_episodes
+        mock_session.scalars().fetchall.return_value = guide_episodes
 
         guide = Guide(datetime(2024, 10, 12), mock_session)
 
