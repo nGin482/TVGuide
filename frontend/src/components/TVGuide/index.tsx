@@ -25,8 +25,8 @@ const TVGuide = ({ guide, user }: { guide: Guide, user?: User }) => {
     }, []);
 
     const isShowAiring = (episode: GuideShow) => {
-        const startTime = dayjs(episode.start_time, "HH:mm");
-        const endTime = dayjs(episode.end_time, "HH:mm");
+        const startTime = dayjs(episode.start_time, "HH:mm").tz("Australia/Sydney");
+        const endTime = dayjs(episode.end_time, "HH:mm").tz("Australia/Sydney");
         if (currentTime.isBetween(startTime, endTime, null, "[]")) {
             return "airing";
         }
