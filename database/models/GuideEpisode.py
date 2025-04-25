@@ -8,9 +8,9 @@ import logging
 from database import Base
 from database.models.ShowDetailsModel import ShowDetails
 from database.models.ShowEpisodeModel import ShowEpisode
+from utils.types.models import TGuideEpisode
 
 if TYPE_CHECKING:
-    from apscheduler.schedulers.asyncio import AsyncIOScheduler
     from database.models import Reminder, ShowDetails, ShowEpisode
 
 
@@ -197,7 +197,7 @@ class GuideEpisode(Base):
             f"repeat={self.repeat})"
         )
 
-    def to_dict(self):
+    def to_dict(self) -> TGuideEpisode:
         return {
             'title': self.title,
             'start_time': self.start_time.strftime('%H:%M'),

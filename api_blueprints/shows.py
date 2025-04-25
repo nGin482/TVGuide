@@ -7,6 +7,7 @@ from database import engine
 from database.models import SearchItem, ShowDetails, ShowEpisode, User
 from exceptions.service_error import HTTPRequestError
 from services.tvmaze import tvmaze_api
+from utils.types.models import TShowData
 
 shows_blueprint = Blueprint("shows_blueprint", __name__)
 
@@ -16,9 +17,9 @@ CORS(shows_blueprint)
 def shows():
     session = Session(engine)
     shows = ShowDetails.get_all_shows(session)
-    show_data = []
+    show_data: list[TShowData] = []
     for show in shows:
-        show_json = {
+        show_json: TShowData = {
             "show_name": show.title,
             "show_details": show.to_dict(),
             "search_item": show.search.to_dict() if show.search else None,
