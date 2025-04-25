@@ -48,6 +48,7 @@ describe("Test TVGuide component", () => {
 
         render(<TVGuide guide={guideData} />);
 
+        screen.debug()
         const rows = screen.getAllByRole("row");
         expect(rows[1]).toHaveClass("airing")
     });
