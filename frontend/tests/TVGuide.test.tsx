@@ -1,10 +1,15 @@
 import { render, screen } from '@testing-library/react';
 import dayjs from 'dayjs';
+import Timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 
 import TVGuide from '../src/components/TVGuide';
 import { Guide } from '../src/utils/types';
 
 import { currentUser, guide } from './test_data';
+
+dayjs.extend(utc);
+dayjs.extend(Timezone);
 
 describe("Test TVGuide component", () => {
     let guideCopy: Guide = JSON.parse(JSON.stringify(guide));
@@ -28,7 +33,7 @@ describe("Test TVGuide component", () => {
     });
 
     test("'airing' classname added to table row when show is airing", () => {
-        const currentTime = dayjs();
+        const currentTime = dayjs().tz("Australia/Sydney");
         const ftaData = guideCopy.fta.map((show, idx) => {
             if (idx === 1) {
                 show.start_time = `${currentTime.hour()}:${currentTime.minute()}`;
@@ -43,14 +48,12 @@ describe("Test TVGuide component", () => {
 
         render(<TVGuide guide={guideData} />);
 
-        screen.debug()
         const rows = screen.getAllByRole("row");
-        console.log("rows", rows)
         expect(rows[1]).toHaveClass("airing")
     });
 
     test("'finished' classname added to table row when show has finished", () => {
-        const currentTime = dayjs();
+        const currentTime = dayjs().tz("Australia/Sydney");
         const ftaData = guideCopy.fta.map((show, idx) => {
             if (idx === 0) {
                 show.start_time = `${currentTime.hour() - 2}:${currentTime.minute()}`;
