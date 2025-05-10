@@ -35,9 +35,11 @@ class Guide(Base):
         query = select(Guide).where(Guide.date == date.date()).order_by(Guide.id.desc())
         guide_record = session.execute(query).scalar()
         
+        if not guide_record:
+            return None
         guide = cls(guide_record.date, session)
         guide.id = guide_record.id
-        
+    
         return guide
     
     def __init__(self, date: datetime, session: Session):

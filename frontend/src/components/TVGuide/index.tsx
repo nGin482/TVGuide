@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { DatePicker, Table, TableColumnsType, Tag, Typography } from "antd";
+import { Alert, DatePicker, Table, TableColumnsType, Tag, Typography } from "antd";
+import dayjs, { Dayjs } from "dayjs";
 
 import { Guide, GuideShow, User } from "../../utils/types";
 import { EmptyTableView } from "../EmptyTableView";
 import { getGuide } from "../../requests/guide";
 import './TVGuide.css';
-import dayjs, { Dayjs } from "dayjs";
 
 const TVGuide = ({ user }: { user?: User }) => {
     const [date, setDate] = useState("");
@@ -16,7 +16,7 @@ const TVGuide = ({ user }: { user?: User }) => {
     const { Title } = Typography;
 
     useEffect(() => {
-        setDate(dayjs().format("DD MM YYYY"));
+        setDate(dayjs().format("DD MMMM YYYY"));
         fetchGuide();
     }, []);
 
@@ -63,11 +63,11 @@ const TVGuide = ({ user }: { user?: User }) => {
 
     const handleDateChange = async (date: Dayjs) => {
         if (date) {
-            setDate(date.format("DD/MM/YYYY"));
+            setDate(date.format("DD MMMM YYYY"));
             await fetchGuide(date.format("DD/MM/YYYY"));
         }
         else {
-            setDate(dayjs().format("DD MM YYYY"));
+            setDate(dayjs().format("DD MMMM YYYY"));
             await fetchGuide();
         }
     };
@@ -141,6 +141,13 @@ const TVGuide = ({ user }: { user?: User }) => {
                 }}
                 rowKey={record => `${record.channel}-${record.start_time}`}
             />
+            {error && (
+                <Alert
+                    type="error"
+                    message={`There was a problem fetching the guide for ${date}`}
+                    description={error}
+                />
+            )}
         </div>
     );
 };

@@ -19,6 +19,9 @@ def guide():
         date = Validation.get_current_date()
     
     guide = Guide.get_date(date, session)
+    if not guide:
+        return { "message": "There is no guide for this date" }, 404
+    
     guide.get_shows()
     
     return guide.to_dict()
