@@ -15,6 +15,7 @@ from database.models.SearchItemModel import SearchItem
 from database.models.ShowDetailsModel import ShowDetails
 from database.models.ShowEpisodeModel import ShowEpisode
 from data_validation.validation import Validation
+from exceptions.service_error import HTTPRequestError
 from services.APIClient import APIClient
 from utils import parse_datetime
 from utils.types.models import TGuide
@@ -195,9 +196,10 @@ class Guide(Base):
                 api_client = APIClient()
                 schedule = api_client.get(endpoint)
                 return schedule
-            except Exception as error:
+            except HTTPRequestError as error:
                 from services.hermes.hermes import hermes
                 hermes.dispatch('guide_data_fetch_failed', str(error))
+                return { "schedule": [] }
         else:
             with open(f"dev-data/free_to_air/{self.date.strftime('%Y-%m-%d')}.json") as fd:
                 schedule = json.load(fd)
