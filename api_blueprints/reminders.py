@@ -45,7 +45,10 @@ def reminders():
         new_reminder.add_reminder(session)
         return new_reminder.to_dict()
     except DatabaseError as err:
-        return {'message': f'An error occurred creating the reminder for {show}', 'error': str(err)}, 500
+        return (
+            {'message': f'An error occurred creating the reminder for {show}', 'error': str(err)},
+            500
+        )
     
 @reminder_blueprint.route("/<string:show>")
 def get_reminder(show: str):
