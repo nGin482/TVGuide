@@ -1,24 +1,28 @@
 import { useEffect, useState } from "react";
-import { Table, TableColumnsType, Tag } from "antd";
+import { DatePicker, Table, TableColumnsType, Tag, Typography } from "antd";
 
 import { Guide, GuideShow, User } from "../../utils/types";
 import { EmptyTableView } from "../EmptyTableView";
 import { getGuide } from "../../requests/guide";
 import './TVGuide.css';
+import dayjs, { Dayjs } from "dayjs";
 
 const TVGuide = ({ user }: { user?: User }) => {
+    const [date, setDate] = useState("");
     const [guide, setGuide] = useState<Guide>(null);
     const [guideShows, setGuideShows] = useState([]);
     const [error, setError] = useState("");
 
+    const { Title } = Typography;
+
     useEffect(() => {
+        setDate(dayjs().format("DD MM YYYY"));
         fetchGuide();
     }, []);
 
-    const fetchGuide = async () => {
+    const fetchGuide = async (date?: string) => {
         try {
-            const guide = await getGuide();
-            console.log(guide)
+            const guide = await getGuide(date);
             setGuide(guide);
         }
         catch(error) {
@@ -55,6 +59,17 @@ const TVGuide = ({ user }: { user?: User }) => {
             return -1;
         }
         return 0;
+    };
+
+    const handleDateChange = async (date: Dayjs) => {
+        if (date) {
+            setDate(date.format("DD/MM/YYYY"));
+            await fetchGuide(date.format("DD/MM/YYYY"));
+        }
+        else {
+            setDate(dayjs().format("DD MM YYYY"));
+            await fetchGuide();
+        }
     };
 
     const tableColumns: TableColumnsType<GuideShow> = [
@@ -103,6 +118,12 @@ const TVGuide = ({ user }: { user?: User }) => {
 
     return (
         <div id="tv-guide">
+            <div id="date">
+                <Title level={5} className="date-selected">Date: {date}</Title>
+                <DatePicker
+                    onChange={handleDateChange}
+                />
+            </div>
             <Table
                 className="guide-table"
                 columns={tableColumns}

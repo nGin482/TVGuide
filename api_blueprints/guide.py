@@ -13,9 +13,8 @@ guide_blueprint = Blueprint("guide_blueprint", __name__)
 def guide():
     session = Session(engine)
     
-    if request.args.get(""):
-        dates = request.args.get("date").split("/")
-        date = datetime(year=int(dates[2]), month=int(dates[1]), day=int(dates[0]))
+    if request.args.get("date"):
+        date = datetime.strptime(request.args.get("date"), "%d/%m/%Y")
     else:
         date = Validation.get_current_date()
     
