@@ -4,8 +4,8 @@ class MessageNotFoundException(Exception):
     """
     pass
 
-class BBCNotCollectedException(Exception):
+class GuideNotCreatedError(Exception):
     """
-    Raised when the BBC page prevents the scraper from collecting guide data
+    Raised when the Guide has not been created as part of the date's execution
     """
     pass

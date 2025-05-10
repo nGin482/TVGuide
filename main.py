@@ -12,6 +12,7 @@ from config import scheduler
 from data_validation.validation import Validation
 from database import engine
 from database.models.GuideModel import Guide
+from exceptions.tvguide_errors import GuideNotCreatedError
 from services.hermes.hermes import hermes
 
 load_dotenv('.env')
@@ -43,43 +44,46 @@ def search_vera_series():
 
 async def send_main_message():
     """
-
-    :param `database_service`: The service handler for database operations
-    :return: n/a
+    Create the TVGuide and send the messages
     """
     date = Validation.get_current_date()
     session = Session(engine, expire_on_commit=False)
     
     guide = Guide(date, session)
-    guide.create_new_guide(scheduler)
-    guide_message = guide.compose_message()
     
     await hermes.wait_until_ready()
     tvguide_channel: TextChannel = hermes.get_channel(int(os.getenv('TVGUIDE_CHANNEL')))
     ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
     try:
-        await tvguide_channel.send(guide_message)
-        await tvguide_channel.send(guide.compose_reminder_message())
-        await ngin.send(guide.compose_events_message())
-    except HTTPException as error:
-        if 'In content: Must be 2000 or fewer in length' in error.text:
+        guide.create_new_guide(scheduler)
+        guide_message = guide.compose_message()
+
+        if len(guide_message) > 2000:
             bbc_index = guide_message.find('\nBBC:\n')
             fta_message = guide_message[0:bbc_index]
             bbc_message = guide_message[bbc_index:]
-            
+
             if len(fta_message) > 2000:
                 fta_am_message, fta_pm_message = split_message_by_time(fta_message)
                 await tvguide_channel.send(fta_am_message)
                 await tvguide_channel.send(fta_pm_message)
             else:
                 await tvguide_channel.send(fta_message)
-
+            
             if len(bbc_message) > 2000:
                 bbc_am_message, bbc_pm_message = split_message_by_time(bbc_message)
                 await tvguide_channel.send(bbc_am_message)
                 await tvguide_channel.send(bbc_pm_message)
             else:
                 await tvguide_channel.send(bbc_message)
+        else:
+            await tvguide_channel.send(guide_message)
+            await tvguide_channel.send(guide.compose_reminder_message())
+            await ngin.send(guide.compose_events_message())
+    except HTTPException as error:
+        await ngin.send(f"There was a problem sending the TVGuide messages. Error: {str(error)}")
+    except GuideNotCreatedError as error:
+        await ngin.send(f"The TVGuide could not be created properly. Error: {str(error)}")
     except (AttributeError, TypeError, ValueError) as error:
         await ngin.send(f"There was a problem sending the TVGuide. Error: {str(error)}")
     finally:
