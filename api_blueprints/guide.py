@@ -18,7 +18,7 @@ def guide():
     else:
         date = Validation.get_current_date()
     
-    guide = Guide(date, session)
+    guide = Guide.get_date(date, session)
     guide.get_shows()
     
     return guide.to_dict()
