@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Table, TableColumnsType, Tag } from "antd";
+import { Table, TableColumnsType, Tag } from "antd";
 
 import { Guide, GuideShow, User } from "../../utils/types";
 import { EmptyTableView } from "../EmptyTableView";
@@ -8,7 +8,6 @@ import './TVGuide.css';
 
 const TVGuide = ({ user }: { user?: User }) => {
     const [guide, setGuide] = useState<Guide>(null);
-    const [service, setService] = useState('All');
     const [guideShows, setGuideShows] = useState([]);
     const [error, setError] = useState("");
 
@@ -33,17 +32,7 @@ const TVGuide = ({ user }: { user?: User }) => {
     };
 
     useEffect(() => {
-        let guideShows: GuideShow[] = [];
-        if (service === 'FTA') {
-            guideShows = guide.fta ? [...guide.fta] : [];
-        }
-        else if (service === 'BBC') {
-            guideShows = [...guide?.bbc || []];
-        }
-        else {
-            // guideShows = guide && guide.fta ? [...guide.fta, ...guide?.bbc] : [];
-            console.log("guideShows", guideShows)
-        }
+        let guideShows: GuideShow[] = guide ? guide.fta : [];
 
         if (user) {
             const userSubscriptions = user.show_subscriptions.map(
@@ -56,7 +45,7 @@ const TVGuide = ({ user }: { user?: User }) => {
         
         guideShows.sort((a, b) => sortServices(a, b));
         setGuideShows(guideShows);
-    }, [service, guide, user]);
+    }, [guide, user]);
 
     const sortServices = (a: GuideShow, b: GuideShow) => {
         if (a.start_time > b.start_time) {
@@ -114,11 +103,6 @@ const TVGuide = ({ user }: { user?: User }) => {
 
     return (
         <div id="tv-guide">
-            <div id="service-filter">
-                <Button className="service-switch" type="primary" onClick={() => setService('FTA')}>Free to Air</Button>
-                <Button className="service-switch" type="primary" onClick={() => setService('BBC')}>BBC Channels</Button>
-                <Button className="service-switch" type="primary" onClick={() => setService('All')}>All</Button>
-            </div>
             <Table
                 className="guide-table"
                 columns={tableColumns}
