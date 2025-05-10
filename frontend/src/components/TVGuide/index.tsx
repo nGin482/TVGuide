@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, DatePicker, Table, TableColumnsType, Tag, Typography } from "antd";
+import { Alert, DatePicker, Spin, Table, TableColumnsType, Tag, Typography } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 
 import { Guide, GuideShow, User } from "../../utils/types";
@@ -11,12 +11,14 @@ const TVGuide = ({ user }: { user?: User }) => {
     const [date, setDate] = useState("");
     const [guide, setGuide] = useState<Guide>(null);
     const [guideShows, setGuideShows] = useState([]);
+    const [loadingGuide, setLoadingGuide] = useState(false);
     const [error, setError] = useState("");
 
     const { Title } = Typography;
 
     useEffect(() => {
         setDate(dayjs().format("DD MMMM YYYY"));
+        setLoadingGuide(true);
         fetchGuide();
     }, []);
 
@@ -24,6 +26,7 @@ const TVGuide = ({ user }: { user?: User }) => {
         try {
             const guide = await getGuide(date);
             setGuide(guide);
+            setError("");
         }
         catch(error) {
             if (error.response?.data.message) {
@@ -32,6 +35,9 @@ const TVGuide = ({ user }: { user?: User }) => {
             else {
                 setError('There is a problem communicating with the server');
             }
+        }
+        finally {
+            setLoadingGuide(false);
         }
     };
 
@@ -62,6 +68,8 @@ const TVGuide = ({ user }: { user?: User }) => {
     };
 
     const handleDateChange = async (date: Dayjs) => {
+        setGuide(null);
+        setLoadingGuide(true);
         if (date) {
             setDate(date.format("DD MMMM YYYY"));
             await fetchGuide(date.format("DD/MM/YYYY"));
@@ -124,23 +132,28 @@ const TVGuide = ({ user }: { user?: User }) => {
                     onChange={handleDateChange}
                 />
             </div>
-            <Table
-                className="guide-table"
-                columns={tableColumns}
-                dataSource={guideShows}
-                bordered={true}
-                pagination={
-                    {
-                        position: ['bottomCenter'],
-                        pageSize: 50,
-                        hideOnSinglePage: true,
+            {loadingGuide && (
+                <Spin size="large" />
+            )}
+            {guide && !loadingGuide && (
+                <Table
+                    className="guide-table"
+                    columns={tableColumns}
+                    dataSource={guideShows}
+                    bordered={true}
+                    pagination={
+                        {
+                            position: ['bottomCenter'],
+                            pageSize: 50,
+                            hideOnSinglePage: true,
+                        }
                     }
-                }
-                locale={{
-                    emptyText: <EmptyTableView description="No episodes for this day" />,
-                }}
-                rowKey={record => `${record.channel}-${record.start_time}`}
-            />
+                    locale={{
+                        emptyText: <EmptyTableView description="No episodes for this day" />,
+                    }}
+                    rowKey={record => `${record.channel}-${record.start_time}`}
+                />
+            )}
             {error && (
                 <Alert
                     type="error"
