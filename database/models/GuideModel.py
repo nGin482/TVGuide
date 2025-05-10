@@ -206,13 +206,21 @@ class Guide(Base):
     def create_new_guide(self, scheduler: AsyncIOScheduler = None):
         try:
             self.add_guide()
-            self.fta_shows = self.search_free_to_air()
-            self.schedule_reminders(scheduler)
         except OperationalError as error:
             Guide.logger.error(f"Could not create guide: {str(error)}")
             self.session.rollback()
         except PendingRollbackError as error:
             Guide.logger.error(f"Could not create guide: {str(error)}")
+            self.session.rollback()
+
+        try:
+            self.fta_shows = self.search_free_to_air()
+            self.schedule_reminders(scheduler)
+        except OperationalError as error:
+            Guide.logger.error(f"Could not attach episodes to guide: {str(error)}")
+            self.session.rollback()
+        except PendingRollbackError as error:
+            Guide.logger.error(f"Could not attach episodes to guide: {str(error)}")
             self.session.rollback()
         # self.bbc_shows = self.search_bbc_australia()
     
