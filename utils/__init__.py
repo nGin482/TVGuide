@@ -43,7 +43,7 @@ def format_episode_title(episode_title: str):
             episode_title = 'The ' + episode_title[0:idx_the]
     if ', A' in episode_title and episode_title != 'Kolcheck, A.':
         idx_a = episode_title.find(', A')
-        if episode_title[idx_a] == ", A":
+        if episode_title[idx_a:] == ", A":
             episode_title = 'A ' + episode_title[0:idx_a]
     return episode_title
 
