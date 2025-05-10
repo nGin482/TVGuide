@@ -2,23 +2,47 @@ import { useEffect, useState } from "react";
 import { Button, Table, TableColumnsType, Tag } from "antd";
 
 import { Guide, GuideShow, User } from "../../utils/types";
-import './TVGuide.css';
 import { EmptyTableView } from "../EmptyTableView";
+import { getGuide } from "../../requests/guide";
+import './TVGuide.css';
 
-const TVGuide = ({ guide, user }: { guide: Guide, user?: User }) => {
+const TVGuide = ({ user }: { user?: User }) => {
+    const [guide, setGuide] = useState<Guide>(null);
     const [service, setService] = useState('All');
     const [guideShows, setGuideShows] = useState([]);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        fetchGuide();
+    }, []);
+
+    const fetchGuide = async () => {
+        try {
+            const guide = await getGuide();
+            console.log(guide)
+            setGuide(guide);
+        }
+        catch(error) {
+            if (error.response?.data.message) {
+                setError(error.response.data.message);
+            }
+            else {
+                setError('There is a problem communicating with the server');
+            }
+        }
+    };
 
     useEffect(() => {
         let guideShows: GuideShow[] = [];
         if (service === 'FTA') {
-            guideShows = [...guide.fta];
+            guideShows = guide.fta ? [...guide.fta] : [];
         }
         else if (service === 'BBC') {
             guideShows = [...guide?.bbc || []];
         }
         else {
-            guideShows = [...guide.fta, ...guide?.bbc || []];
+            // guideShows = guide && guide.fta ? [...guide.fta, ...guide?.bbc] : [];
+            console.log("guideShows", guideShows)
         }
 
         if (user) {
