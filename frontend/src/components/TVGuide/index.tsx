@@ -53,11 +53,11 @@ const TVGuide = ({ user }: { user?: User }) => {
             );
         }
         
-        guideShows.sort((a, b) => sortServices(a, b));
+        guideShows.sort((a, b) => sortShows(a, b));
         setGuideShows(guideShows);
     }, [guide, user]);
 
-    const sortServices = (a: GuideShow, b: GuideShow) => {
+    const sortShows = (a: GuideShow, b: GuideShow) => {
         if (a.start_time > b.start_time) {
             return 1;
         }
@@ -157,7 +157,9 @@ const TVGuide = ({ user }: { user?: User }) => {
             {error && (
                 <Alert
                     type="error"
-                    message={`There was a problem fetching the guide for ${date}`}
+                    message={(
+                        <Title level={5}>There was a problem fetching the guide for {date}</Title>
+                    )}
                     description={error}
                 />
             )}

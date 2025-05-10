@@ -21,23 +21,3 @@
 #date .date-selected {
     display: block;
 }
-
-#message {
-    margin-left: 5%;
-    text-align: center;
-}
-
-.see-event {
-    margin-left: 10%;
-    padding: 0.5%;
-    border: solid 1px green;
-}
-
-.see-event:hover {
-    padding: 1%;
-    background-color: green;
-    border-radius: 5px;
-    color: white;
-    transition: all 1s ease;
-    cursor: pointer;
-}
