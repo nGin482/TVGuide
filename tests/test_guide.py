@@ -5,6 +5,8 @@ import unittest
 import json
 
 from database.models.GuideModel import Guide
+
+from tests.test_data.guide import test_guides
 from tests.test_data.guide_episodes import guide_episodes
 from tests.test_data.reminders import reminders
 from tests.test_data.show_details import show_details
@@ -20,6 +22,24 @@ class TestGuide(unittest.TestCase):
         with open('tests/test_data/fta_data.json') as fd:
             self.fta_data = json.load(fd)
 
+    @patch("sqlalchemy.orm.session")
+    def test_guide_search_returns_record_for_date(self, mock_session: MagicMock):
+        mock_session.scalar.return_value = test_guides[0]
+
+        date = datetime(year=2024, month=8, day=10)
+        guide = Guide.get_date(date, mock_session)
+
+        self.assertIsNotNone(guide)
+
+    @patch("sqlalchemy.orm.session")
+    def test_guide_search_returns_none_if_no_guide(self, mock_session: MagicMock):
+        mock_session.scalar.return_value = None
+
+        date = datetime(year=2024, month=8, day=10)
+        guide = Guide.get_date(date, mock_session)
+
+        self.assertIsNone(guide)
+    
     @patch('sqlalchemy.orm.session.Session.commit')
     @patch('sqlalchemy.orm.session.Session.execute')
     @patch('database.models.Reminder.get_reminder_by_show')
