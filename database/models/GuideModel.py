@@ -33,10 +33,11 @@ class Guide(Base):
     @classmethod
     def get_date(cls, date: datetime, session: Session):
         query = select(Guide).where(Guide.date == date.date()).order_by(Guide.id.desc())
-        guide_record = session.execute(query).scalar()
+        guide_record = session.scalar(query)
         
         if not guide_record:
             return None
+        
         guide = cls(guide_record.date, session)
         guide.id = guide_record.id
     
