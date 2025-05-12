@@ -69,10 +69,12 @@ class GuideEpisode(Base):
     def get_shows_for_date(date: datetime, session: Session):
         end_date = date + timedelta(days=1)
 
-        query = select(GuideEpisode).where(GuideEpisode.start_time.between(date, end_date))
-        guide_episodes = session.scalars(query)
-
-        return [guide_episode for guide_episode in guide_episodes]
+        query = select(GuideEpisode).where(
+            GuideEpisode.start_time.between(date.date(), end_date.date())
+        )
+        records = session.scalars(query).fetchall()
+        
+        return [episode for episode in records]
     
     def add_episode(self, session: Session):
         session.add(self)

@@ -1,14 +1,13 @@
 from datetime import datetime
 from dotenv import load_dotenv
 from unittest.mock import MagicMock, patch
-import sys
 import unittest
 
 load_dotenv('.env')
 
 from database.models.GuideEpisode import GuideEpisode
 from tests.test_data.guide_episodes import guide_episodes
-from tests.test_data.show_episodes import dw_show_episodes, show_episodes
+from tests.test_data.show_episodes import show_episodes
 from tests.test_data.show_details import show_details
 
 
@@ -20,11 +19,12 @@ class TestGuideEpisode(unittest.TestCase):
 
     
     @patch('sqlalchemy.orm.session')
-    # @patch('database.models.GuideEpisode.get_shows_for_date')
     def test_get_guide_episodes(self, mock_session: MagicMock):
-        mock_session.scalars.return_value = guide_episodes
-        # mock_get_shows.return_value = guide_episodes
-        episodes = GuideEpisode.get_shows_for_date(datetime(year=2024, month=8, day=10), mock_session)
+        mock_session.scalars().fetchall.return_value = guide_episodes
+        episodes = GuideEpisode.get_shows_for_date(
+            datetime(year=2024, month=8, day=10),
+            mock_session
+        )
         
         self.assertIsInstance(episodes, list)
         self.assertEqual(len(episodes), 2)

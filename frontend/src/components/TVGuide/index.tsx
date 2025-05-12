@@ -1,25 +1,42 @@
 import { useEffect, useState } from "react";
-import { Button, Table, TableColumnsType, Tag } from "antd";
+import { Table, TableColumnsType, Tag } from "antd";
+import dayjs, { Dayjs } from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
+import Timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 
 import { Guide, GuideShow, User } from "../../utils/types";
-import './TVGuide.css';
 import { EmptyTableView } from "../EmptyTableView";
+import './TVGuide.css';
+
+dayjs.extend(isBetween);
+dayjs.extend(utc);
+dayjs.extend(Timezone);
 
 const TVGuide = ({ guide, user }: { guide: Guide, user?: User }) => {
-    const [service, setService] = useState('All');
     const [guideShows, setGuideShows] = useState([]);
+    const [currentTime, setCurrentTime] = useState<Dayjs>(dayjs());
 
     useEffect(() => {
-        let guideShows: GuideShow[] = [];
-        if (service === 'FTA') {
-            guideShows = [...guide.fta];
+        const interval = setInterval(() => {
+            setCurrentTime(dayjs().tz("Australia/Sydney"));
+        }, 60000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const isShowAiring = (episode: GuideShow) => {
+        const startTime = dayjs(episode.start_time, "HH:mm").tz("Australia/Sydney");
+        const endTime = dayjs(episode.end_time, "HH:mm").tz("Australia/Sydney");
+        if (currentTime.isBetween(startTime, endTime, null, "[]")) {
+            return "airing";
         }
-        else if (service === 'BBC') {
-            guideShows = [...guide?.bbc || []];
+        else if (currentTime.isAfter(endTime)) {
+            return "finished";
         }
-        else {
-            guideShows = [...guide.fta, ...guide?.bbc || []];
-        }
+    };
+
+    useEffect(() => {
+        let guideShows = guide?.fta || [];
 
         if (user) {
             const userSubscriptions = user.show_subscriptions.map(
@@ -30,11 +47,11 @@ const TVGuide = ({ guide, user }: { guide: Guide, user?: User }) => {
             );
         }
         
-        guideShows.sort((a, b) => sortServices(a, b));
+        guideShows.sort((a, b) => sortShows(a, b));
         setGuideShows(guideShows);
-    }, [service, guide, user]);
+    }, [guide, user]);
 
-    const sortServices = (a: GuideShow, b: GuideShow) => {
+    const sortShows = (a: GuideShow, b: GuideShow) => {
         if (a.start_time > b.start_time) {
             return 1;
         }
@@ -90,11 +107,6 @@ const TVGuide = ({ guide, user }: { guide: Guide, user?: User }) => {
 
     return (
         <div id="tv-guide">
-            <div id="service-filter">
-                <Button className="service-switch" type="primary" onClick={() => setService('FTA')}>Free to Air</Button>
-                <Button className="service-switch" type="primary" onClick={() => setService('BBC')}>BBC Channels</Button>
-                <Button className="service-switch" type="primary" onClick={() => setService('All')}>All</Button>
-            </div>
             <Table
                 className="guide-table"
                 columns={tableColumns}
@@ -111,6 +123,7 @@ const TVGuide = ({ guide, user }: { guide: Guide, user?: User }) => {
                     emptyText: <EmptyTableView description="No episodes for this day" />,
                 }}
                 rowKey={record => `${record.channel}-${record.start_time}`}
+                rowClassName={(record) => isShowAiring(record)}
             />
         </div>
     );
