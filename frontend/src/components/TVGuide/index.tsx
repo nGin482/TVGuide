@@ -22,6 +22,22 @@ const TVGuide = ({ user }: { user?: User }) => {
         fetchGuide();
     }, []);
 
+    useEffect(() => {
+        let guideShows: GuideShow[] = guide ? guide.fta : [];
+
+        if (user) {
+            const userSubscriptions = user.show_subscriptions.map(
+                subscription => subscription.search_item.show
+            );
+            guideShows = guideShows.filter(
+                guideEpisode => userSubscriptions.includes(guideEpisode.title)
+            );
+        }
+        
+        guideShows.sort((a, b) => sortShows(a, b));
+        setGuideShows(guideShows);
+    }, [guide, user]);
+
     const fetchGuide = async (date?: string) => {
         try {
             const guide = await getGuide(date);
@@ -40,22 +56,6 @@ const TVGuide = ({ user }: { user?: User }) => {
             setLoadingGuide(false);
         }
     };
-
-    useEffect(() => {
-        let guideShows: GuideShow[] = guide ? guide.fta : [];
-
-        if (user) {
-            const userSubscriptions = user.show_subscriptions.map(
-                subscription => subscription.search_item.show
-            );
-            guideShows = guideShows.filter(
-                guideEpisode => userSubscriptions.includes(guideEpisode.title)
-            );
-        }
-        
-        guideShows.sort((a, b) => sortShows(a, b));
-        setGuideShows(guideShows);
-    }, [guide, user]);
 
     const sortShows = (a: GuideShow, b: GuideShow) => {
         if (a.start_time > b.start_time) {
