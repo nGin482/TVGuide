@@ -31,6 +31,7 @@ import {
     currentUser
 } from "./test_data";
 import { AccountDetailsFormValues, Reminder, SearchItem } from "../src/utils/types";
+import dayjs from "dayjs";
 
 jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -57,14 +58,26 @@ describe("Fetch Guide data", () => {
         response.data = guide;
         
         mockedAxios.get.mockResolvedValue(response);
-        const guideRes = await getGuide();
+
+        const date = dayjs().format("DD/MM/YYYY");
+        const guideRes = await getGuide(date);
+
         expect(guideRes.fta[0].title).toEqual(guide.fta[0].title);
     });
     
     // fail condition
     test('throws an error when unable to retrieve TV guide', async () => {
-        mockedAxios.get.mockRejectedValue(Error(`${badResponse.status} ${badResponse.statusText}`));
-        expect(async () => await getGuide()).rejects.toThrow(`${badResponse.status} ${badResponse.statusText}`);
+        const date = dayjs().format("DD/MM/YYYY");
+
+        mockedAxios.get.mockRejectedValue(
+            Error(`${badResponse.status} ${badResponse.statusText}`)
+        );
+
+        expect(
+            async () => await getGuide(date)
+        ).rejects.toThrow(
+            `${badResponse.status} ${badResponse.statusText}`
+        );
     });
 });
 
@@ -79,8 +92,13 @@ describe("Handling Show Data", () => {
     });
 
     test.skip('throws an error when unable to retrieve SearchList', async () => {
+        const date = dayjs().format("DD/MM/YYYY");
+
         mockedAxios.get.mockRejectedValue(Error(`${badResponse.status} ${badResponse.statusText}`));
-        await expect(async () => await getGuide()).rejects.toThrow(`${badResponse.status} ${badResponse.statusText}`);
+
+        await expect(
+            async () => await getGuide(date)
+        ).rejects.toThrow(`${badResponse.status} ${badResponse.statusText}`);
     });
 
     test("creates a new show and returns the created details", async () => {
@@ -95,7 +113,9 @@ describe("Handling Show Data", () => {
     test.skip('returns error when unable to add searchItem', async () => {
         mockedAxios.post.mockRejectedValue(Error(`${badResponse.status} ${badResponse.statusText}`));
 
-        await expect(async () => await addNewShow(newShowPayload, 'test-token')).rejects.toMatchObject(badResponse);
+        await expect(
+            async () => await addNewShow(newShowPayload, 'test-token')
+        ).rejects.toMatchObject(badResponse);
     });
 
     test.skip('returns updated searchList when searchItem deleted', async () => {

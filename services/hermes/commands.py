@@ -148,14 +148,15 @@ async def send_guide(ctx: Context, date: str = None):
 async def send_guide_record(ctx: Context, date_to_send: str):
     session = Session(engine)
 
-    convert_date = parse_date_from_command(date_to_send).strftime('%d/%m/%Y')
+    convert_date = parse_date_from_command(date_to_send)
     
-    guide = Guide(convert_date)
-    guide.get_shows(session)
+    guide = Guide.get_date(convert_date, session)
+
     if guide is not None:
+        guide.get_shows(session)
         await ctx.send(guide.compose_message())
     else:
-        await ctx.send(f'A Guide record for {convert_date} could not be found.')
+        await ctx.send(f'A Guide record for {convert_date.strftime('%d/%m/%Y')} could not be found.')
     session.close()
 
 @hermes.command()

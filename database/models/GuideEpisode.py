@@ -74,6 +74,13 @@ class GuideEpisode(Base):
 
         return [guide_episode for guide_episode in guide_episodes]
     
+    @staticmethod
+    def get_guide_shows(guide_id: int, session: Session):
+        query = select(GuideEpisode).where(GuideEpisode.guide_id == guide_id)
+        guide_episodes = session.scalars(query)
+
+        return [guide_episode for guide_episode in guide_episodes]
+    
     def add_episode(self, session: Session):
         session.add(self)
         session.commit()
