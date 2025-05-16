@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Modal } from "antd";
 
 const WARNING_TIME_MINUTES = 4;
@@ -7,18 +7,22 @@ const EXPIRY_TIME_MINUTES = 5;
 const SessionModal = () => {
     const [remainingTime, setRemainingTime] = useState(EXPIRY_TIME_MINUTES);
 
+    const intervalRef = useRef<NodeJS.Timeout>();
+
     useEffect(() => {
         const remainingTimeCheck = setInterval(() => {
             setRemainingTime(current => current - 1);
         }, 15000);
 
-        if (remainingTime <= 0) {
-            clearInterval(remainingTimeCheck);
-        }
+        intervalRef.current = remainingTimeCheck;
+        return () => clearInterval(intervalRef.current);
     }, []);
 
     useEffect(() => {
         console.log("remainingTime", remainingTime)
+        if (remainingTime <= 0) {
+            clearInterval(intervalRef.current);
+        }
     }, [remainingTime])
 
     return (
