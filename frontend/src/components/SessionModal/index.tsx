@@ -20,6 +20,7 @@ const SessionModal = () => {
     const cookies = new Cookies(null, { path: "/" });
 
     useEffect(() => {
+        calculateSessionTime();
         const remainingTimeCheck = setInterval(() => {
             calculateSessionTime();
         }, 60000);
@@ -35,6 +36,15 @@ const SessionModal = () => {
             clearInterval(intervalRef.current);
         }
     }, [sessionTime]);
+
+    const modalTitle = () => {
+        if (sessionTime >= WARNING_TIME_MINUTES && sessionTime < EXPIRY_TIME_MINUTES) {
+            return "Your session is about to expire";
+        }
+        else if (sessionTime >= EXPIRY_TIME_MINUTES) {
+            return "Your session has expired";
+        }
+    };
 
     const calculateSessionTime = () => {
         const userCookie: Session = cookies.get("user");
@@ -52,10 +62,11 @@ const SessionModal = () => {
 
     return (
         <Modal
-            title="Session is about to expire"
+            title={modalTitle()}
             open={sessionTime >= WARNING_TIME_MINUTES}
             maskClosable={false}
             closable={false}
+            okText={sessionTime <= EXPIRY_TIME_MINUTES ? "Continue" : "Close"}
             onOk={() => console.log("session continued")}
             cancelText="Logout"
             onCancel={logout}
