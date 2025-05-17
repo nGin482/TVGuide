@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Modal } from "antd";
 import dayjs from "dayjs";
 import Cookies from "universal-cookie";
+
+import { UserContext } from "../../contexts";
 import { Session } from "../../utils/types";
 
 const WARNING_TIME_MINUTES = 4;
@@ -10,8 +12,9 @@ const EXPIRY_TIME_MINUTES = 5;
 // only show if user is logged in
 
 const SessionModal = () => {
-    const [remainingTime, setRemainingTime] = useState(EXPIRY_TIME_MINUTES);
+    const [sessionTime, setSessionTime] = useState(0);
 
+    const { setUser } = useContext(UserContext);
     const intervalRef = useRef<NodeJS.Timeout>();
 
     const cookies = new Cookies(null, { path: "/" });
@@ -26,11 +29,12 @@ const SessionModal = () => {
     }, []);
 
     useEffect(() => {
-        console.log("remainingTime", remainingTime)
-        if (remainingTime <= 0) {
+        console.log("sessionTime", sessionTime)
+        if (sessionTime >= EXPIRY_TIME_MINUTES) {
+            logout();
             clearInterval(intervalRef.current);
         }
-    }, [remainingTime]);
+    }, [sessionTime]);
 
     const calculateSessionTime = () => {
         const userCookie: Session = cookies.get("user");
@@ -38,17 +42,23 @@ const SessionModal = () => {
         const loginTime = userCookie.loginTime;
         console.log("loginTime", loginTime)
         
-        console.log("minutes elapsed", dayjs().diff(loginTime, "minutes"))
-        return dayjs().diff(loginTime, "minutes")
+        setSessionTime(dayjs().diff(loginTime, "minutes"));
+    };
+
+    const logout = () => {
+        cookies.remove("user");
+        setUser(null);
     };
 
     return (
         <Modal
             title="Session is about to expire"
-            open={calculateSessionTime() >= WARNING_TIME_MINUTES}
+            open={sessionTime >= WARNING_TIME_MINUTES}
             maskClosable={false}
             closable={false}
-            onOk={() => setRemainingTime(EXPIRY_TIME_MINUTES)}
+            onOk={() => console.log("session continued")}
+            cancelText="Logout"
+            onCancel={logout}
         >
 
         </Modal>
