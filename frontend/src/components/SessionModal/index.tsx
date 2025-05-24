@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Modal } from "antd";
 import dayjs from "dayjs";
 import Cookies from "universal-cookie";
@@ -14,25 +14,39 @@ const EXPIRY_TIME_MINUTES = 5;
 const SessionModal = () => {
     const [sessionTime, setSessionTime] = useState(0);
 
-    const { setUser } = useContext(UserContext);
+    const { currentUser, setUser } = useContext(UserContext);
     const intervalRef = useRef<NodeJS.Timeout>();
 
     const cookies = new Cookies(null, { path: "/" });
 
-    useEffect(() => {
-        calculateSessionTime();
-        const remainingTimeCheck = setInterval(() => {
+    const isTrackingSession = currentUser && cookies.get("user") ? true : false;
+
+    const sessionTimeCheck = useMemo(() => {
+        const interval = setInterval(() => {
             calculateSessionTime();
         }, 60000);
+        return interval;
+    }, [isTrackingSession]);
 
-        intervalRef.current = remainingTimeCheck;
+    useEffect(() => {
+        calculateSessionTime();
+        intervalRef.current = sessionTimeCheck;
         return () => clearInterval(intervalRef.current);
     }, []);
 
     useEffect(() => {
+        if (!currentUser) {
+            clearInterval(intervalRef.current);
+        }
+        else {
+            intervalRef.current = sessionTimeCheck;
+        }
+    }, [currentUser]);
+
+    useEffect(() => {
         console.log("sessionTime", sessionTime)
         if (sessionTime >= EXPIRY_TIME_MINUTES) {
-            logout();
+            cookies.remove("user", { path: "/" });
             clearInterval(intervalRef.current);
         }
     }, [sessionTime]);
@@ -49,21 +63,25 @@ const SessionModal = () => {
     const calculateSessionTime = () => {
         const userCookie: Session = cookies.get("user");
         console.log("userCookie", userCookie)
-        const loginTime = userCookie.loginTime;
-        console.log("loginTime", loginTime)
-        
-        setSessionTime(dayjs().diff(loginTime, "minutes"));
+        const loginTime = userCookie?.loginTime;
+
+        if (loginTime) {
+            console.log("loginTime", loginTime)
+            setSessionTime(dayjs().diff(loginTime, "minutes"));
+        }
     };
 
     const logout = () => {
-        cookies.remove("user");
+        setSessionTime(0);
+        clearInterval(intervalRef.current);
+        cookies.remove("user", { path: "/" });
         setUser(null);
     };
 
     return (
         <Modal
             title={modalTitle()}
-            open={sessionTime >= WARNING_TIME_MINUTES}
+            open={isTrackingSession && sessionTime >= WARNING_TIME_MINUTES}
             maskClosable={false}
             closable={false}
             okText={sessionTime <= EXPIRY_TIME_MINUTES ? "Continue" : "Close"}
