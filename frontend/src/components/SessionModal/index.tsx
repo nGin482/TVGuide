@@ -1,4 +1,5 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useHistory } from "react-router";
 import { Modal } from "antd";
 import dayjs from "dayjs";
 import Cookies from "universal-cookie";
@@ -16,6 +17,7 @@ const SessionModal = () => {
 
     const { currentUser, setUser } = useContext(UserContext);
     const intervalRef = useRef<NodeJS.Timeout>();
+    const history = useHistory();
 
     const cookies = new Cookies(null, { path: "/" });
 
@@ -76,6 +78,7 @@ const SessionModal = () => {
         clearInterval(intervalRef.current);
         cookies.remove("user", { path: "/" });
         setUser(null);
+        history.push("/");
     };
 
     return (
