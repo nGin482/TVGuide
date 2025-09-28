@@ -9,7 +9,7 @@ from exceptions.DatabaseError import InvalidSubscriptions
 
 search_subscription_blueprint = Blueprint("search_subscription_blueprint", __name__)
 
-CORS(search_subscription_blueprint)
+CORS(search_subscription_blueprint, supports_credentials=True)
 
 @search_subscription_blueprint.route("", methods=['GET'])
 def get_user_subscriptions(username: str):

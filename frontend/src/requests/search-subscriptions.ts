@@ -6,15 +6,10 @@ export const getUserSubscriptions = async (user: string) => {
     const data = await getRequest(`/users/${user}/subscriptions`);
 };
 
-export const addSubscriptions = async (
-    username: string,
-    subscriptions: string[],
-    token: string
-) => {
+export const addSubscriptions = async (username: string, subscriptions: string[]) => {
     const updatedUser = await postRequest<string[], User>(
         `/users/${username}/subscriptions`,
         subscriptions,
-        { Authorization: `Bearer ${token}` }
     );
 
     return updatedUser;

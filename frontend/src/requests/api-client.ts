@@ -5,7 +5,7 @@ const baseURL = process.env.VITE_BASE_URL;
 const headers = (otherHeaders?: AxiosRequestConfig['headers']) => {
     const headersObj = {
         'Content-Type': 'application/json',
-        Accept: 'application/json'
+        Accept: 'application/json',
     };
 
     if (otherHeaders) {
@@ -15,8 +15,27 @@ const headers = (otherHeaders?: AxiosRequestConfig['headers']) => {
     return headersObj;
 };
 
-export const getRequest = async <DataType>(endpoint: string, otherHeaders?: AxiosRequestConfig['headers']) => {
-    const response = await axios.get<DataType>(baseURL + endpoint, { headers: headers(otherHeaders) });
+const getCookie = (cookieName: string) => {
+    const cookies = document.cookie.split(";");
+
+    const cookieIdentifier = `${cookieName}=`
+    const cookieData = cookies.find(cookie => cookie.includes(cookieIdentifier));
+    if (!cookieData) {
+        return;
+    }
+    const cookieValue = cookieData.replace(cookieIdentifier, "");
+
+    return cookieValue;
+};
+
+export const getRequest = async <DataType>(
+    endpoint: string,
+    otherHeaders?: AxiosRequestConfig['headers']
+) => {
+    const response = await axios.get<DataType>(
+        baseURL + endpoint,
+        { headers: headers(otherHeaders) }
+    );
 
     return response.data;
 };
@@ -30,7 +49,11 @@ export const postRequest = async <RequestType, ResponseType>(
         baseURL + endpoint,
         data,
         {
-            headers: headers(otherHeaders)
+            headers: {
+                ...headers(otherHeaders),
+                "X-CSRF-Token": getCookie("csrf_access_token"),
+            },
+            withCredentials: true,
         }
     );
 
