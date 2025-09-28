@@ -4,13 +4,15 @@ import { Modal } from "antd";
 import dayjs from "dayjs";
 import Cookies from "universal-cookie";
 
+import { logoutSession } from "../../requests";
 import { UserContext } from "../../contexts";
 import { Session } from "../../utils/types";
 
 const WARNING_TIME_MINUTES = 4;
 const EXPIRY_TIME_MINUTES = 5;
 
-// only show if user is logged in
+// new token when continuing session
+// hide "continue session" button when session has expired
 
 const SessionModal = () => {
     const [sessionTime, setSessionTime] = useState(0);
@@ -73,9 +75,10 @@ const SessionModal = () => {
         }
     };
 
-    const logout = () => {
+    const logout = async () => {
         setSessionTime(0);
         clearInterval(intervalRef.current);
+        await logoutSession();
         cookies.remove("user", { path: "/" });
         setUser(null);
         history.push("/");
@@ -87,7 +90,7 @@ const SessionModal = () => {
             open={isTrackingSession && sessionTime >= WARNING_TIME_MINUTES}
             maskClosable={false}
             closable={false}
-            okText={sessionTime <= EXPIRY_TIME_MINUTES ? "Continue" : "Close"}
+            okText={sessionTime <= EXPIRY_TIME_MINUTES ? "Continue Session" : "Close"}
             onOk={() => console.log("session continued")}
             cancelText="Logout"
             onCancel={logout}

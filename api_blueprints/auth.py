@@ -3,9 +3,9 @@ from flask_cors import CORS
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
-    get_jwt_identity,
     set_access_cookies,
-    set_refresh_cookies
+    set_refresh_cookies,
+    unset_jwt_cookies,
 )
 from sqlalchemy.orm import Session
 
@@ -52,3 +52,12 @@ def login():
         return response
     
     return { 'message': 'Incorrect username or password' }, 401
+
+@auth_blueprint.route("/logout", methods=["POST"])
+def logout():
+    response = jsonify({
+        "logout": True
+    })
+    unset_jwt_cookies(response)
+    
+    return response
