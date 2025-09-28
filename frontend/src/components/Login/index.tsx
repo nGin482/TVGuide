@@ -34,7 +34,7 @@ const Login = () => {
             history.push(`/profile/${values.username}`);
         }
         catch(error) {
-            setLoginError(error?.response?.data?.message);
+            setLoginError(error?.response?.data?.message || error?.message);
         }
     };
 
