@@ -1,6 +1,12 @@
-from flask import Blueprint, request
+from flask import Blueprint, jsonify, request
 from flask_cors import CORS
-from flask_jwt_extended import create_access_token, get_current_user, jwt_required
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    get_jwt_identity,
+    set_access_cookies,
+    set_refresh_cookies
+)
 from sqlalchemy.orm import Session
 
 from database import engine
@@ -8,12 +14,11 @@ from database.models import User
 
 auth_blueprint = Blueprint("auth_blueprint", __name__)
 
-CORS(auth_blueprint)
+CORS(auth_blueprint, supports_credentials=True)
 
 @auth_blueprint.route("/register", methods=['POST'])
 def register_user():
     body = request.json
-    print(body)
     
     session = Session(engine)
     
@@ -34,10 +39,16 @@ def login():
     user = User.search_for_user(given_credentials['username'], session)
     
     if user and user.check_password(given_credentials['password']):
-        return {
-            'username': user.username,
-            'role': user.role,
-            'token': create_access_token(identity=user.username)
-        }
+        response = jsonify({
+            "username": user.username,
+            "role": user.role,
+        })
+
+        access_token = create_access_token(user.username)
+        refresh_token = create_refresh_token(user.username)
+        set_access_cookies(response, access_token)
+        set_refresh_cookies(response, refresh_token)
+
+        return response
     
     return { 'message': 'Incorrect username or password' }, 401
