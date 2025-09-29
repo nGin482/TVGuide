@@ -43,6 +43,7 @@ export const getRequest = async <DataType>(
 export const postRequest = async <RequestType, ResponseType>(
     endpoint: string,
     data: RequestType,
+    csrfToken: "csrf_access_token" | "csrf_refresh_token" = "csrf_access_token",
     otherHeaders?: AxiosRequestConfig['headers']
 ) => {
     const response = await axios.post<ResponseType>(
@@ -51,7 +52,7 @@ export const postRequest = async <RequestType, ResponseType>(
         {
             headers: {
                 ...headers(otherHeaders),
-                "X-CSRF-Token": getCookie("csrf_access_token"),
+                "X-CSRF-Token": getCookie(csrfToken),
             },
             withCredentials: true,
         }

@@ -3,6 +3,8 @@ from flask_cors import CORS
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
+    get_jwt_identity,
+    jwt_required,
     set_access_cookies,
     set_refresh_cookies,
     unset_jwt_cookies,
@@ -52,6 +54,24 @@ def login():
         return response
     
     return { 'message': 'Incorrect username or password' }, 401
+
+@auth_blueprint.route("/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh_session():
+    session = Session(engine)
+
+    current_user = get_jwt_identity()
+    user = User.search_for_user(current_user, session)
+
+    if current_user and user:
+        token = create_access_token(identity=current_user)
+        response = jsonify({
+            "username": current_user,
+            "role": user.role,
+        })
+        set_access_cookies(response, token)
+        return response
+    return { "message": "Unable to refresh session" }, 401
 
 @auth_blueprint.route("/logout", methods=["POST"])
 def logout():

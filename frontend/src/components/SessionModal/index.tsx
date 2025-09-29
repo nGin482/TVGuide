@@ -4,7 +4,7 @@ import { Modal } from "antd";
 import dayjs from "dayjs";
 import Cookies from "universal-cookie";
 
-import { logoutSession } from "../../requests";
+import { logoutSession, refreshSession } from "../../requests";
 import { UserContext } from "../../contexts";
 import { Session } from "../../utils/types";
 
@@ -75,6 +75,12 @@ const SessionModal = () => {
         }
     };
 
+    const handleRefreshSession = async () => {
+        const response = await refreshSession();
+        setUser(response);
+        setSessionTime(0);
+    };
+
     const logout = async () => {
         setSessionTime(0);
         clearInterval(intervalRef.current);
@@ -91,12 +97,10 @@ const SessionModal = () => {
             maskClosable={false}
             closable={false}
             okText={sessionTime <= EXPIRY_TIME_MINUTES ? "Continue Session" : "Close"}
-            onOk={() => console.log("session continued")}
+            onOk={handleRefreshSession}
             cancelText="Logout"
             onCancel={logout}
-        >
-
-        </Modal>
+        />
     );
 };
 
