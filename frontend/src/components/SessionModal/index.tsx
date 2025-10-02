@@ -79,6 +79,11 @@ const SessionModal = () => {
         const response = await refreshSession();
         setUser(response);
         setSessionTime(0);
+        cookies.set('user', JSON.stringify({ ...response, loginTime: dayjs() }));
+        clearInterval(intervalRef.current);
+        intervalRef.current = setInterval(() => {
+            calculateSessionTime();
+        }, 60000);
     };
 
     const logout = async () => {
