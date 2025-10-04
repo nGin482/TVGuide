@@ -70,7 +70,11 @@ export const putRequest = async <RequestType, ResponseType>(
         baseURL + endpoint,
         data,
         {
-            headers: headers(otherHeaders)
+            headers: {
+                ...headers(otherHeaders),
+                "X-CSRF-Token": getCookie("csrf_access_token"),
+            },
+            withCredentials: true,
         }
     );
 
@@ -86,7 +90,11 @@ export const patchRequest = async <RequestType, ResponseType>(
         baseURL + endpoint,
         data,
         {
-            headers: headers(otherHeaders)
+            headers: {
+                ...headers(otherHeaders),
+                "X-CSRF-Token": getCookie("csrf_access_token"),
+            },
+            withCredentials: true,
         }
     );
 
@@ -97,5 +105,14 @@ export const deleteRequest = async (
     endpoint: string,
     otherHeaders?: AxiosRequestConfig['headers']
 ) => {
-    await axios.delete<void>(baseURL + endpoint, { headers: headers(otherHeaders) });
+    await axios.delete<void>(
+        baseURL + endpoint,
+        {
+            headers: {
+                ...headers(otherHeaders),
+                "X-CSRF-Token": getCookie("csrf_access_token"),
+            },
+            withCredentials: true,
+        }
+    );
 };
