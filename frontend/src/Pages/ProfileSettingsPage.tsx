@@ -21,7 +21,7 @@ const ProfileSettingsPage = ({ user }: SettingsProps) => {
 
     const changeDetailsHandle = async (values: AccountDetailsFormValues) => {
         try {
-            const updatedDetails = await changePassword(user.username, values, user.token);
+            const updatedDetails = await changePassword(user.username, values);
             setUser(current => ({ ...updatedDetails, token: current.token }));
             notification.success({
                 message: "Success!",
