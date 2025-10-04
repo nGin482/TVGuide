@@ -50,7 +50,6 @@ const SessionModal = () => {
     useEffect(() => {
         console.log("sessionTime", sessionTime)
         if (sessionTime >= EXPIRY_TIME_MINUTES) {
-            cookies.remove("user", { path: "/" });
             clearInterval(intervalRef.current);
         }
     }, [sessionTime]);
@@ -101,8 +100,13 @@ const SessionModal = () => {
             open={isTrackingSession && sessionTime >= WARNING_TIME_MINUTES}
             maskClosable={false}
             closable={false}
-            okText={sessionTime <= EXPIRY_TIME_MINUTES ? "Continue Session" : "Close"}
+            okText="Continue Session"
             onOk={handleRefreshSession}
+            okButtonProps={{
+                style: {
+                    display: sessionTime >= EXPIRY_TIME_MINUTES && "none"
+                }
+            }}
             cancelText="Logout"
             onCancel={logout}
         />
