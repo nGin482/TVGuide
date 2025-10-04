@@ -8,7 +8,7 @@ from database.models import SearchItem, ShowDetails, User
 
 search_items_blueprint = Blueprint("search_items_blueprint", __name__)
 
-CORS(search_items_blueprint)
+CORS(search_items_blueprint, supports_credentials=True)
 
 @search_items_blueprint.route("", methods=['POST'])
 @jwt_required()

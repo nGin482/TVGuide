@@ -29,20 +29,20 @@ const SearchItem = ({ searchItem, show }: SearchItemProps) => {
     const { Text } = Typography;
 
     const addSearchItem = async (searchCriteria: SearchItemPayload) => {
-        const newSearchItem = await addSearchCriteria(searchCriteria, currentUser.token);
+        const newSearchItem = await addSearchCriteria(searchCriteria);
         updateShowContext(show, "search_item", newSearchItem);
         return `The search criteria for ${show} has been added`;
     };
 
     const editSearchItem = async (searchCriteria: SearchItemPayload) => {
-        const updatedSearchItem = await editSearchCriteria(searchCriteria, currentUser.token);
+        const updatedSearchItem = await editSearchCriteria(searchCriteria);
         updateShowContext(show, "search_item", updatedSearchItem);
         return `The search criteria for ${show} has been updated`;
     };
 
     const deleteSearchItemHandle = async () => {
         try {
-            await deleteSearchCriteria(show, currentUser.token);
+            await deleteSearchCriteria(show);
             updateShowContext(show, "search_item", null);
             notification.success({
                 message: "Success!",
