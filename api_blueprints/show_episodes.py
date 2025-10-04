@@ -8,7 +8,7 @@ from database.models import ShowEpisode
 
 show_episodes_blueprint = Blueprint("show_episodes_blueprint", __name__)
 
-CORS(show_episodes_blueprint)
+CORS(show_episodes_blueprint, supports_credentials=True)
 
 @show_episodes_blueprint.route("/<int:id>", methods=['PUT'])
 @jwt_required()
