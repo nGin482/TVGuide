@@ -87,7 +87,7 @@ const ProfilePage = () => {
             let updatedUserDetails: User;
             if (action === "unsubscribe") {
                 const subscriptionId = subscriptionsPayload.unsubscribe.subscriptionId;
-                await unsubscribeFromSearch(subscriptionId, currentUser.token);
+                await unsubscribeFromSearch(currentUser.username, subscriptionId);
                 updatedUserDetails = {
                     ...userDetails,
                     show_subscriptions: userDetails.show_subscriptions.filter(
@@ -100,7 +100,6 @@ const ProfilePage = () => {
                 updatedUserDetails = await addSubscriptions(currentUser.username, subscriptions);
             }
             setUserDetails(updatedUserDetails);
-            setUser(prevState => ({ ...updatedUserDetails, token: prevState.token }));
             notification.success({
                 message: "Success!",
                 description: "Your subscriptions have been updated",

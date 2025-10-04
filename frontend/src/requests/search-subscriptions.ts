@@ -15,9 +15,6 @@ export const addSubscriptions = async (username: string, subscriptions: string[]
     return updatedUser;
 };
 
-export const unsubscribeFromSearch = async (subscriptionId: number, token: string) => {
-    await deleteRequest(
-        `/users/subscriptions/${subscriptionId}`,
-        { Authorization: `Bearer ${token}` }
-    );
+export const unsubscribeFromSearch = async (username: string, subscriptionId: number) => {
+    await deleteRequest(`/users/${username}/subscriptions/${subscriptionId}`);
 };
