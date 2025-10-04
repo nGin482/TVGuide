@@ -6,12 +6,8 @@ import { NewShowPayload, ShowData } from "../utils/types";
 export const getShows = () => {
     return getRequest<ShowData[]>("/shows");
 }
-export const addNewShow = async (newShowData: NewShowPayload, token: string): Promise<ShowData> => {
-    const newShowDetails = await postRequest<NewShowPayload, ShowData>(
-        "/shows",
-        newShowData,
-        { Authorization: `Bearer ${token}` }
-    );
+export const addNewShow = async (newShowData: NewShowPayload): Promise<ShowData> => {
+    const newShowDetails = await postRequest<NewShowPayload, ShowData>("/shows", newShowData);
     return newShowDetails;
 };
 export const removeShowFromList = async (showToRemove: string, token: string) => {
