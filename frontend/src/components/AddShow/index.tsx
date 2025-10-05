@@ -78,7 +78,11 @@ const AddShow = ({ openModal, setOpenModal }: AddShowProps) => {
         
         const formValues = form.getFieldsValue();
         
-        const searchConditions = createSearchItemPayload(showSelected.show.name, formValues, showSeasons);
+        const searchConditions = createSearchItemPayload(
+            showSelected.show.name,
+            formValues,
+            showSeasons
+        );
 
         const newShow: NewShowPayload = {
             name: showSelected.show.name,
@@ -86,10 +90,7 @@ const AddShow = ({ openModal, setOpenModal }: AddShowProps) => {
         };
         
         try {
-            const showData = await addNewShow(
-                newShow,
-                currentUser.token
-            );
+            const showData = await addNewShow(newShow);
             setState('success');
             setOpenModal(false);
             addShowToContext(showData);

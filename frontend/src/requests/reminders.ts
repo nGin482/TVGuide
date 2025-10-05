@@ -7,22 +7,17 @@ export const getReminders = async () => {
     return reminders;
 };
 
-export const addReminder = async (reminder: ReminderFormValues, token: string) => {
-    return await postRequest<ReminderFormValues, Reminder>(
-        `/reminders`,
-        reminder,
-        { Authorization: `Bearer ${token}` }
-    );
+export const addReminder = async (reminder: ReminderFormValues) => {
+    return await postRequest<ReminderFormValues, Reminder>(`/reminders`, reminder);
 };
 
-export const editReminder = async (reminderDetails: ReminderFormValues, token: string) => {
+export const editReminder = async (reminderDetails: ReminderFormValues) => {
     return await putRequest<ReminderFormValues, Reminder>(
         `/reminder/${reminderDetails.show}`,
-        reminderDetails,
-        { Authorization: `Bearer ${token}` }
+        reminderDetails
     );
 };
 
-export const deleteReminder = async (show: string, token: string) => {
-    return await deleteRequest(`/reminder/${show}`, { Authorization: `Bearer ${token}` });
+export const deleteReminder = async (show: string) => {
+    return await deleteRequest(`/reminder/${show}`);
 };

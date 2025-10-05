@@ -46,7 +46,7 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
 
     const updateEpisode = async (formValues: ShowEpisode) => {
         try {
-            const updatedEpisode = await updateShowEpisode(formValues, currentUser.token);
+            const updatedEpisode = await updateShowEpisode(formValues);
             updateEpisodeContext(formValues.show, formValues.id, updatedEpisode);
             notification.success({
                 message: "Success!",

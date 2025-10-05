@@ -11,7 +11,7 @@ from exceptions.DatabaseError import DatabaseError
 reminders_blueprint = Blueprint("reminders_blueprint", __name__)
 reminder_blueprint = Blueprint("reminder_blueprint", __name__)
 
-CORS(reminders_blueprint)
+CORS(reminders_blueprint, supports_credentials=True)
 
 @reminders_blueprint.route("")
 def get_reminders():

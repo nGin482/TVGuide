@@ -8,7 +8,7 @@ from database.models import User
 
 user_blueprint = Blueprint("user_blueprint", __name__)
 
-CORS(user_blueprint)
+CORS(user_blueprint, supports_credentials=True)
 
 @user_blueprint.route("", methods=['GET'])
 def get_user(username: str):

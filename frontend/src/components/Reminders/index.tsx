@@ -27,21 +27,21 @@ const Reminder = ({ reminder, show }: ReminderProps) => {
 
     const addReminderHandle = async (formValues: ReminderFormValues) => {
         formValues.show = show;
-        const newReminder = await addReminder(formValues, currentUser.token);
+        const newReminder = await addReminder(formValues);
         updateShowContext(show, "reminder", newReminder);
         return `The reminder for ${show} has been added`;
     };
 
     const editReminderHandle = async (formValues: ReminderFormValues) => {
         formValues.show = show;
-        const updatedReminder = await editReminder(formValues, currentUser.token);
+        const updatedReminder = await editReminder(formValues);
         updateShowContext(show, "reminder", updatedReminder);
         return `The reminder for ${show} has been updated`;
     };
 
     const deleteReminderHandle = async () => {
         try {
-            await deleteReminder(show, currentUser.token);
+            await deleteReminder(show);
             updateShowContext(show, "reminder", null);
             notification.success({
                 message: "Success!",

@@ -28,7 +28,6 @@ import {
     searchList,
     updateSubscriptionsRes,
     user,
-    currentUser
 } from "./test_data";
 import { AccountDetailsFormValues, Reminder, SearchItem } from "../src/utils/types";
 import dayjs from "dayjs";
@@ -105,7 +104,7 @@ describe("Handling Show Data", () => {
         response.data = addSearchItem;
 
         mockedAxios.post.mockResolvedValue(response);
-        const newShowData = await addNewShow(newShowPayload, 'test-token');
+        const newShowData = await addNewShow(newShowPayload);
         
         expect(newShowData).toEqual(addSearchItem);
     });
@@ -114,7 +113,7 @@ describe("Handling Show Data", () => {
         mockedAxios.post.mockRejectedValue(Error(`${badResponse.status} ${badResponse.statusText}`));
 
         await expect(
-            async () => await addNewShow(newShowPayload, 'test-token')
+            async () => await addNewShow(newShowPayload)
         ).rejects.toMatchObject(badResponse);
     });
 
@@ -149,7 +148,7 @@ describe("Handling Show Data", () => {
         response.data = newReminder;
 
         mockedAxios.post.mockResolvedValue(response);
-        const res = await addReminder(newReminder, 'test-token');
+        const res = await addReminder(newReminder);
 
         expect(res.show).toContain(newReminder.show);
     });
@@ -166,7 +165,7 @@ describe("Handling Show Data", () => {
         response.data = updatedReminder;
 
         mockedAxios.put.mockResolvedValue(response);
-        const res = await editReminder(editReminderPayload, 'test-token');
+        const res = await editReminder(editReminderPayload);
 
         expect(res.warning_time).toEqual(3);
     });
@@ -178,7 +177,7 @@ describe("Handling Show Data", () => {
         };
 
         mockedAxios.delete.mockResolvedValue(response);
-        const res = await deleteReminder('Maigret', 'test-token');
+        const res = await deleteReminder('Maigret');
 
         // let length = res.payload.reminders.length;
         // expect(length).toBeLessThan(reminders.length);
@@ -205,7 +204,7 @@ describe("Handle Search Items", () => {
 
         mockedAxios.patch.mockResolvedValue(response);
 
-        const res = await toggleStatus(searchList[0].id, false, currentUser.token);
+        const res = await toggleStatus(searchList[0].id, false);
 
         expect(res.search_active).toEqual(false);
     });
@@ -239,7 +238,7 @@ describe("Handle User Data", () => {
             password: "updated-password"
         };
 
-        const userResponse = await changePassword('Test', updatedAccountDetails, 'test-token');
+        const userResponse = await changePassword('Test', updatedAccountDetails);
         expect(Object.values(userResponse)).toContain("updated-password");
     });
 
@@ -247,7 +246,7 @@ describe("Handle User Data", () => {
         response.data = updateSubscriptionsRes
 
         mockedAxios.put.mockResolvedValue(response);
-        const userResponse = await addSubscriptions('Test', ['Vera'], 'test-token');
+        const userResponse = await addSubscriptions('Test', ['Vera']);
 
        const latestSubscription = userResponse.show_subscriptions[userResponse.show_subscriptions.length - 1];
         expect(userResponse.show_subscriptions.length).toBeGreaterThan(user.show_subscriptions.length);
