@@ -15,6 +15,7 @@ fly.toml
 /episode_search_results
 /misc_working
 /frontend/node_modules
+/tests
 
 *.pyc
 .env
