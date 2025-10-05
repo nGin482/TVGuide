@@ -54,7 +54,7 @@ async def on_show_details_not_found(shows_not_found: list[ShowData]):
     file_name = f"Shows not found - {current_date.strftime('%d-%m-%Y')}.json"
     file = File("backup/shows_not_found.json", file_name)
 
-    await send_channel_message("The details for these shows were not found", file)
+    await send_ngin_message("The details for these shows were not found", file)
 
 
 @hermes.event
