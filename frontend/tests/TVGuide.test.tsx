@@ -74,17 +74,19 @@ describe("test TVGuide component", () => {
     });
 
     test("renders a datepicker to choose a different date", async () => {
-        response.data = guide;              
+        response.data = guide;
         mockedAxios.get.mockResolvedValue(response);
         
         const { getByRole } = render(<TVGuide />);
 
-        const datePicker = getByRole("textbox");
-        expect(datePicker).toBeInTheDocument();
+        await waitFor(() => {
+            const datePicker = getByRole("textbox");
+            expect(datePicker).toBeInTheDocument();
+        });
     });
 
     test("datepicker changes date displayed", async () => {
-        response.data = guide;              
+        response.data = guide;
         mockedAxios.get.mockResolvedValue(response);
         
         const { getByRole, rerender } = render(<TVGuide />);
@@ -107,7 +109,7 @@ describe("test TVGuide component", () => {
     });
 
     test('TVGuide only renders shows user has subscribed to', async () => {
-        response.data = guide;              
+        response.data = guide;
         mockedAxios.get.mockResolvedValue(response);
         
         render(<TVGuide user={currentUser} />);
