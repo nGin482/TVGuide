@@ -70,6 +70,10 @@ const NavigationMenu = () => {
         }
     }, [currentUser]);
 
+    useEffect(() => {
+        setActiveItem(window.location.pathname.replace("/", ""));
+    }, [window.location.pathname]);
+
     return (
         <Menu 
             onClick={menuItem => setActiveItem(menuItem.key)}

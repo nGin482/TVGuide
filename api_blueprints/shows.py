@@ -11,7 +11,7 @@ from utils.types.models import TShowData
 
 shows_blueprint = Blueprint("shows_blueprint", __name__)
 
-CORS(shows_blueprint)
+CORS(shows_blueprint, supports_credentials=True)
 
 @shows_blueprint.route("", methods=['GET'])
 def shows():

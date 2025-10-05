@@ -7,6 +7,9 @@ const jestConfig: Config = {
         "tests/test_data",
     ],
     preset: "ts-jest",
+    setupFiles: [
+        "<rootDir>/.jest/setEnvVars.ts"
+    ],
     setupFilesAfterEnv: [
         "./src/setupTests.js",
         "@testing-library/jest-dom/extend-expect"

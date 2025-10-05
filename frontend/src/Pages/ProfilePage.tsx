@@ -2,9 +2,11 @@ import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { Helmet } from "react-helmet";
 import { Alert, App, Button, List, Space, Spin, Typography } from "antd";
+import dayjs from "dayjs";
 
 import TVGuide from "../components/TVGuide";
 import { SubscriptionForm } from "../components/SubscriptionForm";
+import { SearchItemTag } from "../components/SearchItemTag";
 import { UserContext } from "../contexts/UserContext";
 import {
     addSubscriptions,
@@ -16,7 +18,6 @@ import {
 import { handleErrorResponse } from "../utils";
 import { Guide, SubscriptionsPayload, SubscriptionsAction, User } from "../utils/types";
 import "../styles/ProfilePage.css";
-import { SearchItemTag } from "../components/SearchItemTag";
 
 interface UserParam {
     user: string
@@ -61,7 +62,7 @@ const ProfilePage = () => {
     };
 
     const fetchGuide = async () => {
-        const guide = await getGuide();
+        const guide = await getGuide(dayjs().format("DD/MM/YYYY"));
         setUserTVGuide(guide);
     };
 
@@ -86,7 +87,7 @@ const ProfilePage = () => {
             let updatedUserDetails: User;
             if (action === "unsubscribe") {
                 const subscriptionId = subscriptionsPayload.unsubscribe.subscriptionId;
-                await unsubscribeFromSearch(subscriptionId, currentUser.token);
+                await unsubscribeFromSearch(currentUser.username, subscriptionId);
                 updatedUserDetails = {
                     ...userDetails,
                     show_subscriptions: userDetails.show_subscriptions.filter(
@@ -96,14 +97,9 @@ const ProfilePage = () => {
             }
             else {
                 const subscriptions = subscriptionsPayload.subscribe.show_subscriptions;
-                updatedUserDetails = await addSubscriptions(
-                    currentUser.username,
-                    subscriptions,
-                    currentUser.token
-                );
+                updatedUserDetails = await addSubscriptions(currentUser.username, subscriptions);
             }
             setUserDetails(updatedUserDetails);
-            setUser(prevState => ({ ...updatedUserDetails, token: prevState.token }));
             notification.success({
                 message: "Success!",
                 description: "Your subscriptions have been updated",
@@ -131,7 +127,6 @@ const ProfilePage = () => {
                 <h1>{userDetails.username}</h1>
                 {viewingOwnProfile && userTVGuide && (
                     <TVGuide
-                        guide={userTVGuide}
                         user={userDetails}
                     />
                 )}

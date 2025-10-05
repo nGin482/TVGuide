@@ -1,4 +1,4 @@
-import type { AxiosResponse } from "axios";
+import { Dayjs } from "dayjs";
 
 export type { TVMazeSeason, TVMazeShow } from "./tvmaze";
 
@@ -144,6 +144,10 @@ export interface ErrorResponse {
     msg?: string
     message?: string
 }
+
+export interface Session extends CurrentUser {
+    loginTime: Dayjs;
+};
 
 
 // Contexts

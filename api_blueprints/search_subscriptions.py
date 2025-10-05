@@ -9,7 +9,7 @@ from exceptions.DatabaseError import InvalidSubscriptions
 
 search_subscription_blueprint = Blueprint("search_subscription_blueprint", __name__)
 
-CORS(search_subscription_blueprint)
+CORS(search_subscription_blueprint, supports_credentials=True)
 
 @search_subscription_blueprint.route("", methods=['GET'])
 def get_user_subscriptions(username: str):
@@ -44,7 +44,7 @@ def add_user_subscriptions(username: str):
 
 @search_subscription_blueprint.route("/<string:subscription_id>", methods=['DELETE'])
 @jwt_required()
-def delete_user_subscription(subscription_id: str):
+def delete_user_subscription(username: str, subscription_id: str):
     session = Session(engine)
     subscription = UserSearchSubscription.get_subscription_by_id(subscription_id, session)
     if not subscription:

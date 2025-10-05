@@ -11,3 +11,16 @@ export const registerNewUser = async (user: NewUserDetails) => {
     const newUser = await postRequest<NewUserDetails, CurrentUser>(`/auth/register`, user);
     return newUser;
 };
+
+export const refreshSession = async () => {
+    const refreshedSession = await postRequest<null, CurrentUser>(
+        `/auth/refresh`,
+        null,
+        "csrf_refresh_token"
+    );
+    return refreshedSession;
+};
+
+export const logoutSession = async () => {
+    await postRequest(`/auth/logout`, null);
+};

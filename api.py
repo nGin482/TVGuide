@@ -24,8 +24,15 @@ from database import engine
 from database.models import User
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True)
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
+app.config['JWT_TOKEN_LOCATION'] = ['cookies']
+app.config["JWT_ACCESS_COOKIE_PATH"] = "/api/"
+app.config["JWT_REFRESH_COOKIE_PATH"] = "/api/auth/refresh"
+app.config['JWT_COOKIE_SAMESITE'] = "None"
+app.config['JWT_COOKIE_SECURE'] = True
+app.config["JWT_COOKIE_CSRF_PROTECT"] = True
+
 jwt = JWTManager(app)
 
 # https://www.google.com/search?q=flask-login+react&source=hp&ei=00HmYffoDZKK0AS5sZOYBQ&iflsig=ALs-wAMAAAAAYeZP4_oAIADJhFqmzSf0ow9fxXElhTOc&oq=flask-login+re&gs_lcp=Cgdnd3Mtd2l6EAMYADIFCAAQgAQyBQgAEIAEMgUIABCABDIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeOhEILhCABBCxAxCDARDHARDRAzoOCC4QgAQQsQMQxwEQowI6CAgAELEDEIMBOgsIABCABBCxAxCDAToICAAQgAQQsQM6CAguELEDEIMBOgsILhCABBDHARCjAjoICC4QgAQQsQM6CwguEIAEEMcBEK8BOg4IABCABBCxAxCDARDJA1AAWNAXYN0jaABwAHgBgAGPBIgB6xuSAQswLjYuMy40LjAuMZgBAKABAQ&sclient=gws-wiz

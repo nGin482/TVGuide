@@ -10,9 +10,9 @@ import { Reminder } from "../components/Reminders";
 import { ShowsContext, UserContext } from "../contexts";
 import { useShow } from "../hooks/useShow";
 import { toggleStatus } from "../requests";
+import { handleErrorResponse } from "../utils";
 import { ShowData } from "../utils/types";
 import "./styles/ShowPage.css";
-import { handleErrorResponse } from "../utils";
 
 interface ShowParam {
     show: string
@@ -57,11 +57,7 @@ const ShowPage = () => {
     const toggleSearch = async () => {
         const newStatus = showData.search_item.search_active ? false : true;
         try {
-            const response = await toggleStatus(
-                showData.search_item.id,
-                newStatus,
-                currentUser.token
-            );
+            const response = await toggleStatus(showData.search_item.id, newStatus);
             setShowData(current => ({ ...current, search_item: response }));
             updateShowContext(show, "search_item", response);
             notification.success({

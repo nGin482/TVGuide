@@ -1,0 +1,1 @@
+process.env.VITE_BASE_URL = "https://tvguide-ng-test.com/api";
