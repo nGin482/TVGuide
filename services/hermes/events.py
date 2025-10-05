@@ -2,6 +2,7 @@ from datetime import datetime
 from discord import File
 
 from aux_methods.types import ShowData
+from data_validation.validation import Validation
 from services.hermes.hermes import hermes
 from services.hermes.utilities import send_channel_message, send_ngin_message
 
@@ -49,9 +50,11 @@ async def on_show_details_not_found(shows_not_found: list[ShowData]):
     with open("backup/shows_not_found.json", "w+") as fd:
         json.dump(shows_not_found_copy, fd, indent="\t")
 
-    file = File("backup/shows_not_found.json", "Shows not found.json")
+    current_date = Validation.get_current_date()
+    file_name = f"Shows not found - {current_date.strftime('%d-%m-%Y')}.json"
+    file = File("backup/shows_not_found.json", file_name)
 
-    await send_ngin_message("The details for these shows were not found", file)
+    await send_channel_message("The details for these shows were not found", file)
 
 
 @hermes.event
