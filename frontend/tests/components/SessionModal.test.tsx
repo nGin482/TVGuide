@@ -45,7 +45,7 @@ describe("Tests for SessionModal component", () => {
         render(<TestSessionModalWithoutUser />);
 
         act(() => {
-            jest.advanceTimersByTime(240000);
+            jest.advanceTimersByTime(600000);
         });
 
         const modalTitle = screen.queryByText("session is about to expire");
@@ -62,7 +62,7 @@ describe("Tests for SessionModal component", () => {
         const { rerender } = render(<TestSessionModalWithUser />);
 
         act(() => {
-            jest.advanceTimersByTime(240000);
+            jest.advanceTimersByTime(600000);
         });
 
         rerender(<TestSessionModalWithUser />);
@@ -85,7 +85,7 @@ describe("Tests for SessionModal component", () => {
         const { rerender } = render(<TestSessionModalWithUser />);
 
         act(() => {
-            jest.advanceTimersByTime(300000);
+            jest.advanceTimersByTime(900000);
         });
 
         rerender(<TestSessionModalWithUser />);
@@ -120,7 +120,7 @@ describe("Tests for SessionModal component", () => {
         const { rerender } = render(<TestSessionModalWithUser />);
 
         act(() => {
-            jest.advanceTimersByTime(240000);
+            jest.advanceTimersByTime(600000);
         });
 
         act(() => {
@@ -171,7 +171,7 @@ describe("Tests for SessionModal component", () => {
         const { rerender } = render(<TestSessionModalWithUser />);
 
         act(() => {
-            jest.advanceTimersByTime(240000);
+            jest.advanceTimersByTime(600000);
         });
 
         act(() => {

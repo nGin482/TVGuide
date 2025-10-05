@@ -8,11 +8,8 @@ import { logoutSession, refreshSession } from "../../requests";
 import { UserContext } from "../../contexts";
 import { Session } from "../../utils/types";
 
-const WARNING_TIME_MINUTES = 4;
-const EXPIRY_TIME_MINUTES = 5;
-
-// new token when continuing session
-// hide "continue session" button when session has expired
+const WARNING_TIME_MINUTES = 10;
+const EXPIRY_TIME_MINUTES = 15;
 
 const SessionModal = () => {
     const [sessionTime, setSessionTime] = useState(0);
@@ -48,7 +45,6 @@ const SessionModal = () => {
     }, [currentUser]);
 
     useEffect(() => {
-        console.log("sessionTime", sessionTime)
         if (sessionTime >= EXPIRY_TIME_MINUTES) {
             clearInterval(intervalRef.current);
         }
@@ -65,11 +61,9 @@ const SessionModal = () => {
 
     const calculateSessionTime = () => {
         const userCookie: Session = cookies.get("user");
-        console.log("userCookie", userCookie)
         const loginTime = userCookie?.loginTime;
 
         if (loginTime) {
-            console.log("loginTime", loginTime)
             setSessionTime(dayjs().diff(loginTime, "minutes"));
         }
     };
