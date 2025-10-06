@@ -207,7 +207,39 @@ export const shows: ShowData[] = [
             conditions: null,
         },
         reminder: null
-    }
+    },
+    {
+        show_name: "Person of Interest",
+        reminder: null,
+        search_item: null,
+        show_details: {
+            title: "Person of Interest",
+            description: "",
+            genres: [],
+            image: "",
+            tvmaze_id: "",
+        },
+        show_episodes: [],
+    },
+    {
+        show_name: "The Crown",
+        reminder: null,
+        search_item: {
+            show: "The Crown",
+            id: 1,
+            conditions: null,
+            exact_title_match: true,
+            search_active: true,
+        },
+        show_details: {
+            title: "Person of Interest",
+            description: "",
+            genres: [],
+            image: "",
+            tvmaze_id: "",
+        },
+        show_episodes: [],
+    },
 ];
 
 export const reminders: Reminder[] = [
