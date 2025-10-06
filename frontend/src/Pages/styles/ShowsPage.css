@@ -20,3 +20,10 @@
     color: white;
     cursor: pointer;
 }
+
+.card-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}

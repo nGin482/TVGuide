@@ -8,8 +8,8 @@ import { EmptyTableView } from "../EmptyTableView";
 import { UserContext } from "../../contexts";
 import { useShow } from "../../hooks/useShow";
 import { addReminder, deleteReminder, editReminder } from "../../requests";
-import { sessionExpiryMessage } from "../../utils";
-import type { ErrorResponse, FormMode, Reminder, ReminderFormValues } from "../../utils/types";
+import { handleErrorResponse } from "../../utils";
+import type { FormMode, Reminder, ReminderFormValues } from "../../utils/types";
 
 interface ReminderProps {
     reminder: Reminder
@@ -27,21 +27,21 @@ const Reminder = ({ reminder, show }: ReminderProps) => {
 
     const addReminderHandle = async (formValues: ReminderFormValues) => {
         formValues.show = show;
-        const newReminder = await addReminder(formValues, currentUser.token);
+        const newReminder = await addReminder(formValues);
         updateShowContext(show, "reminder", newReminder);
         return `The reminder for ${show} has been added`;
     };
 
     const editReminderHandle = async (formValues: ReminderFormValues) => {
         formValues.show = show;
-        const updatedReminder = await editReminder(formValues, currentUser.token);
+        const updatedReminder = await editReminder(formValues);
         updateShowContext(show, "reminder", updatedReminder);
         return `The reminder for ${show} has been updated`;
     };
 
     const deleteReminderHandle = async () => {
         try {
-            await deleteReminder(show, currentUser.token);
+            await deleteReminder(show);
             updateShowContext(show, "reminder", null);
             notification.success({
                 message: "Success!",
@@ -52,13 +52,7 @@ const Reminder = ({ reminder, show }: ReminderProps) => {
         catch(error) {
             let message: string =  error?.message;
             if (error?.response) {
-                const responseError: ErrorResponse = error.response;
-                if (responseError.data.msg) {
-                    message = sessionExpiryMessage("delete this reminder");
-                }
-                else {
-                    message = responseError.data.message;
-                }
+                message = handleErrorResponse(error, "delete this reminder");
             }
             notification.error({
                 message: `Unable to delete the reminder for ${show}`,

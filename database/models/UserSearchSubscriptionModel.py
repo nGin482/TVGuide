@@ -2,7 +2,9 @@ from sqlalchemy import Column, ForeignKey, Integer, select
 from sqlalchemy.orm import Mapped, relationship, Session
 from typing import TYPE_CHECKING
 
-from database import Base, engine
+from database import Base
+from utils.types.models import TSearchSubscription
+
 if TYPE_CHECKING:
     from database.models import SearchItem, User
 
@@ -49,7 +51,7 @@ class UserSearchSubscription(Base):
         session.commit()
         print(f"User {self.user.username} has unsubscribed from {self.search_item.show}")
 
-    def to_dict(self):
+    def to_dict(self) -> TSearchSubscription:
         return {
             'id': self.id,
             'user_id': self.user_id,

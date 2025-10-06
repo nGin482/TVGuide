@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from database import Base, engine
 from database.models.GuideEpisode import GuideEpisode
 from database.models.ShowDetailsModel import ShowDetails
+from utils.types.models import TReminder
 
 
 class Reminder(Base):
@@ -78,7 +79,7 @@ class Reminder(Base):
             f"Occasions: {self.occasions}"
         )
     
-    def to_dict(self):
+    def to_dict(self) -> TReminder:
         return {
             'show': self.show,
             'alert': self.alert,

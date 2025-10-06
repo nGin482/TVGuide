@@ -13,7 +13,8 @@ import {
     login,
     registerNewUser,
     removeShowFromList,
-    addSubscriptions
+    addSubscriptions,
+    toggleStatus
 } from "../src/requests";
 import {
     addSearchItem,
@@ -26,9 +27,10 @@ import {
     reminders,
     searchList,
     updateSubscriptionsRes,
-    user
+    user,
 } from "./test_data";
-import { AccountDetailsFormValues, Reminder } from "../src/utils/types";
+import { AccountDetailsFormValues, Reminder, SearchItem } from "../src/utils/types";
+import dayjs from "dayjs";
 
 jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -55,14 +57,26 @@ describe("Fetch Guide data", () => {
         response.data = guide;
         
         mockedAxios.get.mockResolvedValue(response);
-        const guideRes = await getGuide();
+
+        const date = dayjs().format("DD/MM/YYYY");
+        const guideRes = await getGuide(date);
+
         expect(guideRes.fta[0].title).toEqual(guide.fta[0].title);
     });
     
     // fail condition
     test('throws an error when unable to retrieve TV guide', async () => {
-        mockedAxios.get.mockRejectedValue(Error(`${badResponse.status} ${badResponse.statusText}`));
-        expect(async () => await getGuide()).rejects.toThrow(`${badResponse.status} ${badResponse.statusText}`);
+        const date = dayjs().format("DD/MM/YYYY");
+
+        mockedAxios.get.mockRejectedValue(
+            Error(`${badResponse.status} ${badResponse.statusText}`)
+        );
+
+        expect(
+            async () => await getGuide(date)
+        ).rejects.toThrow(
+            `${badResponse.status} ${badResponse.statusText}`
+        );
     });
 });
 
@@ -77,15 +91,20 @@ describe("Handling Show Data", () => {
     });
 
     test.skip('throws an error when unable to retrieve SearchList', async () => {
+        const date = dayjs().format("DD/MM/YYYY");
+
         mockedAxios.get.mockRejectedValue(Error(`${badResponse.status} ${badResponse.statusText}`));
-        await expect(async () => await getGuide()).rejects.toThrow(`${badResponse.status} ${badResponse.statusText}`);
+
+        await expect(
+            async () => await getGuide(date)
+        ).rejects.toThrow(`${badResponse.status} ${badResponse.statusText}`);
     });
 
     test("creates a new show and returns the created details", async () => {
         response.data = addSearchItem;
 
         mockedAxios.post.mockResolvedValue(response);
-        const newShowData = await addNewShow(newShowPayload, 'test-token');
+        const newShowData = await addNewShow(newShowPayload);
         
         expect(newShowData).toEqual(addSearchItem);
     });
@@ -93,7 +112,9 @@ describe("Handling Show Data", () => {
     test.skip('returns error when unable to add searchItem', async () => {
         mockedAxios.post.mockRejectedValue(Error(`${badResponse.status} ${badResponse.statusText}`));
 
-        await expect(async () => await addNewShow(newShowPayload, 'test-token')).rejects.toMatchObject(badResponse);
+        await expect(
+            async () => await addNewShow(newShowPayload)
+        ).rejects.toMatchObject(badResponse);
     });
 
     test.skip('returns updated searchList when searchItem deleted', async () => {
@@ -127,7 +148,7 @@ describe("Handling Show Data", () => {
         response.data = newReminder;
 
         mockedAxios.post.mockResolvedValue(response);
-        const res = await addReminder(newReminder, 'test-token');
+        const res = await addReminder(newReminder);
 
         expect(res.show).toContain(newReminder.show);
     });
@@ -144,7 +165,7 @@ describe("Handling Show Data", () => {
         response.data = updatedReminder;
 
         mockedAxios.put.mockResolvedValue(response);
-        const res = await editReminder(editReminderPayload, 'test-token');
+        const res = await editReminder(editReminderPayload);
 
         expect(res.warning_time).toEqual(3);
     });
@@ -156,7 +177,7 @@ describe("Handling Show Data", () => {
         };
 
         mockedAxios.delete.mockResolvedValue(response);
-        const res = await deleteReminder('Maigret', 'test-token');
+        const res = await deleteReminder('Maigret');
 
         // let length = res.payload.reminders.length;
         // expect(length).toBeLessThan(reminders.length);
@@ -167,6 +188,25 @@ describe("Handling Show Data", () => {
         //     }
         // });
         // expect(maigretFound).toBe(false);
+    });
+});
+
+describe("Handle Search Items", () => {
+    test("is able to toggle a search item's status", async () => {
+        const updatedSearchItem: SearchItem = {
+            id: searchList[0].id,
+            conditions: searchList[0].conditions,
+            exact_title_match: searchList[0].exact_title_match,
+            search_active: !searchList[0].search_active,
+            show: searchList[0].show,
+        };
+        response.data = updatedSearchItem;
+
+        mockedAxios.patch.mockResolvedValue(response);
+
+        const res = await toggleStatus(searchList[0].id, false);
+
+        expect(res.search_active).toEqual(false);
     });
 });
 
@@ -198,7 +238,7 @@ describe("Handle User Data", () => {
             password: "updated-password"
         };
 
-        const userResponse = await changePassword('Test', updatedAccountDetails, 'test-token');
+        const userResponse = await changePassword('Test', updatedAccountDetails);
         expect(Object.values(userResponse)).toContain("updated-password");
     });
 
@@ -206,7 +246,7 @@ describe("Handle User Data", () => {
         response.data = updateSubscriptionsRes
 
         mockedAxios.put.mockResolvedValue(response);
-        const userResponse = await addSubscriptions('Test', ['Vera'], 'test-token');
+        const userResponse = await addSubscriptions('Test', ['Vera']);
 
        const latestSubscription = userResponse.show_subscriptions[userResponse.show_subscriptions.length - 1];
         expect(userResponse.show_subscriptions.length).toBeGreaterThan(user.show_subscriptions.length);

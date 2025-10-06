@@ -3,6 +3,7 @@ import { useHistory } from "react-router-dom";
 import { Alert, Button, Form, Input } from "antd";
 import type { FormRule } from "antd";
 import Cookies from "universal-cookie";
+import dayjs from "dayjs";
 
 import { UserContext } from "../../contexts/UserContext";
 import { login } from "../../requests";
@@ -28,12 +29,12 @@ const Login = () => {
     const loginHandle = async (values: LoginData) => {
         try {
             const loggedInUser = await login(values);
-            cookies.set('user', JSON.stringify(loggedInUser));
+            cookies.set('user', JSON.stringify({ ...loggedInUser, loginTime: dayjs() }));
             setUser(loggedInUser);
             history.push(`/profile/${values.username}`);
         }
         catch(error) {
-            setLoginError(error?.response?.data?.message);
+            setLoginError(error?.response?.data?.message || error?.message);
         }
     };
 
@@ -42,22 +43,34 @@ const Login = () => {
     };
 
     return (
-        <>
-            <Form form={form} onFinish={loginHandle} id="login-form" onFinishFailed={loginFailed} className="auth-form">
-                <Form.Item label="Username" name="username" rules={rules}>
-                    <Input />
-                </Form.Item>
+        <Form
+            form={form}
+            onFinish={loginHandle}
+            id="login-form"
+            onFinishFailed={loginFailed}
+            className="auth-form"
+        >
+            <Form.Item label="Username" name="username" rules={rules}>
+                <Input />
+            </Form.Item>
 
-                <Form.Item label="Password" name="password" rules={rules}>
-                    <Input.Password />
-                </Form.Item>
-                
-                <Form.Item>
-                    <Button htmlType="submit" type="primary">Submit</Button>
-                </Form.Item>
-                {loginError && <Alert type="error" message="Login Failed!" description={loginError} />}
-            </Form>
-        </>
+            <Form.Item label="Password" name="password" rules={rules}>
+                <Input.Password />
+            </Form.Item>
+            
+            <Form.Item>
+                <Button htmlType="submit" type="primary">
+                    Submit
+                </Button>
+            </Form.Item>
+            {loginError && (
+                <Alert
+                    type="error"
+                    message="Login Failed!"
+                    description={loginError}
+                />
+            )}
+        </Form>
     );
 };
 

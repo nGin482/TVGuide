@@ -3,6 +3,7 @@ import { App as AntdApp, ConfigProvider, ThemeConfig } from 'antd';
 
 import NavigationHandle from './Navigation/NavigationHandle';
 import BasePage from './Pages/BasePage';
+import { SessionModal } from './components/SessionModal';
 import { ContextWrapper } from "./contexts";
 
 const theme: ThemeConfig = {
@@ -18,6 +19,7 @@ function App() {
             <BrowserRouter>
                 <AntdApp>
                     <ContextWrapper>
+                        <SessionModal />
                         <BasePage />
                         <NavigationHandle/>
                     </ContextWrapper>

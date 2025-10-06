@@ -1,67 +1,129 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import axios, { AxiosResponse } from 'axios';
+import dayjs from 'dayjs';
 
 import TVGuide from '../src/components/TVGuide';
 
 import { currentUser, guide } from './test_data';
 
-describe('test TVGuide component', () => {
-    test('renders service buttons', () => {
-        render(<TVGuide guide={guide} />);
-        const ftaButton = screen.getByText(/Free to Air/i);
-        const bbcButton = screen.getByText(/BBC Channels/i);
-        const allButton = screen.getByText(/All/i);
-        expect(ftaButton).toBeInTheDocument();
-        expect(bbcButton).toBeInTheDocument();
-        expect(allButton).toBeInTheDocument();
+jest.mock("axios");
+const mockedAxios = axios as jest.Mocked<typeof axios>;
+
+const response: AxiosResponse = {
+    status: 200,
+    statusText: 'OK',
+    data: null,
+    headers: null,
+    config: null
+};
+
+describe("test TVGuide component", () => {
+    beforeEach(() => {
+        jest.resetAllMocks();
     });
 
-    test('fta button only shows FTA guide', () => {
-        render(<TVGuide guide={guide} />);
-        const ftaButton = screen.getByText(/Free to Air/i);
+    test("renders guide data", async () => {
+        response.data = guide;
+                
+        mockedAxios.get.mockResolvedValue(response);
         
-        fireEvent.click(ftaButton);
+        const { getByRole } = render(<TVGuide />);
 
-        const maigret = screen.getByText(/^Maigret$/i);
-        const deathInParadise = screen.queryByText(/Death in Paradise/i);
-        expect(maigret).toBeInTheDocument();
-        expect(deathInParadise).not.toBeInTheDocument();
-    });
-
-    test('bbc button only shows BBC guide', () => {
-        render(<TVGuide guide={guide} />);
-        const bbcButton = screen.getByText(/BBC Channels/i);
+        const dateHeader = screen.getByRole("heading");
+        expect(dateHeader).toBeInTheDocument();
+        expect(dateHeader.innerHTML).toContain(dayjs().format("DD MMMM YYYY"));
         
-        fireEvent.click(bbcButton);
-
-        const maigret = screen.queryByText(/^Maigret$/i);
-        const deathInParadise = screen.queryByText(/Death in Paradise/i);
-        expect(maigret).not.toBeInTheDocument();
-        expect(deathInParadise).toBeInTheDocument();
+        await waitFor(() => expect(getByRole("table")).toBeInTheDocument());
     });
 
-    test('all button shows FTA shows and BBC shows', () => {
-        render(<TVGuide guide={guide} />);
-        const allButton = screen.getByText(/All/i);
-
-        fireEvent.click(allButton);
-
-        const maigret = screen.queryByText(/^Maigret$/i);
-        const deathInParadise = screen.queryByText(/Death in Paradise/i);
-        expect(maigret).toBeInTheDocument();
-        expect(deathInParadise).toBeInTheDocument();
+    test("renders an error alert if no guide is returned", async () => {
+        const { getByRole } = render(<TVGuide />);
+        
+        await waitFor(() => {
+            const error = getByRole("alert");
+            expect(error).toBeInTheDocument();
+            expect(error.innerHTML).toContain(
+                `There was a problem fetching the guide for ${dayjs().format("DD MMMM YYYY")}`
+            );
+            expect(error.innerHTML).toContain(
+                "There is a problem communicating with the server"
+            );
+        });
     });
 
-    test('TVGuide only renders shows user has sbscribed to', () => {
-        render(<TVGuide guide={guide} user={currentUser} />);
+    test("renders an error alert if no guide is found for the date chosen", async () => {
+        const noGuideResponse: AxiosResponse = JSON.parse(JSON.stringify(response));
+        noGuideResponse.status = 404;
+        noGuideResponse.statusText = "Not Found";
+        noGuideResponse.data = {
+            message: "There is no guide for this date"
+        };
+                
+        mockedAxios.get.mockRejectedValue({ response: noGuideResponse });
 
-        const maigret = screen.queryAllByText(/Maigret/i);
-        const deathInParadise = screen.queryByText(/Death in Paradise/i);
-        const vera = screen.queryByText(/Vera/i);
-        const lewis = screen.queryByText(/Lewis/i);
+        const { getByRole } = render(<TVGuide />);
+        
+        await waitFor(() => {
+            const error = getByRole("alert");
+            expect(error).toBeInTheDocument();
+            expect(error.innerHTML).toContain(
+                `There was a problem fetching the guide for ${dayjs().format("DD MMMM YYYY")}`
+            );
+            expect(error.innerHTML).toContain("There is no guide for this date");
+        });
+    });
 
-        expect(maigret[0]).toBeInTheDocument();
-        expect(deathInParadise).not.toBeInTheDocument();
-        expect(vera).not.toBeInTheDocument();
-        expect(lewis).not.toBeInTheDocument();
-    })
+    test("renders a datepicker to choose a different date", async () => {
+        response.data = guide;
+        mockedAxios.get.mockResolvedValue(response);
+        
+        const { getByRole } = render(<TVGuide />);
+
+        await waitFor(() => {
+            const datePicker = getByRole("textbox");
+            expect(datePicker).toBeInTheDocument();
+        });
+    });
+
+    test("datepicker changes date displayed", async () => {
+        response.data = guide;
+        mockedAxios.get.mockResolvedValue(response);
+        
+        const { getByRole, rerender } = render(<TVGuide />);
+
+        const previousDay = dayjs().subtract(1, "day");
+
+        const datePicker = getByRole("textbox");
+        expect(datePicker).toBeInTheDocument();
+        fireEvent.mouseDown(datePicker);
+        fireEvent.change(datePicker, { target: { value: previousDay.format("YYYY-MM-DD") } });
+        expect(datePicker).toHaveValue(previousDay.format("YYYY-MM-DD"));
+        
+        await waitFor(() => {
+            rerender(<TVGuide />);
+
+            const dateHeader = getByRole("heading");
+            expect(dateHeader).toBeInTheDocument();
+        });
+        
+    });
+
+    test('TVGuide only renders shows user has subscribed to', async () => {
+        response.data = guide;
+        mockedAxios.get.mockResolvedValue(response);
+        
+        render(<TVGuide user={currentUser} />);
+        
+        await waitFor(() => {
+            const maigret = screen.queryAllByText(/Maigret/i);
+            const deathInParadise = screen.queryByText(/Death in Paradise/i);
+            const vera = screen.queryByText(/Vera/i);
+            const lewis = screen.queryByText(/Lewis/i);
+    
+            expect(maigret[0]).toBeInTheDocument();
+            expect(deathInParadise).not.toBeInTheDocument();
+            expect(vera).not.toBeInTheDocument();
+            expect(lewis).not.toBeInTheDocument();
+        });
+    });
 });

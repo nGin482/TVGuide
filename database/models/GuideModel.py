@@ -1,6 +1,6 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
-from sqlalchemy import Column, DateTime, Integer
+from sqlalchemy import Column, DateTime, Integer, select
 from sqlalchemy.orm import Mapped, Session
 from sqlalchemy.exc import OperationalError, PendingRollbackError
 import json
@@ -15,8 +15,11 @@ from database.models.SearchItemModel import SearchItem
 from database.models.ShowDetailsModel import ShowDetails
 from database.models.ShowEpisodeModel import ShowEpisode
 from data_validation.validation import Validation
+from exceptions.service_error import HTTPRequestError
+from exceptions.tvguide_errors import GuideNotCreatedError
 from services.APIClient import APIClient
 from utils import parse_datetime
+from utils.types.models import TGuide
 
 
 class Guide(Base):
@@ -26,6 +29,19 @@ class Guide(Base):
     date: Mapped[datetime] = Column('date', DateTime)
 
     logger = logging.getLogger("Guide")
+
+    @classmethod
+    def get_date(cls, date: datetime, session: Session):
+        query = select(Guide).where(Guide.date == date.date()).order_by(Guide.id.desc())
+        guide_record = session.scalar(query)
+        
+        if not guide_record:
+            return None
+        
+        guide = cls(guide_record.date, session)
+        guide.id = guide_record.id
+    
+        return guide
     
     def __init__(self, date: datetime, session: Session):
         self.date = date
@@ -194,9 +210,10 @@ class Guide(Base):
                 api_client = APIClient()
                 schedule = api_client.get(endpoint)
                 return schedule
-            except Exception as error:
+            except HTTPRequestError as error:
                 from services.hermes.hermes import hermes
                 hermes.dispatch('guide_data_fetch_failed', str(error))
+                return { "schedule": [] }
         else:
             with open(f"dev-data/free_to_air/{self.date.strftime('%Y-%m-%d')}.json") as fd:
                 schedule = json.load(fd)
@@ -205,18 +222,30 @@ class Guide(Base):
     def create_new_guide(self, scheduler: AsyncIOScheduler = None):
         try:
             self.add_guide()
-            self.fta_shows = self.search_free_to_air()
-            self.schedule_reminders(scheduler)
         except OperationalError as error:
             Guide.logger.error(f"Could not create guide: {str(error)}")
             self.session.rollback()
+            raise GuideNotCreatedError(f"Could not create guide: {str(error)}")
         except PendingRollbackError as error:
             Guide.logger.error(f"Could not create guide: {str(error)}")
             self.session.rollback()
+            raise GuideNotCreatedError(f"Could not create guide: {str(error)}")
+
+        try:
+            self.fta_shows = self.search_free_to_air()
+            self.schedule_reminders(scheduler)
+        except OperationalError as error:
+            Guide.logger.error(f"Could not attach shows to guide: {str(error)}")
+            self.session.rollback()
+            raise GuideNotCreatedError(f"Could not attach shows to guide: {str(error)}")
+        except PendingRollbackError as error:
+            Guide.logger.error(f"Could not attach shows to guide: {str(error)}")
+            self.session.rollback()
+            raise GuideNotCreatedError(f"Could not attach shows to guide: {str(error)}")
         # self.bbc_shows = self.search_bbc_australia()
     
     def get_shows(self):
-        self.fta_shows = GuideEpisode.get_shows_for_date(self.date, self.session)
+        self.fta_shows = GuideEpisode.get_guide_shows(self.id, self.session)
 
     def get_reminders(self):
         shows_with_reminders = [
@@ -290,7 +319,7 @@ class Guide(Base):
 
         return "\n".join(fta_events)
 
-    def to_dict(self):
+    def to_dict(self) -> TGuide:
         return {
             'date': self.date.strftime('%d/%m/%Y'),
             'fta': [show.to_dict() for show in self.fta_shows]

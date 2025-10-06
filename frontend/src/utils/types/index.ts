@@ -1,4 +1,4 @@
-import type { AxiosResponse } from "axios";
+import { Dayjs } from "dayjs";
 
 export type { TVMazeSeason, TVMazeShow } from "./tvmaze";
 
@@ -55,6 +55,7 @@ interface Reminder {
 };
 
 interface SearchItem {
+    id: number
     show: string
     exact_title_match: boolean
     search_active: boolean
@@ -138,6 +139,15 @@ interface AccountDetailsFormValues {
 };
 
 type FormMode = "add" | "edit";
+
+export interface ErrorResponse {
+    msg?: string
+    message?: string
+}
+
+export interface Session extends CurrentUser {
+    loginTime: Dayjs;
+};
 
 
 // Contexts

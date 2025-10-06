@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { Form, Modal, Select } from "antd";
 
-import { ShowsContext, UserContext } from "../../contexts";
+import { ShowsContext } from "../../contexts";
 import { SubscriptionsAction, SubscriptionsPayload, User } from "../../utils/types";
 
 
@@ -16,16 +16,23 @@ interface SubscriptionFormProps {
 }
 
 const SubscriptionForm = (props: SubscriptionFormProps) => {
-    const { showForm, toggleModal, updateSubscriptionsHandle } = props;
+    const { showForm, userDetails, toggleModal, updateSubscriptionsHandle } = props;
     
     const { shows } = useContext(ShowsContext);
-    const { currentUser } = useContext(UserContext);
 
     const [ form ] = Form.useForm<{ shows: string[] }>();
 
-    const setSelectOptions = () => {
-        const filteredShows = shows.filter(show => show.search_item);
-        return filteredShows.map(show => ({ label: show.show_name, value: show.show_name }));
+    const createSubscriptionOptions = () => {
+        const existingSearchSubscriptions = userDetails.show_subscriptions.map(
+            sub => sub.search_item.show
+        );
+        const filteredShows = shows.filter(
+            show => show.search_item && !existingSearchSubscriptions.includes(show.search_item.show)
+        );
+        return filteredShows.map(show => ({
+            label: show.show_name,
+            value: show.show_name
+        }));
     };
 
     const subscribe = async () => {
@@ -43,7 +50,7 @@ const SubscriptionForm = (props: SubscriptionFormProps) => {
         <Modal
             open={showForm}
             okText="Submit"
-            onOk={() => subscribe()}
+            onOk={subscribe}
             onCancel={toggleModal}
             closeIcon={false}
         >
@@ -53,7 +60,7 @@ const SubscriptionForm = (props: SubscriptionFormProps) => {
             >
                 <Form.Item name="shows" label="Select shows to subscribe to">
                     <Select
-                        options={setSelectOptions()}
+                        options={createSubscriptionOptions()}
                         showSearch
                         mode="multiple"
                     />

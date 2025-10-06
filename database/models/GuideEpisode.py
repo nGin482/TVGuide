@@ -8,9 +8,9 @@ import logging
 from database import Base
 from database.models.ShowDetailsModel import ShowDetails
 from database.models.ShowEpisodeModel import ShowEpisode
+from utils.types.models import TGuideEpisode
 
 if TYPE_CHECKING:
-    from apscheduler.schedulers.asyncio import AsyncIOScheduler
     from database.models import Reminder, ShowDetails, ShowEpisode
 
 
@@ -74,6 +74,13 @@ class GuideEpisode(Base):
 
         return [guide_episode for guide_episode in guide_episodes]
     
+    @staticmethod
+    def get_guide_shows(guide_id: int, session: Session):
+        query = select(GuideEpisode).where(GuideEpisode.guide_id == guide_id)
+        guide_episodes = session.scalars(query)
+
+        return [guide_episode for guide_episode in guide_episodes]
+    
     def add_episode(self, session: Session):
         session.add(self)
         session.commit()
@@ -127,7 +134,7 @@ class GuideEpisode(Base):
             air_dates.append(self.start_time)
             events["air_dates"] = air_dates
 
-            episode_details = f"""Season {self.season_number} Episode {self.episode_number} ({self.episode_title})"""
+            episode_details = f"Season {self.season_number} Episode {self.episode_number} ({self.episode_title})"
             self.db_event = f"{episode_details} has aired today"
             if not self.show_episode.channel_check(self.channel):
                 self.show_episode.channels.append(self.channel)
@@ -197,7 +204,7 @@ class GuideEpisode(Base):
             f"repeat={self.repeat})"
         )
 
-    def to_dict(self):
+    def to_dict(self) -> TGuideEpisode:
         return {
             'title': self.title,
             'start_time': self.start_time.strftime('%H:%M'),

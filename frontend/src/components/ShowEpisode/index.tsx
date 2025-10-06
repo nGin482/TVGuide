@@ -20,7 +20,7 @@ import { EpisodeForm } from './EpisodeForm';
 import { UserContext } from '../../contexts';
 import { useShow } from '../../hooks/useShow';
 import { updateShowEpisode } from '../../requests';
-import { getSeasons, sessionExpiryMessage } from '../../utils';
+import { getSeasons, handleErrorResponse } from '../../utils';
 import { ShowEpisode } from '../../utils/types';
 import "./ShowEpisode.css";
 
@@ -46,7 +46,7 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
 
     const updateEpisode = async (formValues: ShowEpisode) => {
         try {
-            const updatedEpisode = await updateShowEpisode(formValues, currentUser.token);
+            const updatedEpisode = await updateShowEpisode(formValues);
             updateEpisodeContext(formValues.show, formValues.id, updatedEpisode);
             notification.success({
                 message: "Success!",
@@ -59,12 +59,7 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
         catch(error) {
             let message: string =  error?.message;
             if (error?.response) {
-                if (error.response?.data.msg) {
-                    message = sessionExpiryMessage("update this episode");
-                }
-                else {
-                    message = error.response.data.message;
-                }
+                message = handleErrorResponse(error, "update this episode");
             }
             notification.error({
                 message: `Unable to edit the episode for '${formValues.episode_title}'`,

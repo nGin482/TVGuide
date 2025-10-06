@@ -20,7 +20,6 @@ class TestGuideEpisode(unittest.TestCase):
 
     
     @patch('sqlalchemy.orm.session')
-    # @patch('database.models.GuideEpisode.get_shows_for_date')
     def test_get_guide_episodes(self, mock_session: MagicMock):
         mock_session.scalars.return_value = guide_episodes
         # mock_get_shows.return_value = guide_episodes
@@ -32,6 +31,17 @@ class TestGuideEpisode(unittest.TestCase):
         self.assertEqual(episodes[0].title, 'Doctor Who')
         self.assertEqual(episodes[1].title, 'Endeavour')
 
+    @patch('sqlalchemy.orm.session')
+    def test_guide_episode_returns_shows_for_guide(self, mock_session: MagicMock):
+        mock_session.scalars.return_value = guide_episodes
+
+        guide_id = 1
+        shows = GuideEpisode.get_guide_shows(guide_id, mock_session)
+        
+        self.assertEqual(len(shows), 2)
+        for show in shows:
+            self.assertEqual(show.guide_id, guide_id)
+    
     def test_guide_episode_repeat_false_no_show_episode(self):
         self.assertFalse(guide_episodes[1].repeat)
 

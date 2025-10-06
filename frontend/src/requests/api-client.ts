@@ -5,7 +5,7 @@ const baseURL = process.env.VITE_BASE_URL;
 const headers = (otherHeaders?: AxiosRequestConfig['headers']) => {
     const headersObj = {
         'Content-Type': 'application/json',
-        Accept: 'application/json'
+        Accept: 'application/json',
     };
 
     if (otherHeaders) {
@@ -15,8 +15,27 @@ const headers = (otherHeaders?: AxiosRequestConfig['headers']) => {
     return headersObj;
 };
 
-export const getRequest = async <DataType>(endpoint: string, otherHeaders?: AxiosRequestConfig['headers']) => {
-    const response = await axios.get<DataType>(baseURL + endpoint, { headers: headers(otherHeaders) });
+const getCookie = (cookieName: string) => {
+    const cookies = document.cookie.split(";");
+
+    const cookieIdentifier = `${cookieName}=`
+    const cookieData = cookies.find(cookie => cookie.includes(cookieIdentifier));
+    if (!cookieData) {
+        return;
+    }
+    const cookieValue = cookieData.replace(cookieIdentifier, "");
+
+    return cookieValue;
+};
+
+export const getRequest = async <DataType>(
+    endpoint: string,
+    otherHeaders?: AxiosRequestConfig['headers']
+) => {
+    const response = await axios.get<DataType>(
+        baseURL + endpoint,
+        { headers: headers(otherHeaders) }
+    );
 
     return response.data;
 };
@@ -24,13 +43,18 @@ export const getRequest = async <DataType>(endpoint: string, otherHeaders?: Axio
 export const postRequest = async <RequestType, ResponseType>(
     endpoint: string,
     data: RequestType,
+    csrfToken: "csrf_access_token" | "csrf_refresh_token" = "csrf_access_token",
     otherHeaders?: AxiosRequestConfig['headers']
 ) => {
     const response = await axios.post<ResponseType>(
         baseURL + endpoint,
         data,
         {
-            headers: headers(otherHeaders)
+            headers: {
+                ...headers(otherHeaders),
+                "X-CSRF-Token": getCookie(csrfToken),
+            },
+            withCredentials: true,
         }
     );
 
@@ -46,7 +70,31 @@ export const putRequest = async <RequestType, ResponseType>(
         baseURL + endpoint,
         data,
         {
-            headers: headers(otherHeaders)
+            headers: {
+                ...headers(otherHeaders),
+                "X-CSRF-Token": getCookie("csrf_access_token"),
+            },
+            withCredentials: true,
+        }
+    );
+
+    return response.data;
+};
+
+export const patchRequest = async <RequestType, ResponseType>(
+    endpoint: string,
+    data: RequestType,
+    otherHeaders?: AxiosRequestConfig['headers']
+) => {
+    const response = await axios.patch<ResponseType>(
+        baseURL + endpoint,
+        data,
+        {
+            headers: {
+                ...headers(otherHeaders),
+                "X-CSRF-Token": getCookie("csrf_access_token"),
+            },
+            withCredentials: true,
         }
     );
 
@@ -57,5 +105,14 @@ export const deleteRequest = async (
     endpoint: string,
     otherHeaders?: AxiosRequestConfig['headers']
 ) => {
-    await axios.delete<void>(baseURL + endpoint, { headers: headers(otherHeaders) });
+    await axios.delete<void>(
+        baseURL + endpoint,
+        {
+            headers: {
+                ...headers(otherHeaders),
+                "X-CSRF-Token": getCookie("csrf_access_token"),
+            },
+            withCredentials: true,
+        }
+    );
 };

@@ -8,8 +8,8 @@ import { EmptyTableView } from "../EmptyTableView";
 import { useShow } from "../../hooks/useShow";
 import { UserContext } from "../../contexts";
 import { addSearchCriteria, deleteSearchCriteria, editSearchCriteria } from "../../requests";
-import { sessionExpiryMessage } from "../../utils";
-import type { ErrorResponse, FormMode, SearchItem, SearchItemPayload } from "../../utils/types";
+import { handleErrorResponse } from "../../utils";
+import type { FormMode, SearchItem, SearchItemPayload } from "../../utils/types";
 import "./SearchItem.css";
 
 
@@ -29,20 +29,20 @@ const SearchItem = ({ searchItem, show }: SearchItemProps) => {
     const { Text } = Typography;
 
     const addSearchItem = async (searchCriteria: SearchItemPayload) => {
-        const newSearchItem = await addSearchCriteria(searchCriteria, currentUser.token);
+        const newSearchItem = await addSearchCriteria(searchCriteria);
         updateShowContext(show, "search_item", newSearchItem);
         return `The search criteria for ${show} has been added`;
     };
 
     const editSearchItem = async (searchCriteria: SearchItemPayload) => {
-        const updatedSearchItem = await editSearchCriteria(searchCriteria, currentUser.token);
+        const updatedSearchItem = await editSearchCriteria(searchCriteria);
         updateShowContext(show, "search_item", updatedSearchItem);
         return `The search criteria for ${show} has been updated`;
     };
 
     const deleteSearchItemHandle = async () => {
         try {
-            await deleteSearchCriteria(show, currentUser.token);
+            await deleteSearchCriteria(show);
             updateShowContext(show, "search_item", null);
             notification.success({
                 message: "Success!",
@@ -53,13 +53,7 @@ const SearchItem = ({ searchItem, show }: SearchItemProps) => {
         catch(error) {
             let message: string =  error?.message;
             if (error?.response) {
-                const responseError: ErrorResponse = error.response;
-                if (responseError.data.msg) {
-                    message = sessionExpiryMessage("delete this search criteria");
-                }
-                else {
-                    message = responseError.data.message;
-                }
+                message = handleErrorResponse(error, "delete this search criteria");
             }
             notification.error({
                 message: `Unable to delete the search criteria for ${show}`,
