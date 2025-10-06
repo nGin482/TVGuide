@@ -43,22 +43,34 @@ const Login = () => {
     };
 
     return (
-        <>
-            <Form form={form} onFinish={loginHandle} id="login-form" onFinishFailed={loginFailed} className="auth-form">
-                <Form.Item label="Username" name="username" rules={rules}>
-                    <Input />
-                </Form.Item>
+        <Form
+            form={form}
+            onFinish={loginHandle}
+            id="login-form"
+            onFinishFailed={loginFailed}
+            className="auth-form"
+        >
+            <Form.Item label="Username" name="username" rules={rules}>
+                <Input />
+            </Form.Item>
 
-                <Form.Item label="Password" name="password" rules={rules}>
-                    <Input.Password />
-                </Form.Item>
-                
-                <Form.Item>
-                    <Button htmlType="submit" type="primary">Submit</Button>
-                </Form.Item>
-                {loginError && <Alert type="error" message="Login Failed!" description={loginError} />}
-            </Form>
-        </>
+            <Form.Item label="Password" name="password" rules={rules}>
+                <Input.Password />
+            </Form.Item>
+            
+            <Form.Item>
+                <Button htmlType="submit" type="primary">
+                    Submit
+                </Button>
+            </Form.Item>
+            {loginError && (
+                <Alert
+                    type="error"
+                    message="Login Failed!"
+                    description={loginError}
+                />
+            )}
+        </Form>
     );
 };
 

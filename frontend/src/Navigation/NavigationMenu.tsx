@@ -1,10 +1,11 @@
 import { useState, useEffect, useContext } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useHistory } from "react-router-dom";
 import { Menu } from "antd";
 import type { MenuProps } from "antd";
 import Cookies from "universal-cookie";
 
 import { UserContext } from "../contexts/UserContext";
+import { logoutSession } from "../requests";
 import './navigationMenu.css';
 
 const NavigationMenu = () => {
@@ -13,6 +14,7 @@ const NavigationMenu = () => {
 
     const { currentUser, setUser } = useContext(UserContext);
     const cookies = new Cookies('user', { path: '/' });
+    const history = useHistory();
 
     const items: MenuProps['items'] = [
         {
@@ -29,9 +31,11 @@ const NavigationMenu = () => {
         }
     ];
 
-    const logout = () => {
+    const logout = async () => {
         cookies.remove('user');
         setUser(null);
+        await logoutSession();
+        history.push("/");
     };
 
     useEffect(() => {
@@ -49,11 +53,19 @@ const NavigationMenu = () => {
                     key: 'profile',
                     children: [
                         {
-                            label: <NavLink to={`/profile/${currentUser.username}`}>Your Profile</NavLink>,
+                            label: (
+                                <NavLink to={`/profile/${currentUser.username}`}>
+                                    Your Profile
+                                </NavLink>
+                            ),
                             key: 'profile-page'
                         },
                         {
-                            label: <NavLink to={`/profile/${currentUser.username}/settings`}>Settings</NavLink>,
+                            label: (
+                                <NavLink to={`/profile/${currentUser.username}/settings`}>
+                                    Settings
+                                </NavLink>
+                            ),
                             key: 'profile-settings-page'
                         },
                         {

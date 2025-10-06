@@ -4,7 +4,7 @@ const jestConfig: Config = {
     collectCoverage: true,
     coverageDirectory: "coverage",
     coveragePathIgnorePatterns: [
-        "tests/test_data",
+        "tests/",
     ],
     preset: "ts-jest",
     setupFiles: [
