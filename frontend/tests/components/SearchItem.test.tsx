@@ -162,7 +162,6 @@ describe("Tests for SearchItem component", () => {
     });
 
     it("should show a modal when the user clicks to create a search item", async () => {
-
         render(<SearchItemUser />);
 
         const createSearchItemButton = screen.queryByRole("button", { name: "Add Search Criteria" });
@@ -305,8 +304,6 @@ describe("Tests for SearchItem component", () => {
         await waitFor(async () => {
             const confirmation = screen.getAllByText("Delete");
             fireEvent.click(confirmation[confirmation.length -1]);
-            
-            
         });
     });
 });
