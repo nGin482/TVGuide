@@ -51,7 +51,7 @@ const SearchItem = ({ searchItem, show, toggleStatus }: SearchItemProps) => {
             updateShowContext(show, "search_item", null);
             notification.success({
                 message: "Success!",
-                description: `The reminder for ${show} has been deleted`,
+                description: `The search criteria for ${show} has been deleted`,
                 duration: 8
             });
         }
@@ -159,7 +159,6 @@ const SearchItem = ({ searchItem, show, toggleStatus }: SearchItemProps) => {
                     okText="Delete"
                     okButtonProps={{ style: { background: "#f00" } } }
                     onConfirm={deleteSearchItemHandle}
-                    onCancel={() => console.log("not deleted")}
                 >
                     <DeleteFilled /> Delete
                 </Popconfirm>
@@ -180,7 +179,11 @@ const SearchItem = ({ searchItem, show, toggleStatus }: SearchItemProps) => {
         <>
             <Text type="secondary">No search item configured for {show}</Text>
             <br />
-            <Button onClick={() => openForm("add")}>Add Search Criteria</Button>
+            {currentUser && (
+                <Button onClick={() => openForm("add")}>
+                    Add Search Criteria
+                </Button>
+            )}
         </>
     );
 
