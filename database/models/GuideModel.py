@@ -18,7 +18,6 @@ from data_validation.validation import Validation
 from exceptions.service_error import HTTPRequestError
 from exceptions.tvguide_errors import GuideNotCreatedError
 from services.APIClient import APIClient
-from utils import parse_datetime
 from utils.types.models import TGuide
 
 
