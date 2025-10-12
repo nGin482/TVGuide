@@ -1,13 +1,17 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { App, Button, Dropdown, Popconfirm, Table, Tag, Typography } from "antd";
 import type { MenuProps, TableColumnsType } from "antd";
-import { EditOutlined, DeleteFilled } from "@ant-design/icons";
+import { DeleteFilled, EditOutlined, PoweroffOutlined } from "@ant-design/icons";
 
 import { SearchItemForm } from "./SearchItemForm";
 import { EmptyTableView } from "../EmptyTableView";
 import { useShow } from "../../hooks/useShow";
 import { UserContext } from "../../contexts";
-import { addSearchCriteria, deleteSearchCriteria, editSearchCriteria } from "../../requests";
+import {
+    addSearchCriteria,
+    deleteSearchCriteria,
+    editSearchCriteria,
+} from "../../requests/search-items";
 import { handleErrorResponse } from "../../utils";
 import type { FormMode, SearchItem, SearchItemPayload } from "../../utils/types";
 import "./SearchItem.css";
@@ -16,9 +20,10 @@ import "./SearchItem.css";
 interface SearchItemProps {
     searchItem: SearchItem
     show: string
+    toggleStatus: () => Promise<void>;
 }
 
-const SearchItem = ({ searchItem, show }: SearchItemProps) => {
+const SearchItem = ({ searchItem, show, toggleStatus }: SearchItemProps) => {
     const [openModal, setOpenModal] = useState(false);
     const [formMode, setFormMode] = useState<FormMode>(null);
 
@@ -46,7 +51,7 @@ const SearchItem = ({ searchItem, show }: SearchItemProps) => {
             updateShowContext(show, "search_item", null);
             notification.success({
                 message: "Success!",
-                description: `The reminder for ${show} has been deleted`,
+                description: `The search criteria for ${show} has been deleted`,
                 duration: 8
             });
         }
@@ -135,6 +140,12 @@ const SearchItem = ({ searchItem, show }: SearchItemProps) => {
 
     const menuItems: MenuProps['items'] = [
         {
+            icon: <PoweroffOutlined />,
+            key: "toggle-active",
+            label: searchItem?.search_active ? "Deactivate" : "Activate",
+            onClick: toggleStatus,
+        },
+        {
             icon: <EditOutlined />,
             key: "edit",
             label: "Edit",
@@ -148,12 +159,11 @@ const SearchItem = ({ searchItem, show }: SearchItemProps) => {
                     okText="Delete"
                     okButtonProps={{ style: { background: "#f00" } } }
                     onConfirm={deleteSearchItemHandle}
-                    onCancel={() => console.log("not deleted")}
                 >
                     <DeleteFilled /> Delete
                 </Popconfirm>
             ),
-        }
+        },
     ];
 
     const openForm = (mode: FormMode) => {
@@ -169,7 +179,11 @@ const SearchItem = ({ searchItem, show }: SearchItemProps) => {
         <>
             <Text type="secondary">No search item configured for {show}</Text>
             <br />
-            <Button onClick={() => openForm("add")}>Add Search Criteria</Button>
+            {currentUser && (
+                <Button onClick={() => openForm("add")}>
+                    Add Search Criteria
+                </Button>
+            )}
         </>
     );
 

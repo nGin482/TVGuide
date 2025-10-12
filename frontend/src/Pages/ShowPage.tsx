@@ -84,11 +84,6 @@ const ShowPage = () => {
                     <title>{showData.show_name} Details | TVGuide</title>
                 </Helmet>
                 <h1>{showData.show_name}</h1>
-                {showData.search_item && (
-                    <Button onClick={toggleSearch}>
-                        {showData.search_item.search_active ? "Deactivate Search" : "Activate Search"}
-                    </Button>
-                )}
                 <ShowDetails showDetails={showData.show_details} />
                 <div className="show-data-switch">
                     <NavLink to={`/shows/${showData.show_name}/episodes`}>
@@ -127,7 +122,11 @@ const ShowPage = () => {
                     />
                 )}
                 {dataView === "search" && (
-                    <SearchItem searchItem={showData.search_item} show={showData.show_name} />
+                    <SearchItem
+                        searchItem={showData.search_item}
+                        show={showData.show_name}
+                        toggleStatus={toggleSearch}
+                    />
                 )}
                 {dataView === "reminder" && (
                     <Reminder reminder={showData.reminder} show={showData.show_name} />
