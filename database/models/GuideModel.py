@@ -1,6 +1,6 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
-from sqlalchemy import Column, DateTime, Integer, select
+from sqlalchemy import Column, DateTime, func, Integer, select
 from sqlalchemy.orm import Mapped, Session
 from sqlalchemy.exc import OperationalError, PendingRollbackError
 import json
@@ -8,7 +8,7 @@ import logging
 
 from aux_methods.helper_methods import build_episode, convert_utc_to_local, show_data_to_file
 from aux_methods.types import ShowData
-from database import Base
+from database import Base, engine
 from database.models.GuideEpisode import GuideEpisode
 from database.models.ReminderModel import Reminder
 from database.models.SearchItemModel import SearchItem
@@ -32,10 +32,13 @@ class Guide(Base):
 
     @classmethod
     def get_date(cls, date: datetime, session: Session):
-        query = select(Guide).where(Guide.date == date.date()).order_by(Guide.id.desc())
+        query = select(Guide).where(func.date(Guide.date) == date.date()).order_by(Guide.id.desc())
         guide_record = session.scalar(query)
         
         if not guide_record:
+            Guide.logger.warning(f"Date requested: {date}")
+            Guide.logger.warning(str(query.compile(engine, compile_kwargs={ "literal_binds": True })))
+            Guide.logger.warning(f"Guide record: {guide_record}")
             return None
         
         guide = cls(guide_record.date, session)
@@ -318,6 +321,9 @@ class Guide(Base):
         fta_events = [f"{show.title} - {show.db_event}" for show in self.fta_shows]
 
         return "\n".join(fta_events)
+
+    def __repr__(self):
+        return f"Guide (id={self.id}, date={self.date})"
 
     def to_dict(self) -> TGuide:
         return {
