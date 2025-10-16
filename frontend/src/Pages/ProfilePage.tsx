@@ -62,7 +62,7 @@ const ProfilePage = () => {
     };
 
     const fetchGuide = async () => {
-        const guide = await getGuide(dayjs().format("DD/MM/YYYY"));
+        const guide = await getGuide();
         setUserTVGuide(guide);
     };
 
