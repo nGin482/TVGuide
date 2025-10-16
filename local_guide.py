@@ -2,7 +2,8 @@ from aiohttp.client_exceptions import ClientConnectorError
 from discord import TextChannel
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
-import click
+import asyncclick as click
+import anyio
 import os
 
 load_dotenv('.env')
@@ -18,16 +19,7 @@ async def send_main_message(guide_message: str, reminder_message: str, events_me
     :return: n/a
     """
     await hermes.wait_until_ready()
-    tvguide_channel: TextChannel = hermes.get_channel(int(os.getenv('DEV_CHANNEL')))
-    ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
-    try:
-        await tvguide_channel.send(guide_message)
-    except AttributeError:
-        await ngin.send('The channel resolved to NoneType so the message could not be sent')
-    finally:
-        await tvguide_channel.send(reminder_message)
-        await tvguide_channel.send(events_message)
-    
+    await hermes.send_guide_message(guide_message, reminder_message, events_message)
     await hermes.close()
 
 @click.group()
@@ -81,7 +73,7 @@ def migrate_data():
 @click.option('--date', default=Validation.get_current_date().strftime('%d-%m-%Y'), help='The date to retrieve the TVGuide schedule')
 @click.option('-d', '--discord', is_flag=True, default=False, help='Whether to send the message via Discord')
 @click.option('-s', '--schedule', is_flag=True, default=False, help='Add reminders to the scheduling service')
-def run_guide(date: str, discord: bool, schedule: bool):
+async def run_guide(date: str, discord: bool, schedule: bool):
     from datetime import datetime
     import re
     import sys
@@ -110,10 +102,11 @@ def run_guide(date: str, discord: bool, schedule: bool):
     )
     if discord:
         try:
-            hermes.loop.create_task(
-                send_main_message(guide_message, reminders_message, events_message)
-            )
-            hermes.run(os.getenv('HERMES'))
+            async with hermes:
+                hermes.loop.create_task(
+                    send_main_message(guide_message, reminders_message, events_message)
+                )
+                await hermes.start(os.getenv('HERMES'))
         except ClientConnectorError:
             print(guide_message)
             print(reminders_message)
