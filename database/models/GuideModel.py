@@ -1,10 +1,8 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
-from discord import Embed
 from sqlalchemy import Column, DateTime, func, Integer, select
 from sqlalchemy.orm import Mapped, Session
 from sqlalchemy.exc import OperationalError, PendingRollbackError
-from table2ascii import table2ascii, PresetStyle
 import json
 import logging
 
