@@ -55,7 +55,7 @@ class Hermes(Bot):
                 await channel.send(events_message)
         except AttributeError as error:
             await ngin.send(f"There was an error sending the guide message: {str(error)}")
-            
+
 
     async def send_message(self, message: str):
         await self.wait_until_ready()
@@ -66,7 +66,10 @@ class Hermes(Bot):
             await channel.send(message)
         else:
             ngin = await self.fetch_user(int(os.getenv('NGIN')))
-            await ngin.send(f'{message}\nHermes was also unable to send this message through the TVGuide channel')
+            await ngin.send(message)
+            await ngin.send(
+                "Hermes was also unable to send this message through the TVGuide channel"
+            )
 
     async def get_hermes_channel(self) -> TextChannel:
         await self.wait_until_ready()

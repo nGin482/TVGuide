@@ -1,5 +1,4 @@
 from aiohttp.client_exceptions import ClientConnectorError
-from discord import TextChannel
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 import asyncclick as click
@@ -12,7 +11,11 @@ from data_validation.validation import Validation
 from services.hermes.hermes import hermes
 
 
-async def send_main_message(guide_message: str, reminder_message: str, events_message: str):
+async def send_main_message(
+    guide_message: str,
+    reminder_message: str,
+    events_message: str
+):
     """
 
     :param send_status:
