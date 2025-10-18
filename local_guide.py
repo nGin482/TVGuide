@@ -2,7 +2,6 @@ from aiohttp.client_exceptions import ClientConnectorError
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 import asyncclick as click
-import anyio
 import os
 
 load_dotenv('.env')
@@ -73,9 +72,25 @@ def migrate_data():
     db_migrate()
 
 @local_tvguide.command()
-@click.option('--date', default=Validation.get_current_date().strftime('%d-%m-%Y'), help='The date to retrieve the TVGuide schedule')
-@click.option('-d', '--discord', is_flag=True, default=False, help='Whether to send the message via Discord')
-@click.option('-s', '--schedule', is_flag=True, default=False, help='Add reminders to the scheduling service')
+@click.option(
+    '--date',
+    default=Validation.get_current_date().strftime('%d-%m-%Y'),
+    help='The date to retrieve the TVGuide schedule'
+)
+@click.option(
+    '-d',
+    '--discord',
+    is_flag=True,
+    default=False,
+    help='Whether to send the message via Discord'
+)
+@click.option(
+    '-s',
+    '--schedule',
+    is_flag=True,
+    default=False,
+    help='Add reminders to the scheduling service'
+)
 async def run_guide(date: str, discord: bool, schedule: bool):
     from datetime import datetime
     import re
@@ -123,30 +138,3 @@ async def run_guide(date: str, discord: bool, schedule: bool):
 
 if __name__ == '__main__':
     local_tvguide()
-    # from config import database_service
-    # if '--local-db' in sys.argv:
-    #     print(database_service)
-    #     if '--no-discord' in sys.argv:
-    #         local_message()
-    #     elif '--import' in sys.argv:
-    #         database_service.import_data()
-    #     elif '--tear-down' in sys.argv:
-    #         database_service.tear_down_data()
-    #     else:
-    #         guide_message, reminder_message, events_message = get_guide_data()
-    #         try:
-    #             hermes.loop.create_task(send_main_message())
-    #             hermes.run(getenv('HERMES'))
-    #         except ClientConnectorError:
-    #             print(guide_message)
-    #             print(reminder_message)
-    # elif '--import' in sys.argv:
-    #     database_service.import_data()
-    # elif '--tear-down' in sys.argv:
-    #     database_service.tear_down_data()
-    # elif '--revert-tvguide' in sys.argv:
-    #     revert_database_tvguide(database_service)
-    # else:
-    #     print('Invalid options have been provided')
-    #     print('\n'.join(sys.argv))
-            
