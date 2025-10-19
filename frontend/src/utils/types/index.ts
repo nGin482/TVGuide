@@ -167,6 +167,7 @@ export type {
     Reminder,
     SearchItem,
     User,
+    UserSearchSubscription,
     UserContextModel,
     CurrentUser,
     SubscriptionsPayload,
