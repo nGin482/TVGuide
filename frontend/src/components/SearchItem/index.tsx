@@ -196,6 +196,7 @@ const SearchItem = ({ searchItem, show, toggleStatus }: SearchItemProps) => {
                 locale={{
                     emptyText: <EmptyTableView description={<EmptyDescription />} />
                 }}
+                pagination={{ position: ["none"] }}
                 rowKey={record => record.show}
             />
             {openModal && (
