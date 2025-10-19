@@ -182,8 +182,10 @@ const ProfilePage = () => {
                 />
                 <Modal
                     open={viewSubscription != null}
-                    onCancel={() => setViewSubscription(null)}
+                    cancelButtonProps={{ style: { display: "none" } }}
+                    onOk={() => setViewSubscription(null)}
                     width="fit-content"
+                    closeIcon={null}
                 >
                     <SearchItem 
                         searchItem={viewSubscription}
