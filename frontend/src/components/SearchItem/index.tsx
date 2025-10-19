@@ -20,10 +20,11 @@ import "./SearchItem.css";
 interface SearchItemProps {
     searchItem: SearchItem
     show: string
+    displayActions?: boolean;
     toggleStatus: () => Promise<void>;
 }
 
-const SearchItem = ({ searchItem, show, toggleStatus }: SearchItemProps) => {
+const SearchItem = ({ searchItem, show, displayActions, toggleStatus }: SearchItemProps) => {
     const [openModal, setOpenModal] = useState(false);
     const [formMode, setFormMode] = useState<FormMode>(null);
 
@@ -190,7 +191,7 @@ const SearchItem = ({ searchItem, show, toggleStatus }: SearchItemProps) => {
     return (
         <>
             <Table
-                columns={currentUser ? columns : columns.filter(col => col.key !== "actions")}
+                columns={displayActions ? columns : columns.filter(col => col.key !== "actions")}
                 dataSource={searchItem ? [searchItem] : null}
                 bordered
                 locale={{

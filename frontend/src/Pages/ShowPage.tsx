@@ -125,6 +125,7 @@ const ShowPage = () => {
                     <SearchItem
                         searchItem={showData.search_item}
                         show={showData.show_name}
+                        displayActions={currentUser != null}
                         toggleStatus={toggleSearch}
                     />
                 )}
