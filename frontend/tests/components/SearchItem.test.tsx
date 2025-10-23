@@ -20,20 +20,21 @@ const SearchItemNoUser = (props: { searchItem?: TSearchItem }) => (
             <SearchItem
                 searchItem={props?.searchItem}
                 show="Doctor Who"
-                toggleStatus={mockToggleStatus}
+                setShowData={mockToggleStatus}
             />
         </UserContext.Provider>
     </ShowsContext.Provider>
 );
 
-const SearchItemUser = (props: { searchItem?: TSearchItem }) => (
+const SearchItemUser = (props: { searchItem?: TSearchItem, displayActions?: boolean }) => (
     <App>
         <ShowsContext.Provider value={{ shows: shows, setShows: mockSetShows }}>
             <UserContext.Provider value={{ currentUser: currentUser, setUser: null }}>
                 <SearchItem
                     searchItem={props.searchItem}
                     show="Doctor Who"
-                    toggleStatus={mockToggleStatus}
+                    setShowData={mockToggleStatus}
+                    displayActions={props.displayActions}
                 />
             </UserContext.Provider>
         </ShowsContext.Provider>
@@ -134,7 +135,7 @@ describe("Tests for SearchItem component", () => {
 
 
     it("should display the actions column in the table when user is signed in", () => {
-        render(<SearchItemUser searchItem={searchList[0]} />);
+        render(<SearchItemUser searchItem={searchList[0]} displayActions />);
 
         const tableHeaders = screen.getAllByRole("columnheader");
         
@@ -178,7 +179,7 @@ describe("Tests for SearchItem component", () => {
     });
 
     it("should close the modal presses cancel", async () => {
-        render(<SearchItemUser />);
+        render(<SearchItemUser displayActions />);
 
         const createSearchItemButton = screen.queryByRole("button", { name: "Add Search Criteria" });
 
@@ -201,7 +202,7 @@ describe("Tests for SearchItem component", () => {
 
     it("should show a menu of items when the user clicks to edit the search item", async () => {
         const searchItemCopy: TSearchItem = JSON.parse(JSON.stringify(searchList[0]));
-        render(<SearchItemUser searchItem={searchItemCopy} />);
+        render(<SearchItemUser searchItem={searchItemCopy} displayActions />);
         
         const editButton = screen.getByRole("button", { name: "Edit Doctor Who Search" });
         
@@ -217,27 +218,9 @@ describe("Tests for SearchItem component", () => {
         });
     });
 
-    it("should toggle a search item's status", async () => {
-        const searchItemCopy: TSearchItem = JSON.parse(JSON.stringify(searchList[0]));
-        render(<SearchItemUser searchItem={searchItemCopy} />);
-
-        const editButton = screen.getByRole("button", { name: "Edit Doctor Who Search" });
-
-        act(() => {
-            fireEvent.click(editButton);
-        });
-
-        const menuItems = screen.getAllByRole("menuitem");
-        
-        await waitFor(async () => {
-            fireEvent.click(menuItems[0]);
-            expect(mockToggleStatus).toHaveBeenCalled();
-        });
-    });
-
     it("should show the edit form when the user clicks the edit menu item", async () => {
         const searchItemCopy: TSearchItem = JSON.parse(JSON.stringify(searchList[0]));
-        render(<SearchItemUser searchItem={searchItemCopy} />);
+        render(<SearchItemUser searchItem={searchItemCopy} displayActions />);
         
         const editButton = screen.getByRole("button", { name: "Edit Doctor Who Search" });
         
@@ -258,7 +241,7 @@ describe("Tests for SearchItem component", () => {
     it("should delete a search item", async () => {
         const searchItemCopy: TSearchItem = JSON.parse(JSON.stringify(searchList[0]));
 
-        render(<SearchItemUser searchItem={searchItemCopy} />);
+        render(<SearchItemUser searchItem={searchItemCopy} displayActions />);
 
         const editButton = screen.getByRole("button", { name: "Edit Doctor Who Search" });
 
@@ -284,7 +267,7 @@ describe("Tests for SearchItem component", () => {
         // this test has no assertions
         const searchItemCopy: TSearchItem = JSON.parse(JSON.stringify(searchList[0]));
 
-        render(<SearchItemUser searchItem={searchItemCopy} />);
+        render(<SearchItemUser searchItem={searchItemCopy} displayActions />);
 
         const editButton = screen.getByRole("button", { name: "Edit Doctor Who Search" });
 

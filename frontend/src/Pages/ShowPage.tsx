@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { NavLink, useLocation, useParams } from "react-router-dom";
-import { Alert, App, Button } from "antd";
+import { Alert, Button } from "antd";
 import { Helmet } from "react-helmet";
 
 import { ShowDetails } from "../components/ShowDetails";
@@ -8,9 +8,6 @@ import { ShowEpisodes } from "../components/ShowEpisode";
 import { SearchItem } from "../components/SearchItem";
 import { Reminder } from "../components/Reminders";
 import { ShowsContext, UserContext } from "../contexts";
-import { useShow } from "../hooks/useShow";
-import { toggleStatus } from "../requests";
-import { handleErrorResponse } from "../utils";
 import { ShowData } from "../utils/types";
 import "./styles/ShowPage.css";
 
@@ -26,9 +23,7 @@ const ShowPage = () => {
     const [dataView, setDataView] = useState<DataView>(null);
 
     const { shows } = useContext(ShowsContext);
-    const { updateShowContext } = useShow();
     const { currentUser } = useContext(UserContext);
-    const { notification } = App.useApp();
     const location = useLocation();
     
     useEffect(() => {
@@ -52,29 +47,6 @@ const ShowPage = () => {
             className += " active";
         }
         return className;
-    };
-
-    const toggleSearch = async () => {
-        const newStatus = showData.search_item.search_active ? false : true;
-        try {
-            const response = await toggleStatus(showData.search_item.id, newStatus);
-            setShowData(current => ({ ...current, search_item: response }));
-            updateShowContext(show, "search_item", response);
-            notification.success({
-                message: "Success!",
-                description: `The search status for ${show} has been updated.`,
-            });
-        }
-        catch(error) {
-            let message: string = error?.message;
-            if (error?.response) {
-                message = handleErrorResponse(error, "update the search status for this show");
-            }
-            notification.error({
-                message: `There was a problem updating ${show}!`,
-                description: message,
-            });
-        }
     };
 
     return (
@@ -126,7 +98,7 @@ const ShowPage = () => {
                         searchItem={showData.search_item}
                         show={showData.show_name}
                         displayActions={currentUser != null}
-                        toggleStatus={toggleSearch}
+                        setShowData={setShowData}
                     />
                 )}
                 {dataView === "reminder" && (
@@ -136,7 +108,10 @@ const ShowPage = () => {
         ) : (
             <>
                 <h1>{show}</h1>
-                <Alert type="error" message="A problem occurred retrieving the data for this show" />
+                <Alert
+                    type="error"
+                    message="A problem occurred retrieving the data for this show"
+                />
             </>
         )
     )

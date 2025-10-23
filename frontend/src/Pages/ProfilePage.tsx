@@ -190,7 +190,7 @@ const ProfilePage = () => {
                     <SearchItem 
                         searchItem={viewSubscription}
                         show={viewSubscription?.show || ""}
-                        toggleStatus={null}
+                        setShowData={null}
                     />
                 </Modal>
             </>
