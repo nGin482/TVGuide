@@ -319,9 +319,16 @@ class Guide(Base):
         return message
 
     def compose_events_message(self):
-        fta_events = [f"{show.title} - {show.db_event}" for show in self.fta_shows]
+        message = f"# Events - {self.date.strftime('%A %d-%m-%Y')}\n"
 
-        return f"# Events - {self.date.strftime('%A %d-%m-%Y')}\n * " + "\n* ".join(fta_events)
+        if len(self.fta_shows) > 0:
+            fta_events = [f"{show.title} - {show.db_event}" for show in self.fta_shows]
+            message += "* " + "\n* ".join(fta_events)
+        else:
+            message += "No events occurred today"
+
+        return message
+
 
     def __repr__(self):
         return f"Guide (id={self.id}, date={self.date})"
