@@ -27,6 +27,7 @@ def shows():
             "reminder": show.reminder.to_dict() if show.reminder else None
         }
         show_data.append(show_json)
+    session.close()
     return show_data
 
 @shows_blueprint.route("", methods=['POST'])
@@ -36,12 +37,14 @@ def add_show():
     body = request.json
 
     if ShowDetails.get_show_by_title(body['name'], session):
+        session.close()
         return { 'message': f"'{body['name']}' is already listed" }, 409
 
     try:
         tvmaze_details = tvmaze_api.get_show(body['name'])
     except HTTPRequestError as error:
         print(f"Could not find {body['name']} on TVMaze: {error}")
+        session.close()
         return { "message": f"Could not find {body['name']} on TVMaze: {error}" }, 404
     show_detail = ShowDetails(
         tvmaze_details['name'],
@@ -74,6 +77,7 @@ def add_show():
         except KeyError as error:
             print("Error:", error)
             print("TVMaze Episode: ", episode)
+            session.close()
             return { "message": f"Unable to add an episode for {tvmaze_details['name']}" }, 500
     ShowEpisode.add_all_episodes(show_episodes, session)
 
@@ -88,15 +92,19 @@ def add_show():
         search_criteria.add_search_item(session)
     except KeyError as error:
         print("Error:", error)
+        session.close()
         return { "message": f"Unable to add search criteria for {tvmaze_details['name']}" }, 500
 
-    return {
+    show_data = {
         "show_name": show_detail.title,
         "show_details": show_detail.to_dict(),
         "show_episodes": [episode.to_dict() for episode in show_episodes],
         "search_item": search_criteria.to_dict() if search_criteria else None,
         "reminder": None
     }
+    
+    session.close()
+    return show_data
 
 @shows_blueprint.route("/<string:show>", methods=['PUT'])
 @jwt_required()
@@ -107,11 +115,14 @@ def update_show_detail(show: str):
     show_detail = ShowDetails.get_show_by_title(show, session)
     
     if not show_detail:
+        session.close()
         return { 'message': f"Unable to find any details for '{show}'" }, 404
 
     show_detail.update_full_show_details(body, session)
-
-    return show_detail.to_dict()
+    updated_show_detail_dict = show_detail.to_dict()
+    
+    session.close()
+    return updated_show_detail_dict
 
 @shows_blueprint.route("/<string:show>", methods=['DELETE'])
 @jwt_required()
@@ -122,13 +133,16 @@ def delete_show_detail(show: str):
 
     user: User = get_current_user()
     if user.role != "Admin":
+        session.close()
         return { 'message': f"You do not have permission to delete the details for {show}" }, 403
     
     if not show_detail:
+        session.close()
         return { 'message': f"Unable to find any details for '{show}'" }, 404
 
     show_detail.delete_show(session)
 
+    session.close()
     return '', 204
 
 
