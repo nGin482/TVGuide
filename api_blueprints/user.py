@@ -15,7 +15,10 @@ def get_user(username: str):
     session = Session(engine)
     user = User.search_for_user(username, session)
     if user:
-        return user.to_dict()
+        user_dict = user.to_dict()
+        session.close()
+        return user_dict
+    session.close()
     return {'message': f'An account with the username {username} could not be found'}, 404
 
 @user_blueprint.route("/change_password", methods=['PUT'])
@@ -27,7 +30,10 @@ def change_password(username: str):
     if user and current_user.username == user.username:
         user.change_password(request.json['password'])
         session.commit()
-        return user.to_dict()
+        updated_user_dict = user.to_dict()
+        session.close()
+        return updated_user_dict
+    session.close()
     return { 'message': "You are not authorised to change this user's password" }, 403
 
 @user_blueprint.route("/promote", methods=['PATCH'])
@@ -44,6 +50,7 @@ def promote_user(username: str):
             return '', 204
         session.close()
         return { 'message': f"Unable to find the user '{username}'" }, 404
+    session.close()
     return { 'message': 'You are not authorised to promote this user to an admin role' }, 403
 
 @user_blueprint.route("", methods=['DELETE'])
@@ -54,12 +61,16 @@ def delete_user(username: str):
     user = User.search_for_user(username, session)
     if current_user.username == username:
         user.delete_user(session)
+        session.close()
         return { 'message': 'Your account has been deleted' }
     elif current_user.role == 'Admin':
         if user:
             user.delete_user(session)
+            session.close()
             return { 'message': 'The account has been deleted' }
         else:
+            session.close()
             return {'message': f"An account with the username '{username}' could not be found"}, 404
     else:
+        session.close()
         return { 'message': 'You are not authorised to delete this user account' }
