@@ -1,12 +1,12 @@
 import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { Helmet } from "react-helmet";
-import { Alert, App, Button, List, Space, Spin, Typography } from "antd";
-import dayjs from "dayjs";
+import { Alert, App, Button, List, Modal, Space, Spin, Typography } from "antd";
 
 import TVGuide from "../components/TVGuide";
 import { SubscriptionForm } from "../components/SubscriptionForm";
 import { SearchItemTag } from "../components/SearchItemTag";
+import { SearchItem } from "../components/SearchItem";
 import { UserContext } from "../contexts/UserContext";
 import {
     addSubscriptions,
@@ -16,7 +16,14 @@ import {
     unsubscribeFromSearch
 } from "../requests";
 import { handleErrorResponse } from "../utils";
-import { Guide, SubscriptionsPayload, SubscriptionsAction, User } from "../utils/types";
+import {
+    Guide,
+    SubscriptionsPayload,
+    SubscriptionsAction,
+    User,
+    UserSearchSubscription,
+    SearchItem as TSearchItem
+} from "../utils/types";
 import "../styles/ProfilePage.css";
 
 interface UserParam {
@@ -32,6 +39,7 @@ const ProfilePage = () => {
     const [loadingUser, setLoadingUser] = useState(false);
     const [userTVGuide, setUserTVGuide] = useState<Guide>(null);
     const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+    const [viewSubscription, setViewSubscription] = useState<TSearchItem>(null);
     
     const { notification } = App.useApp();
     const { Text } = Typography;
@@ -118,6 +126,18 @@ const ProfilePage = () => {
         }
     };
 
+    const subscriptionActions = (subscription: UserSearchSubscription) => {
+        const actions = [
+            <Button onClick={() => setViewSubscription(subscription.search_item)}>View</Button>
+        ];
+
+        if (viewingOwnProfile) {
+            actions.push(<Button onClick={() => unsubscribe(subscription.id)}>Unsubscribe</Button>);
+        }
+
+        return actions;
+    };
+
     return (
         userDetails ? (
             <>
@@ -136,9 +156,7 @@ const ProfilePage = () => {
                         dataSource={userDetails.show_subscriptions}
                         renderItem={item => (
                             <List.Item
-                                actions={viewingOwnProfile ? [
-                                    <Button onClick={() => unsubscribe(item.id)}>Unsubscribe</Button>
-                                ] : []}
+                                actions={subscriptionActions(item)}
                             >
                                 <div className="search-item-subscription">
                                     <Text>{item.search_item.show}</Text> {" "}
@@ -153,6 +171,7 @@ const ProfilePage = () => {
                                 <Button onClick={() => toggleModal()}>Subscribe to a Show</Button>
                             </Space>
                         )}
+                        itemLayout="vertical"
                     />
                 </div>
                 <SubscriptionForm
@@ -161,6 +180,19 @@ const ProfilePage = () => {
                     toggleModal={toggleModal}
                     updateSubscriptionsHandle={updateSubscriptionsHandle}
                 />
+                <Modal
+                    open={viewSubscription != null}
+                    cancelButtonProps={{ style: { display: "none" } }}
+                    onOk={() => setViewSubscription(null)}
+                    width="fit-content"
+                    closeIcon={null}
+                >
+                    <SearchItem 
+                        searchItem={viewSubscription}
+                        show={viewSubscription?.show || ""}
+                        setShowData={null}
+                    />
+                </Modal>
             </>
         )
         : !loadingUser && !userDetails ? (

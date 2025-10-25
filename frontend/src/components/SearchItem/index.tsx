@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { Dispatch, SetStateAction, useContext, useState } from "react";
 import { App, Button, Dropdown, Popconfirm, Table, Tag, Typography } from "antd";
 import type { MenuProps, TableColumnsType } from "antd";
 import { DeleteFilled, EditOutlined, PoweroffOutlined } from "@ant-design/icons";
@@ -11,19 +11,21 @@ import {
     addSearchCriteria,
     deleteSearchCriteria,
     editSearchCriteria,
+    toggleStatus,
 } from "../../requests/search-items";
 import { handleErrorResponse } from "../../utils";
-import type { FormMode, SearchItem, SearchItemPayload } from "../../utils/types";
+import type { FormMode, SearchItem, SearchItemPayload, ShowData } from "../../utils/types";
 import "./SearchItem.css";
 
 
 interface SearchItemProps {
     searchItem: SearchItem
     show: string
-    toggleStatus: () => Promise<void>;
+    displayActions?: boolean;
+    setShowData: Dispatch<SetStateAction<ShowData>>;
 }
 
-const SearchItem = ({ searchItem, show, toggleStatus }: SearchItemProps) => {
+const SearchItem = ({ searchItem, show, displayActions, setShowData }: SearchItemProps) => {
     const [openModal, setOpenModal] = useState(false);
     const [formMode, setFormMode] = useState<FormMode>(null);
 
@@ -64,6 +66,30 @@ const SearchItem = ({ searchItem, show, toggleStatus }: SearchItemProps) => {
                 message: `Unable to delete the search criteria for ${show}`,
                 description: message,
                 duration: 8
+            });
+        }
+    };
+
+    const toggleSearch = async () => {
+        const newStatus = searchItem.search_active ? false : true;
+        try {
+            const response = await toggleStatus(searchItem.id, newStatus);
+            console.log("response", response)
+            setShowData(current => ({ ...current, search_item: response }));
+            updateShowContext(show, "search_item", response);
+            notification.success({
+                message: "Success!",
+                description: `The search status for ${show} has been updated.`,
+            });
+        }
+        catch(error) {
+            let message: string = error?.message;
+            if (error?.response) {
+                message = handleErrorResponse(error, "update the search status for this show");
+            }
+            notification.error({
+                message: `There was a problem updating ${show}!`,
+                description: message,
             });
         }
     };
@@ -143,7 +169,7 @@ const SearchItem = ({ searchItem, show, toggleStatus }: SearchItemProps) => {
             icon: <PoweroffOutlined />,
             key: "toggle-active",
             label: searchItem?.search_active ? "Deactivate" : "Activate",
-            onClick: toggleStatus,
+            onClick: toggleSearch,
         },
         {
             icon: <EditOutlined />,
@@ -190,12 +216,13 @@ const SearchItem = ({ searchItem, show, toggleStatus }: SearchItemProps) => {
     return (
         <>
             <Table
-                columns={currentUser ? columns : columns.filter(col => col.key !== "actions")}
+                columns={displayActions ? columns : columns.filter(col => col.key !== "actions")}
                 dataSource={searchItem ? [searchItem] : null}
                 bordered
                 locale={{
                     emptyText: <EmptyTableView description={<EmptyDescription />} />
                 }}
+                pagination={{ position: ["none"] }}
                 rowKey={record => record.show}
             />
             {openModal && (
