@@ -20,7 +20,11 @@ class ShowDetails(Base):
     image = Column('image', Text)
     guide_episodes: Mapped[list['GuideEpisode']] = relationship('GuideEpisode', back_populates="show_details")
     search: Mapped['SearchItem'] = relationship('SearchItem', back_populates="show_details", uselist=False)
-    show_episodes: Mapped[list['ShowEpisode']] = relationship('ShowEpisode', back_populates="show_details")
+    show_episodes: Mapped[list['ShowEpisode']] = relationship(
+        'ShowEpisode',
+        back_populates="show_details",
+        order_by="ShowEpisode.season_number,ShowEpisode.episode_number"
+    )
     reminder: Mapped['Reminder'] = relationship('Reminder', back_populates='show_details')
 
     def __init__(self, title: str, description: str, tvmaze_id: str, genres: list[str], image: str):
