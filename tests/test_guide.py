@@ -418,11 +418,11 @@ class TestGuide(unittest.TestCase):
         guide.create_new_guide()
 
         expected = """
-        09:00: Doctor Who is on ABC1 (Season 4, Episode 4: The Sontaran Strategem)
-        09:50: Doctor Who is on ABC1 (Season 4, Episode 5: The Poison Sky)
-        11:30: Doctor Who is on ABC2 (Season 4, Episode 6: The Doctor's Daughter)
-        13:00: Doctor Who is on ABC1 (Season 4, Episode 7: The Unicorn and the Wasp)
-        13:50: Doctor Who is on ABC1 (Season Unknown, Episode 0)
+        * 09:00: Doctor Who is on ABC1 (Season 4, Episode 4: The Sontaran Strategem)
+        * 09:50: Doctor Who is on ABC1 (Season 4, Episode 5: The Poison Sky)
+        * 11:30: Doctor Who is on ABC2 (Season 4, Episode 6: The Doctor's Daughter)
+        * 13:00: Doctor Who is on ABC1 (Season 4, Episode 7: The Unicorn and the Wasp)
+        * 13:50: Doctor Who is on ABC1 (Season Unknown, Episode 0)
         """
         expected = dedent(expected)
 

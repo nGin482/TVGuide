@@ -117,32 +117,7 @@ async def send_guide(ctx: Context, date: str = None):
         guide.compose_reminder_message(),
         guide.compose_events_message()
     )
-    ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
-    try:
-        await ctx.send(guide_message)
-    except HTTPException as error:
-        if 'In content: Must be 2000 or fewer in length' in error.text:
-            bbc_index = guide_message.find('\nBBC:\n')
-            fta_message = guide_message[0:bbc_index]
-            bbc_message = guide_message[bbc_index:]
-
-            if len(fta_message) > 2000:
-                fta_am_message, fta_pm_message = split_message_by_time(fta_message)
-                await ctx.send(fta_am_message)
-                await ctx.send(fta_pm_message)
-            else:
-                await ctx.send(fta_message)
-
-            if len(bbc_message) > 2000:
-                bbc_am_message, bbc_pm_message = split_message_by_time(bbc_message)
-                await ctx.send(bbc_am_message)
-                await ctx.send(bbc_pm_message)
-            else:
-                await ctx.send(bbc_message)
-    finally:
-        await ctx.send(reminders_message)
-        await ngin.send(events_message)
-        session.close()
+    await hermes.send_guide_message(guide_message, reminders_message, events_message)
 
 @hermes.command()
 async def send_guide_record(ctx: Context, date_to_send: str):

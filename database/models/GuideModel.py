@@ -283,7 +283,7 @@ class Guide(Base):
         :return: the to-string message
         """
         
-        message = f"{self.date.strftime('%A %d-%m-%Y')} TVGuide\n"
+        message = f"# {self.date.strftime('%A %d-%m-%Y')} TVGuide\n"
 
         # Free to Air
         message += "\nFree to Air:\n"
@@ -291,7 +291,7 @@ class Guide(Base):
             message += "Nothing on Free to Air today\n"
         else:
             for show in self.fta_shows:
-                message += f'{show.message_string()}\n'
+                message += f'* {show.message_string()}\n'
 
         # BBC
         message = message + "\nBBC:\n"
@@ -305,21 +305,23 @@ class Guide(Base):
     
     def compose_reminder_message(self):
         shows_with_reminders = self.get_reminders()
+
+        message = "## Reminders"
         
         if len(shows_with_reminders) > 0:
-            message = '\n'.join([
+            message += '\n'.join([
                 show.reminder_message(notify_time)
                 for (show, notify_time) in shows_with_reminders
             ])
         else:
-            message = 'There are no reminders scheduled for today'
+            message += '\nThere are no reminders scheduled for today'
         
         return message
 
     def compose_events_message(self):
         fta_events = [f"{show.title} - {show.db_event}" for show in self.fta_shows]
 
-        return "\n".join(fta_events)
+        return f"# Events - {self.date.strftime('%A %d-%m-%Y')}\n * " + "\n* ".join(fta_events)
 
     def __repr__(self):
         return f"Guide (id={self.id}, date={self.date})"
