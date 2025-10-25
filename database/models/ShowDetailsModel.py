@@ -18,8 +18,15 @@ class ShowDetails(Base):
     tvmaze_id = Column('tvmaze_id', Text)
     genres = Column('genres', ARRAY(Text))
     image = Column('image', Text)
-    guide_episodes: Mapped[list['GuideEpisode']] = relationship('GuideEpisode', back_populates="show_details")
-    search: Mapped['SearchItem'] = relationship('SearchItem', back_populates="show_details", uselist=False)
+    guide_episodes: Mapped[list['GuideEpisode']] = relationship(
+        'GuideEpisode',
+        back_populates="show_details"
+    )
+    search: Mapped['SearchItem'] = relationship(
+        'SearchItem',
+        back_populates="show_details",
+        uselist=False
+    )
     show_episodes: Mapped[list['ShowEpisode']] = relationship(
         'ShowEpisode',
         back_populates="show_details",
