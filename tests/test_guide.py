@@ -544,6 +544,24 @@ class TestGuide(unittest.TestCase):
         
         self.assertIn("This show is now being recorded", guide.compose_events_message())
 
+    @patch('sqlalchemy.orm.session.Session.commit')
+    @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
+    @patch('database.models.GuideModel.Guide.get_source_data')
+    def test_guide_events_message_handles_no_events(
+        self,
+        mock_source_data: MagicMock,
+        mock_search_items: MagicMock,
+        mock_session_commit: MagicMock,
+    ):
+        mock_source_data.return_value = {"schedule": []}
+        mock_search_items.return_value = search_items
+        mock_session_commit.return_value = "added"
+        
+        guide = Guide(datetime(2024, 10, 12), mock_session_commit)
+        guide.create_new_guide()
+        
+        self.assertIn("No events occurred today", guide.compose_events_message())
+
     def tearDown(self) -> None:
         super().tearDown()
 
