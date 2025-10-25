@@ -30,6 +30,8 @@ def register_user():
     
     user = User(body['username'], body['password'])
     user.add_user(session)
+
+    session.close()
     
     return {'message': 'You have successfully been registered'}
 
@@ -51,8 +53,10 @@ def login():
         set_access_cookies(response, access_token)
         set_refresh_cookies(response, refresh_token)
 
+        session.close()
         return response
     
+    session.close()
     return { 'message': 'Incorrect username or password' }, 401
 
 @auth_blueprint.route("/refresh", methods=["POST"])
@@ -70,7 +74,10 @@ def refresh_session():
             "role": user.role,
         })
         set_access_cookies(response, token)
+
+        session.close()
         return response
+    session.close()
     return { "message": "Unable to refresh session" }, 401
 
 @auth_blueprint.route("/logout", methods=["POST"])
