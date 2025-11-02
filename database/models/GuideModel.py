@@ -25,7 +25,7 @@ class Guide(Base):
     __tablename__ = 'Guide'
 
     id: Mapped[int] = Column('id', Integer, primary_key=True, autoincrement=True)
-    date: Mapped[datetime] = Column('date', DateTime)
+    date: Mapped[datetime] = Column('date', DateTime(timezone=True))
 
     logger = logging.getLogger("Guide")
 
@@ -306,7 +306,7 @@ class Guide(Base):
     def compose_reminder_message(self):
         shows_with_reminders = self.get_reminders()
 
-        message = "## Reminders"
+        message = "## Reminders\n"
         
         if len(shows_with_reminders) > 0:
             message += '\n'.join([
