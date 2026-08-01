@@ -6,7 +6,7 @@ from sqlalchemy.exc import OperationalError, PendingRollbackError
 import json
 import logging
 
-from aux_methods.helper_methods import build_episode, convert_utc_to_local, show_data_to_file
+from aux_methods.helper_methods import build_episode, convert_utc_to_local
 from aux_methods.types import ShowData
 from database import Base, engine
 from database.models.GuideEpisode import GuideEpisode
@@ -31,7 +31,10 @@ class Guide(Base):
 
     @classmethod
     def get_date(cls, date: datetime, session: Session):
-        query = select(Guide).where(func.date(Guide.date) == date.date()).order_by(Guide.id.desc())
+        sydney_time = func.timezone("Australia/Sydney", Guide.date)
+        query = select(Guide).where(
+            func.date(sydney_time) == date.date()
+        ).order_by(Guide.id.desc())
         guide_record = session.scalar(query)
         
         if not guide_record:

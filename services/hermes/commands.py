@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session
 import os
 
 from aux_methods.helper_methods import parse_date_from_command, split_message_by_time
-from config import scheduler
 from data_validation.validation import Validation
 from database import engine
 from database.models.GuideModel import Guide
@@ -107,6 +106,7 @@ async def remove_show(ctx: Context, show: str):
 
 @hermes.command()
 async def send_guide(ctx: Context, date: str = None):
+    from config import scheduler
     guide_date = Validation.get_current_date() if date is None else parse_date_from_command(date)
     session = Session(engine, expire_on_commit=False)
     
