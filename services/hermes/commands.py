@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session
 import os
 
 from aux_methods.helper_methods import parse_date_from_command, split_message_by_time
-from config import scheduler
 from data_validation.validation import Validation
 from database import engine
 from database.models.GuideModel import Guide
@@ -107,6 +106,7 @@ async def remove_show(ctx: Context, show: str):
 
 @hermes.command()
 async def send_guide(ctx: Context, date: str = None):
+    from config import scheduler
     guide_date = Validation.get_current_date() if date is None else parse_date_from_command(date)
     session = Session(engine, expire_on_commit=False)
     
@@ -117,32 +117,7 @@ async def send_guide(ctx: Context, date: str = None):
         guide.compose_reminder_message(),
         guide.compose_events_message()
     )
-    ngin = await hermes.fetch_user(int(os.getenv('NGIN')))
-    try:
-        await ctx.send(guide_message)
-    except HTTPException as error:
-        if 'In content: Must be 2000 or fewer in length' in error.text:
-            bbc_index = guide_message.find('\nBBC:\n')
-            fta_message = guide_message[0:bbc_index]
-            bbc_message = guide_message[bbc_index:]
-
-            if len(fta_message) > 2000:
-                fta_am_message, fta_pm_message = split_message_by_time(fta_message)
-                await ctx.send(fta_am_message)
-                await ctx.send(fta_pm_message)
-            else:
-                await ctx.send(fta_message)
-
-            if len(bbc_message) > 2000:
-                bbc_am_message, bbc_pm_message = split_message_by_time(bbc_message)
-                await ctx.send(bbc_am_message)
-                await ctx.send(bbc_pm_message)
-            else:
-                await ctx.send(bbc_message)
-    finally:
-        await ctx.send(reminders_message)
-        await ngin.send(events_message)
-        session.close()
+    await hermes.send_guide_message(guide_message, reminders_message, events_message)
 
 @hermes.command()
 async def send_guide_record(ctx: Context, date_to_send: str):

@@ -17,7 +17,10 @@ def update_show_episode(id: int):
     episode = ShowEpisode.get_episode_by_id(id, session)
     if episode:
         episode.update_full_episode(request.json, session)
-        return episode.to_dict()
+        updated_episode_dict = episode.to_dict()
+        session.close()
+        return updated_episode_dict
+    session.close()
     return { 'message': f"This episode could not be found" }, 404
 
 @show_episodes_blueprint.route("/<int:id>", methods=['DELETE'])
@@ -27,5 +30,7 @@ def delete_show_episode(id: int):
     episode = ShowEpisode.get_episode_by_id(id, session)
     if episode:
         episode.delete_episode(session)
+        session.close()
         return '', 204
+    session.close()
     return { 'message': f"This episode could not be found" }, 404

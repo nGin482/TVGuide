@@ -20,8 +20,10 @@ def guide():
     
     guide = Guide.get_date(date, session)
     if not guide:
+        session.close()
         return { "message": "There is no guide for this date" }, 404
     
     guide.get_shows()
-    
+
+    session.close()
     return guide.to_dict()

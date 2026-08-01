@@ -65,7 +65,13 @@ export const searchList: SearchItem[] = [
     {
         id: 1,
         show: "Doctor Who",
-        conditions: null,
+        conditions: {
+            ignore_episodes: [],
+            ignore_seasons: [],
+            ignore_titles: [],
+            min_season_number: 1,
+            max_season_number: 14,
+        },
         search_active: true,
         exact_title_match: true,
     },

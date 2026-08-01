@@ -139,6 +139,7 @@ const Reminder = ({ reminder, show }: ReminderProps) => {
                 locale={{
                     emptyText: <EmptyTableView description={<EmptyDescription />} />
                 }}
+                pagination={{ position: ["none"] }}
             />
             {openModal && (
                 <ReminderForm

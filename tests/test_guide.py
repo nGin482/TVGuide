@@ -418,11 +418,11 @@ class TestGuide(unittest.TestCase):
         guide.create_new_guide()
 
         expected = """
-        09:00: Doctor Who is on ABC1 (Season 4, Episode 4: The Sontaran Strategem)
-        09:50: Doctor Who is on ABC1 (Season 4, Episode 5: The Poison Sky)
-        11:30: Doctor Who is on ABC2 (Season 4, Episode 6: The Doctor's Daughter)
-        13:00: Doctor Who is on ABC1 (Season 4, Episode 7: The Unicorn and the Wasp)
-        13:50: Doctor Who is on ABC1 (Season Unknown, Episode 0)
+        * 09:00: Doctor Who is on ABC1 (Season 4, Episode 4: The Sontaran Strategem)
+        * 09:50: Doctor Who is on ABC1 (Season 4, Episode 5: The Poison Sky)
+        * 11:30: Doctor Who is on ABC2 (Season 4, Episode 6: The Doctor's Daughter)
+        * 13:00: Doctor Who is on ABC1 (Season 4, Episode 7: The Unicorn and the Wasp)
+        * 13:50: Doctor Who is on ABC1 (Season Unknown, Episode 0)
         """
         expected = dedent(expected)
 
@@ -543,6 +543,24 @@ class TestGuide(unittest.TestCase):
         guide.create_new_guide()
         
         self.assertIn("This show is now being recorded", guide.compose_events_message())
+
+    @patch('sqlalchemy.orm.session.Session.commit')
+    @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
+    @patch('database.models.GuideModel.Guide.get_source_data')
+    def test_guide_events_message_handles_no_events(
+        self,
+        mock_source_data: MagicMock,
+        mock_search_items: MagicMock,
+        mock_session_commit: MagicMock,
+    ):
+        mock_source_data.return_value = {"schedule": []}
+        mock_search_items.return_value = search_items
+        mock_session_commit.return_value = "added"
+        
+        guide = Guide(datetime(2024, 10, 12), mock_session_commit)
+        guide.create_new_guide()
+        
+        self.assertIn("No events occurred today", guide.compose_events_message())
 
     def tearDown(self) -> None:
         super().tearDown()
