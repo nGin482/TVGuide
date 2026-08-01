@@ -6,7 +6,7 @@ from sqlalchemy.exc import OperationalError, PendingRollbackError
 import json
 import logging
 
-from aux_methods.helper_methods import build_episode, convert_utc_to_local, show_data_to_file
+from aux_methods.helper_methods import build_episode, convert_utc_to_local
 from aux_methods.types import ShowData
 from database import Base, engine
 from database.models.GuideEpisode import GuideEpisode
@@ -25,13 +25,16 @@ class Guide(Base):
     __tablename__ = 'Guide'
 
     id: Mapped[int] = Column('id', Integer, primary_key=True, autoincrement=True)
-    date: Mapped[datetime] = Column('date', DateTime)
+    date: Mapped[datetime] = Column('date', DateTime(timezone=True))
 
     logger = logging.getLogger("Guide")
 
     @classmethod
     def get_date(cls, date: datetime, session: Session):
-        query = select(Guide).where(func.date(Guide.date) == date.date()).order_by(Guide.id.desc())
+        sydney_time = func.timezone("Australia/Sydney", Guide.date)
+        query = select(Guide).where(
+            func.date(sydney_time) == date.date()
+        ).order_by(Guide.id.desc())
         guide_record = session.scalar(query)
         
         if not guide_record:
@@ -306,7 +309,7 @@ class Guide(Base):
     def compose_reminder_message(self):
         shows_with_reminders = self.get_reminders()
 
-        message = "## Reminders"
+        message = "## Reminders\n"
         
         if len(shows_with_reminders) > 0:
             message += '\n'.join([

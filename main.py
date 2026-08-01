@@ -21,7 +21,7 @@ load_dotenv('.env')
 # https://www.abc.net.au/tv/programs/vera/series-episode-index.json?_=1555488755177
 
 
-def find_json(url):
+def find_json(url: str):
     data = get(url).json()
 
     return data

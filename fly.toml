@@ -10,6 +10,9 @@ primary_region = "syd"
 worker = "python main.py"
 web = "gunicorn api:app"
 
+[deploy]
+  release_command = "alembic upgrade head"
+
 [env]
   PORT = 5000
 
