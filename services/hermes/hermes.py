@@ -29,23 +29,10 @@ class Hermes(Bot):
 
         try:
             if len(guide_message) > 2000:
-                bbc_index = guide_message.find('\nBBC:\n')
-                fta_message = guide_message[0:bbc_index]
-                bbc_message = guide_message[bbc_index:]
+                fta_am_message, fta_pm_message = split_message_by_time(guide_message)
 
-                if len(fta_message) > 2000:
-                    fta_am_message, fta_pm_message = split_message_by_time(fta_message)
-                    await channel.send(fta_am_message)
-                    await channel.send(fta_pm_message)
-                else:
-                    await channel.send(fta_message)
-                
-                if len(bbc_message) > 2000:
-                    bbc_am_message, bbc_pm_message = split_message_by_time(bbc_message)
-                    await channel.send(bbc_am_message)
-                    await channel.send(bbc_pm_message)
-                else:
-                    await channel.send(bbc_message)
+                await channel.send(fta_am_message)
+                await channel.send(fta_pm_message)
             else:
                 await channel.send(guide_message)
             await channel.send(reminder_message)
