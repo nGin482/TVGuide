@@ -51,7 +51,6 @@ class Guide(Base):
     def __init__(self, date: datetime, session: Session):
         self.date = date
         self.fta_shows = []
-        self.bbc_shows = []
         self.session = session
 
     def add_guide(self):
@@ -149,65 +148,6 @@ class Guide(Base):
             hermes.dispatch("show_details_not_found", shows_not_found)
         
         return shows_on
-
-    def search_bbc_australia(self):
-
-        current_date = Validation.get_current_date().date()
-        search_date = current_date.strftime('%Y-%m-%d')
-        
-        bbc_first_data = self.get_source_data(
-            f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-first?timezone=Australia%2FSydney&date={search_date}'
-        )
-        bbc_uktv_data = self.get_source_data(
-            f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-uktv?timezone=Australia%2FSydney&date={search_date}'
-        )
-
-        search_list = SearchItem.get_active_searches(self.session)
-
-        show_list = []
-
-        def search_channel_data(channel_data: list, channel: str):
-            for show in channel_data:
-                for search_item in search_list:
-                    title: str = show['show']['title']
-                    if title.lower() == search_item.show.lower():
-                        guide_start = datetime.strptime(show['start'], '%Y-%m-%d %H:%M:%S')
-                        start_time = convert_utc_to_local(guide_start)
-                        series_num = show['episode']['series']['number']
-                        episode_num = show['episode']['number']
-                        episode_title = show['episode']['title']
-
-                        episodes = build_episode(
-                            title,
-                            channel,
-                            start_time,
-                            series_num,
-                            episode_num,
-                            episode_title
-                        )
-                        episodes = [episode for episode in episodes if search_item.check_search_conditions(episode)]
-                        show_list.extend(episodes)
-        
-        search_channel_data(bbc_first_data, 'BBC First')
-        search_channel_data(bbc_uktv_data, 'BBC UKTV')
-
-        shows_on: list['GuideEpisode'] = []
-        for show in show_list:
-            guide_episode = GuideEpisode(
-                show['title'],
-                show['channel'],
-                show['start_time'],
-                show['start_time'],
-                show['season_number'],
-                show['episode_number'],
-                show['episode_title']
-            )
-            # guide_show = Guide.build_guide_show(show, show_list, database_service)
-
-            # database_service.capture_db_event(guide_show)
-            shows_on.append(guide_episode)
-
-        return shows_on
     
     def get_source_data(self, endpoint: str = None):
         if endpoint:
@@ -247,7 +187,6 @@ class Guide(Base):
             Guide.logger.error(f"Could not attach shows to guide: {str(error)}")
             self.session.rollback()
             raise GuideNotCreatedError(f"Could not attach shows to guide: {str(error)}")
-        # self.bbc_shows = self.search_bbc_australia()
     
     def get_shows(self):
         self.fta_shows = GuideEpisode.get_guide_shows(self.id, self.session)
@@ -295,14 +234,6 @@ class Guide(Base):
         else:
             for show in self.fta_shows:
                 message += f'* {show.message_string()}\n'
-
-        # BBC
-        message = message + "\nBBC:\n"
-        if len(self.bbc_shows) == 0:
-            message = message + "Nothing on BBC today\n"
-        else:
-            for show in self.bbc_shows:
-                message += f'{show.message_string()}\n'
 
         return message
     

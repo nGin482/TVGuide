@@ -4,7 +4,6 @@ export type { TVMazeSeason, TVMazeShow } from "./tvmaze";
 
 interface Guide {
     fta: GuideShow[]
-    bbc: GuideShow[]
 };
 
 interface GuideShow {

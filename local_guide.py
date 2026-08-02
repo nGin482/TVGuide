@@ -1,4 +1,4 @@
-from aiohttp.client_exceptions import ClientConnectorError
+from aiohttp.client_exceptions import ClientConnectorDNSError
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 import asyncclick as click
@@ -125,7 +125,7 @@ async def run_guide(date: str, discord: bool, schedule: bool):
                     send_main_message(guide_message, reminders_message, events_message)
                 )
                 await hermes.start(os.getenv('HERMES'))
-        except ClientConnectorError:
+        except ClientConnectorDNSError:
             print(guide_message)
             print(reminders_message)
             print(events_message)
