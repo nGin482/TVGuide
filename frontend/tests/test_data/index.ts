@@ -35,30 +35,6 @@ export const guide: Guide = {
             event: 'Vera has aired today'
         }
     ],
-    bbc: [
-        {
-            title: 'Death in Paradise',
-            start_time: '19:30',
-            end_time: "20:30",
-            channel: 'BBC First',
-            season_number: '1',
-            episode_number: 1,
-            episode_title: 'Arriving in Paradise',
-            repeat: true,
-            event: 'Death in Paradise has aired today'
-        },
-        {
-            title: 'Lewis',
-            start_time: '15:00',
-            end_time: "16:30",
-            channel: 'BBC UKTV',
-            season_number: '2',
-            episode_number: 3,
-            episode_title: 'Life Born of Fire',
-            repeat: true,
-            event: 'Lewis has aired today'
-        }
-    ]
 };
 
 export const searchList: SearchItem[] = [
