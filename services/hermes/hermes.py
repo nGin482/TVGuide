@@ -7,11 +7,14 @@ from aux_methods.helper_methods import split_message_by_time
 class Hermes(Bot):
     
     def __init__(self, command_prefix, help_command=..., description=None, **options):
+        intents = Intents.default()
+        intents.message_content = True
+        intents.members = True
         super().__init__(
             command_prefix,
             help_command=help_command,
             description=description,
-            intents=Intents.default(),
+            intents=intents,
             **options
         )
 
