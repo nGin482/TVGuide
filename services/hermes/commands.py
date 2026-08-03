@@ -30,7 +30,7 @@ async def show_list(ctx: Context):
     session = Session(engine)
 
     all_search_items = [search_item.show for search_item in SearchItem.get_active_searches(session)]
-    show_list = '\n'.join([all_search_items])
+    show_list = '\n'.join(all_search_items)
     await ctx.send(f"The Search List includes:\n{show_list}")
     session.close()
 
