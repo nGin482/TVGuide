@@ -19,6 +19,7 @@ from exceptions.service_error import HTTPRequestError
 from exceptions.tvguide_errors import GuideNotCreatedError
 from services.APIClient import APIClient
 from utils.types.models import TGuide
+from utils.LoggingFormatter import logging_handler
 
 
 class Guide(Base):
@@ -28,6 +29,8 @@ class Guide(Base):
     date: Mapped[datetime] = Column('date', DateTime(timezone=True))
 
     logger = logging.getLogger("Guide")
+    logger.addHandler(logging_handler)
+    logger.setLevel(logging.DEBUG)
 
     @classmethod
     def get_date(cls, date: datetime, session: Session):
@@ -65,7 +68,9 @@ class Guide(Base):
         """
 
         """
-
+        self.logger.debug(
+            f"Retrieving FTA data for {self.date.strftime('%Y-%m-%d')}"
+        )
         shows_data: list[ShowData] = []
 
         schedule = self.get_source_data(

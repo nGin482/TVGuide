@@ -1,21 +1,25 @@
 from apscheduler.triggers.cron import CronTrigger
-from discord import TextChannel
 from discord.errors import HTTPException
 from dotenv import load_dotenv
 from requests import get
 from sqlalchemy.orm import Session
+import logging
 import os
 
 os.environ['PYTHON_ENV'] = 'production'
-from aux_methods.helper_methods import split_message_by_time
 from config import scheduler
 from data_validation.validation import Validation
 from database import engine
 from database.models.GuideModel import Guide
 from exceptions.tvguide_errors import GuideNotCreatedError
 from services.hermes.hermes import hermes
+from utils.LoggingFormatter import logging_handler
 
 load_dotenv('.env')
+
+logger = logging.getLogger("main")
+logger.addHandler(logging_handler)
+logger.setLevel(logging.DEBUG)
 
 # https://epg.abctv.net.au/processed/events_Sydney_vera.json
 # https://www.abc.net.au/tv/programs/vera/series-episode-index.json?_=1555488755177
@@ -84,6 +88,8 @@ if __name__ == '__main__':
         misfire_grace_time=None,
         replace_existing=True
     )
+    logger.info("Scheduler started")
+
     hermes.run(os.getenv('HERMES'))
 
     # {"id": "content_wrapper_inner"}
