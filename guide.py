@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 import os
 
 from database import engine
-from database.models.Guide import Guide
+from database.models.GuideModel import Guide
 from exceptions.tvguide_errors import GuideNotCreatedError
 from data_validation.validation import Validation
 
