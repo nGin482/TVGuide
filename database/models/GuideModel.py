@@ -5,7 +5,7 @@ from sqlalchemy.exc import OperationalError, PendingRollbackError
 import json
 import logging
 
-from aux_methods.helper_methods import build_episode, convert_utc_to_local
+from aux_methods.helper_methods import build_episode
 from aux_methods.types import ShowData
 from database import Base, engine
 from database.models.GuideEpisode import GuideEpisode
@@ -13,7 +13,6 @@ from database.models.ReminderModel import Reminder
 from database.models.SearchItemModel import SearchItem
 from database.models.ShowDetailsModel import ShowDetails
 from database.models.ShowEpisodeModel import ShowEpisode
-from data_validation.validation import Validation
 from exceptions.service_error import HTTPRequestError
 from exceptions.tvguide_errors import GuideNotCreatedError
 from services.APIClient import APIClient

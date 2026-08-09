@@ -4,7 +4,7 @@ from discord.errors import HTTPException
 from sqlalchemy.orm import Session
 import os
 
-from aux_methods.helper_methods import parse_date_from_command, split_message_by_time
+from aux_methods.helper_methods import parse_date_from_command
 from data_validation.validation import Validation
 from database import engine
 from database.models.GuideModel import Guide
