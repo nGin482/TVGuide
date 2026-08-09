@@ -77,7 +77,7 @@ class Hermes(Bot):
     async def get_hermes_channel(self) -> TextChannel:
         await self.wait_until_ready()
 
-        if os.getenv("PYTHON_ENV") == "development" or os.getenv("PYTHON_ENV") == "testing":
+        if os.getenv("PYTHON_ENV") != "production":
             channel_id = int(os.getenv("DEV_CHANNEL"))
         else:
             channel_id = int(os.getenv("TVGUIDE_CHANNEL"))
