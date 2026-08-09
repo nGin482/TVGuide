@@ -106,12 +106,12 @@ async def remove_show(ctx: Context, show: str):
 
 @hermes.command()
 async def send_guide(ctx: Context, date: str = None):
-    from config import scheduler
+    from config import tvguide_scheduler
     guide_date = Validation.get_current_date() if date is None else parse_date_from_command(date)
     session = Session(engine, expire_on_commit=False)
     
     guide = Guide(guide_date, session)
-    guide.create_new_guide(scheduler)
+    guide.create_new_guide(tvguide_scheduler)
     guide_message, reminders_message, events_message = (
         guide.compose_message(),
         guide.compose_reminder_message(),

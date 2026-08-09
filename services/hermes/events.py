@@ -2,6 +2,7 @@ from datetime import datetime
 from discord import File
 
 from aux_methods.types import ShowData
+from config import tvguide_scheduler
 from data_validation.validation import Validation
 from services.hermes.hermes import hermes
 from services.hermes.utilities import send_channel_message, send_ngin_message
@@ -9,6 +10,8 @@ from services.hermes.utilities import send_channel_message, send_ngin_message
 @hermes.event
 async def on_ready():
     print('Logged in as', hermes.user)
+    tvguide_scheduler.initialize()
+    await hermes.schedule_guide_job(tvguide_scheduler)
 
 @hermes.event
 async def on_db_rollback():

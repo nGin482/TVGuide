@@ -1,24 +1,44 @@
-from __future__ import annotations
-from typing import TYPE_CHECKING
+from discord.errors import HTTPException
+from sqlalchemy.orm import Session
 import os
 
-from config import database_service
+from database import engine
 from database.models.Guide import Guide
+from exceptions.tvguide_errors import GuideNotCreatedError
+from data_validation.validation import Validation
 
-if TYPE_CHECKING:
-    from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
-def run_guide(scheduler: AsyncIOScheduler=None):
+
+async def create_guide():
+    from config import tvguide_scheduler
+    from services.hermes.hermes import hermes
+
+    date = Validation.get_current_date()
+    session = Session(engine, expire_on_commit=False)
     
-    if os.environ['PYTHON_ENV'] == 'production':
-        database_service.backup_recorded_shows()
+    guide = Guide(date, session)
     
-    guide = Guide.from_runtime()
-    database_service.add_guide_data(guide)
+    await hermes.wait_until_ready()
+    ngin_id = int(os.getenv('NGIN'))
+    ngin = await hermes.fetch_user(ngin_id)
 
-    guide_message = guide.compose_message()
-    reminders_message = guide.schedule_reminders(database_service, scheduler)
-    events_message = guide.compose_events_message()
-    print(guide_message)
-    return guide_message, reminders_message, events_message
+    try:
+        guide.create_new_guide(tvguide_scheduler)
+        guide_message = guide.compose_message()
+        reminder_message = guide.compose_reminder_message()
+        events_message = guide.compose_events_message()
+
+        await hermes.send_guide_message(
+            guide_message,
+            reminder_message,
+            events_message
+        )
+    except HTTPException as error:
+        await ngin.send(f"There was a problem sending the TVGuide messages. Error: {str(error)}")
+    except GuideNotCreatedError as error:
+        await ngin.send(f"The TVGuide could not be created properly. Error: {str(error)}")
+    except (AttributeError, TypeError, ValueError) as error:
+        await ngin.send(f"There was a problem sending the TVGuide. Error: {str(error)}")
+    finally:
+        session.close()

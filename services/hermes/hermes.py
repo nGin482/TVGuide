@@ -1,8 +1,11 @@
+from apscheduler.triggers.cron import CronTrigger
 from discord import Intents, TextChannel
 from discord.ext.commands import Bot, DefaultHelpCommand
 import os
 
 from aux_methods.helper_methods import split_message_by_time
+from guide import create_guide
+from services.TVGuideScheduler import TVGuideScheduler
 
 class Hermes(Bot):
     
@@ -16,6 +19,16 @@ class Hermes(Bot):
             description=description,
             intents=intents,
             **options
+        )
+
+    async def schedule_guide_job(self, tvguide_scheduler: TVGuideScheduler):
+        tvguide_scheduler.add_job(
+            create_guide,
+            CronTrigger(hour=9, timezone='Australia/Sydney'),
+            id='TVGuide Message',
+            name='Send the TVGuide message',
+            misfire_grace_time=None,
+            replace_existing=True
         )
 
 

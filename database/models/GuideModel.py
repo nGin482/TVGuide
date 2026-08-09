@@ -1,4 +1,3 @@
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
 from sqlalchemy import Column, DateTime, func, Integer, select
 from sqlalchemy.orm import Mapped, Session
@@ -18,6 +17,7 @@ from data_validation.validation import Validation
 from exceptions.service_error import HTTPRequestError
 from exceptions.tvguide_errors import GuideNotCreatedError
 from services.APIClient import APIClient
+from services.TVGuideScheduler import TVGuideScheduler
 from utils.types.models import TGuide
 from utils.LoggingFormatter import logging_handler
 
@@ -169,7 +169,7 @@ class Guide(Base):
                 schedule = json.load(fd)
             return schedule
     
-    def create_new_guide(self, scheduler: AsyncIOScheduler = None):
+    def create_new_guide(self, scheduler: TVGuideScheduler = None):
         try:
             self.add_guide()
         except OperationalError as error:
@@ -207,7 +207,7 @@ class Guide(Base):
         
         return shows_with_reminders
 
-    def schedule_reminders(self, scheduler: AsyncIOScheduler):
+    def schedule_reminders(self, scheduler: TVGuideScheduler):
         shows_with_reminders = self.get_reminders()
         
         if len(shows_with_reminders) > 0 and scheduler:
