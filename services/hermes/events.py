@@ -16,7 +16,7 @@ logger.setLevel(logging.DEBUG)
 @hermes.event
 async def on_ready():
     logger.info(f"Logged in as {hermes.user}")
-    tvguide_scheduler.initialize()
+    tvguide_scheduler.initialise()
     await hermes.schedule_guide_job(tvguide_scheduler)
 
 @hermes.event

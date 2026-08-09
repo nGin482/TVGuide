@@ -16,7 +16,7 @@ class TVGuideScheduler:
         self.engine = engine
         self.scheduler: AsyncIOScheduler | None = None
 
-    def initialize(self):
+    def initialise(self):
         """Configures and starts the scheduler based on the active environment."""
         try:
             loop = asyncio.get_running_loop()
