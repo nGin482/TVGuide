@@ -1,4 +1,5 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.job import Job
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 import asyncio
 import logging
@@ -40,8 +41,8 @@ class TVGuideScheduler:
         self.scheduler_initialised = True
         logger.info("TVGuide Scheduler initialized.")
 
-    def get_jobs(self):
-        return self.scheduler
+    def get_jobs(self) -> list[Job]:
+        return self.scheduler.get_jobs()
 
     def add_job(self, func, trigger, *args, **kwargs):
         return self.scheduler.add_job(func, trigger, *args, **kwargs)
