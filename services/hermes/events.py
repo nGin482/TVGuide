@@ -1,6 +1,7 @@
 from datetime import datetime
 from discord import File
 import logging
+import os
 
 from aux_methods.types import ShowData
 from config import tvguide_scheduler
@@ -17,7 +18,8 @@ logger.setLevel(logging.DEBUG)
 async def on_ready():
     logger.info(f"Logged in as {hermes.user}")
     tvguide_scheduler.initialise()
-    await hermes.schedule_guide_job(tvguide_scheduler)
+    if os.getenv("PYTHON_ENV") == "production":
+        await hermes.schedule_guide_job(tvguide_scheduler)
 
 @hermes.event
 async def on_db_rollback():
