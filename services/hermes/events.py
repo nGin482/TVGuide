@@ -17,7 +17,8 @@ logger.setLevel(logging.DEBUG)
 @hermes.event
 async def on_ready():
     logger.info(f"Logged in as {hermes.user}")
-    tvguide_scheduler.initialise()
+    if not tvguide_scheduler.scheduler_initialised:
+        tvguide_scheduler.initialise()
     if os.getenv("PYTHON_ENV") == "production":
         await hermes.schedule_guide_job(tvguide_scheduler)
 

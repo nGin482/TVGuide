@@ -15,6 +15,7 @@ class TVGuideScheduler:
     def __init__(self, engine=None):
         self.engine = engine
         self.scheduler: AsyncIOScheduler | None = None
+        self.scheduler_initialised = False
 
     def initialise(self):
         """Configures and starts the scheduler based on the active environment."""
@@ -36,6 +37,7 @@ class TVGuideScheduler:
             logger.error("No database connection string to create JobStore")
             
         self.scheduler.start()
+        self.scheduler_initialised = True
         logger.info("TVGuide Scheduler initialized.")
 
     def get_jobs(self):
