@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 import json
 import logging
@@ -18,7 +19,7 @@ class TestCreateGuide(unittest.IsolatedAsyncioTestCase):
         super().setUpClass()
         logging.disable()
         
-        with open('tests/test_data/fta_data.json') as fd:
+        with open("tests/test_data/fta_data.json") as fd:
             self.fta_data = json.load(fd)
 
         # Suppress deprecation warnings from the discord library
@@ -29,16 +30,18 @@ class TestCreateGuide(unittest.IsolatedAsyncioTestCase):
         )
 
 
-    @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('sqlalchemy.orm.session.Session.execute')
-    @patch('database.models.Reminder.get_reminder_by_show')
-    @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
-    @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
-    @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
-    @patch('database.models.GuideModel.Guide.get_source_data')
+    @patch("sqlalchemy.orm.session.Session.commit")
+    @patch("sqlalchemy.orm.session.Session.execute")
+    @patch("database.models.Reminder.get_reminder_by_show")
+    @patch("database.models.ShowEpisodeModel.ShowEpisode.search_for_episode")
+    @patch("database.models.ShowDetailsModel.ShowDetails.get_show_by_title")
+    @patch("database.models.SearchItemModel.SearchItem.get_active_searches")
+    @patch("database.models.GuideModel.Guide.get_source_data")
     @patch("services.hermes.hermes.hermes", new_callable=AsyncMock)
+    @patch("data_validation.validation.Validation.get_current_date")
     async def test_guide_messages_sent(
         self,
+        mock_date: MagicMock,
         mock_hermes: MagicMock,
         mock_source_data: MagicMock,
         mock_search_items: MagicMock,
@@ -48,6 +51,7 @@ class TestCreateGuide(unittest.IsolatedAsyncioTestCase):
         mock_execute: MagicMock,
         mock_session_commit: MagicMock,
     ):
+        mock_date.return_value = datetime(2026, 8, 10)
         mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
         mock_show_detail.return_value = show_details[0]
