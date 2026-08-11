@@ -4,7 +4,7 @@ from discord.errors import HTTPException
 from sqlalchemy.orm import Session
 import os
 
-from aux_methods.helper_methods import parse_date_from_command, split_message_by_time
+from aux_methods.helper_methods import parse_date_from_command
 from data_validation.validation import Validation
 from database import engine
 from database.models.GuideModel import Guide
@@ -30,7 +30,7 @@ async def show_list(ctx: Context):
     session = Session(engine)
 
     all_search_items = [search_item.show for search_item in SearchItem.get_active_searches(session)]
-    show_list = '\n'.join([all_search_items])
+    show_list = '\n'.join(all_search_items)
     await ctx.send(f"The Search List includes:\n{show_list}")
     session.close()
 
@@ -106,12 +106,12 @@ async def remove_show(ctx: Context, show: str):
 
 @hermes.command()
 async def send_guide(ctx: Context, date: str = None):
-    from config import scheduler
+    from config import tvguide_scheduler
     guide_date = Validation.get_current_date() if date is None else parse_date_from_command(date)
     session = Session(engine, expire_on_commit=False)
     
     guide = Guide(guide_date, session)
-    guide.create_new_guide(scheduler)
+    guide.create_new_guide(tvguide_scheduler)
     guide_message, reminders_message, events_message = (
         guide.compose_message(),
         guide.compose_reminder_message(),

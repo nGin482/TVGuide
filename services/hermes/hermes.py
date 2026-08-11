@@ -1,18 +1,34 @@
+from apscheduler.triggers.cron import CronTrigger
 from discord import Intents, TextChannel
 from discord.ext.commands import Bot, DefaultHelpCommand
 import os
 
 from aux_methods.helper_methods import split_message_by_time
+from guide import create_guide
+from services.TVGuideScheduler import TVGuideScheduler
 
 class Hermes(Bot):
     
     def __init__(self, command_prefix, help_command=..., description=None, **options):
+        intents = Intents.default()
+        intents.message_content = True
+        intents.members = True
         super().__init__(
             command_prefix,
             help_command=help_command,
             description=description,
-            intents=Intents.default(),
+            intents=intents,
             **options
+        )
+
+    async def schedule_guide_job(self, tvguide_scheduler: TVGuideScheduler):
+        tvguide_scheduler.add_job(
+            create_guide,
+            CronTrigger(hour=9, timezone='Australia/Sydney'),
+            id='TVGuide Message',
+            name='Send the TVGuide message',
+            misfire_grace_time=None,
+            replace_existing=True
         )
 
 
@@ -61,7 +77,7 @@ class Hermes(Bot):
     async def get_hermes_channel(self) -> TextChannel:
         await self.wait_until_ready()
 
-        if os.getenv("PYTHON_ENV") == "development" or os.getenv("PYTHON_ENV") == "testing":
+        if os.getenv("PYTHON_ENV") != "production":
             channel_id = int(os.getenv("DEV_CHANNEL"))
         else:
             channel_id = int(os.getenv("TVGUIDE_CHANNEL"))

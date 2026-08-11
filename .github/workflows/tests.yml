@@ -8,6 +8,7 @@ on:
 env:
   TVGUIDE_DB: ${{ secrets.TVGUIDE_DB }}
   PYTHON_ENV: testing
+  NGIN: "1234"
 
 jobs:
   Run-Tests:

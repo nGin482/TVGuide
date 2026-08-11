@@ -96,7 +96,6 @@ async def run_guide(date: str, discord: bool, schedule: bool):
     import re
     import sys
 
-    from config import scheduler
     from database import engine
     from database.models.GuideModel import Guide
 
@@ -109,8 +108,11 @@ async def run_guide(date: str, discord: bool, schedule: bool):
     
     guide = Guide(datetime.strptime(date, '%d-%m-%Y'), session)
     if schedule:
-        scheduler.remove_all_jobs()
-        guide.create_new_guide(scheduler)
+        from config import tvguide_scheduler
+        if not tvguide_scheduler.scheduler_initialised:
+            tvguide_scheduler.initialise()
+        tvguide_scheduler.remove_all_jobs()
+        guide.create_new_guide(tvguide_scheduler)
     else:
         guide.create_new_guide()
     guide_message, reminders_message, events_message = (
@@ -128,10 +130,12 @@ async def run_guide(date: str, discord: bool, schedule: bool):
         except ClientConnectorDNSError:
             print(guide_message)
             print(reminders_message)
+            print()
             print(events_message)
     else:
         print(guide_message)
         print(reminders_message)
+        print()
         print(events_message)
     session.close()
 
