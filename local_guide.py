@@ -2,6 +2,7 @@ from aiohttp.client_exceptions import ClientConnectorDNSError
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 import asyncclick as click
+import asyncio
 import os
 
 load_dotenv('.env')
@@ -138,6 +139,16 @@ async def run_guide(date: str, discord: bool, schedule: bool):
         print()
         print(events_message)
     session.close()
+
+@local_tvguide.command()
+async def run_discord():
+    """Use this for running Hermes commands"""
+    try:
+        await hermes.start(os.getenv('HERMES'))
+    except asyncio.CancelledError:
+        print("Hermes exiting")
+        await hermes.close()
+
 
 
 if __name__ == '__main__':
