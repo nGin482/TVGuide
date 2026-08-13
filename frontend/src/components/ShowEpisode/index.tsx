@@ -159,9 +159,10 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
       title: "Actions",
       render: (record: ShowEpisode) => (
         <Dropdown
-          menu={{ items: menuItems }}
+          menu={{ items: setMenuItems() }}
           trigger={["click"]}
           onOpenChange={() => setEpisodeEdited(record)}
+          disabled={!currentUser}
         >
           <Button>Edit Episode</Button>
         </Dropdown>
@@ -191,6 +192,16 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
       ),
     },
   ];
+
+  const setMenuItems = () => {
+    if (!currentUser) {
+      return [];
+    }
+    if (currentUser.role === "Standard") {
+      return menuItems.filter(item => item.key === "edit");
+    }
+    return menuItems;
+  };
 
   const EmptyDescription = () => (
     <>
