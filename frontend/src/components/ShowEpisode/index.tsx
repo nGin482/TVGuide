@@ -98,28 +98,30 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
     {
       key: 'season_number',
       dataIndex: 'season_number',
-      title: 'Season Number'
+      title: 'Season Number',
     },
     {
       key: 'episode_number',
       dataIndex: 'episode_number',
-      title: 'Episode Number'
+      title: 'Episode Number',
     },
     {
       key: 'episode_title',
       dataIndex: 'episode_title',
-      title: 'Episode Title'
+      title: 'Episode Title',
     },
     {
       key: 'alternative_titles',
       dataIndex: 'alternative_titles',
-      title: 'Alternative Titles'
+      title: 'Alternative Titles',
     },
     {
       key: 'summary',
       dataIndex: 'summary',
       title: 'Summary',
-      render: (summary: string) => <div dangerouslySetInnerHTML={{ __html: summary }} />
+      render: (summary: string) => (
+        <div dangerouslySetInnerHTML={{ __html: summary }} />
+      ),
     },
     {
       key: 'channels',
@@ -134,7 +136,7 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
         >
           {channel}
         </Tag>
-      )
+      ),
     },
     {
       key: 'air_dates',
@@ -149,7 +151,7 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
         >
           {dayjs(air_date).format("DD/MM/YYYY")}
         </Tag>
-      )
+      ),
     },
     {
       key: "actions",
@@ -163,7 +165,7 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
         >
           <Button>Edit Episode</Button>
         </Dropdown>
-      )
+      ),
     },
   ];
 
@@ -172,7 +174,7 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
       icon: <EditOutlined />,
       key: "edit",
       label: "Edit",
-      onClick: toggleForm
+      onClick: toggleForm,
     },
     {
       key: "delete",
@@ -187,7 +189,7 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
           <DeleteFilled /> Delete
         </Popconfirm>
       ),
-    }
+    },
   ];
 
   const EmptyDescription = () => (
