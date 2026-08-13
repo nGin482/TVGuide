@@ -83,8 +83,10 @@ class Hermes(Bot):
             channel_id = int(os.getenv("TVGUIDE_CHANNEL"))
 
         return self.get_channel(channel_id)
-    
-hermes = Hermes(command_prefix="$", help_command=DefaultHelpCommand())
+
+environment = os.getenv("PYTHON_ENV")
+command_prefix = "$" if environment == "production" else "!" 
+hermes = Hermes(command_prefix=command_prefix, help_command=DefaultHelpCommand())
 
 
 from services.hermes import events
