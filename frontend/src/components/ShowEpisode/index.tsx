@@ -19,7 +19,7 @@ import { EmptyTableView } from '../EmptyTableView';
 import { EpisodeForm } from './EpisodeForm';
 import { UserContext } from '../../contexts';
 import { useShow } from '../../hooks/useShow';
-import { updateShowEpisode } from '../../requests';
+import * as requests from '../../requests';
 import { getSeasons, handleErrorResponse } from '../../utils';
 import { ShowEpisode } from '../../utils/types';
 import "./ShowEpisode.css";
@@ -36,7 +36,7 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
 
   const { notification } = App.useApp();
   const { currentUser } = useContext(UserContext);
-  const { updateEpisodeContext } = useShow();
+  const { updateEpisodeContext, deleteEpisodeFromContext } = useShow();
 
   const { Text } = Typography;
 
@@ -46,7 +46,7 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
 
   const updateEpisode = async (formValues: ShowEpisode) => {
     try {
-      const updatedEpisode = await updateShowEpisode(formValues);
+      const updatedEpisode = await requests.updateShowEpisode(formValues);
       updateEpisodeContext(formValues.show, formValues.id, updatedEpisode);
       notification.success({
         message: "Success!",
@@ -69,8 +69,29 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
     }
   };
 
-  const deleteEpisodeHandle = () => {
-    console.log(`deleting episode ${episodeEdited.episode_title} with id ${episodeEdited.id}`)
+  const deleteEpisodeHandle = async () => {
+    try {
+      await requests.deleteShowEpisode(episodeEdited.id);
+      deleteEpisodeFromContext(episodeEdited.show, episodeEdited.id);
+      notification.success({
+        message: "Success!",
+        description: `The episode '${episodeEdited.episode_title}' has been deleted`,
+        duration: 8
+      });
+      toggleForm();
+      setEpisodeEdited(null);
+    }
+    catch (error) {
+      let message: string = error?.message;
+      if (error?.response) {
+        message = handleErrorResponse(error, "delete this episode");
+      }
+      notification.error({
+        message: `Unable to delete the episode '${episodeEdited.episode_title}'`,
+        description: message,
+        duration: 8
+      });
+    }
   };
 
   const episodeColumns: TableColumnsType<ShowEpisode> = [
@@ -214,7 +235,7 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
             emptyText: <EmptyTableView description={<EmptyDescription />} />
           }}
         />
-        {showForm && (
+        {showForm && episodeEdited && (
           <EpisodeForm
             showName={showName}
             episodeId={episodeEdited.id}

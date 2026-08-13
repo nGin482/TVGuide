@@ -1,5 +1,5 @@
 
-import { putRequest } from "./api-client";
+import { deleteRequest, putRequest } from "./api-client";
 import { ShowEpisode } from "../utils/types";
 
 export const updateShowEpisode = async (episode: ShowEpisode) => {
@@ -8,3 +8,7 @@ export const updateShowEpisode = async (episode: ShowEpisode) => {
     episode
   );
 };
+
+export const deleteShowEpisode = async (episodeId: number) => {
+  await deleteRequest(`/show-episode/${episodeId}`);
+}
