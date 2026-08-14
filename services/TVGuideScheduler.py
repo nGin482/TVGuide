@@ -1,8 +1,10 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.job import Job
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+from datetime import datetime
 import asyncio
 import logging
+import re
 import os
 
 from utils.LoggingFormatter import logging_handler
@@ -50,3 +52,14 @@ class TVGuideScheduler:
     def remove_all_jobs(self):
         if self.scheduler:
             self.scheduler.remove_all_jobs()
+
+    def parse_job_id(self, job_id: str):
+        # f'reminder-{show.title}-{show.start_time}'
+        # reminder-Merlin-2026-08-13 22:51:00
+        pattern = r"reminder-(.+)-(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})"
+        match = re.match(pattern, job_id)
+        if not match:
+            raise ValueError(f"Unable to parse the job_id {job_id}")
+        show_title = match.group(1)
+        start_time = match.group(2)
+        return (show_title, start_time)

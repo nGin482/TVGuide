@@ -1,3 +1,4 @@
+from datetime import datetime
 from discord import Message, File
 from discord.ext.commands import Context
 from discord.errors import HTTPException
@@ -160,29 +161,6 @@ async def revert_tvguide(ctx: Context, date_to_delete: str = None):
         await ctx.send('The message to delete could not be found')
     await ctx.send('The TVGuide has been reverted.')
 
-# @hermes.command()
-# async def recorded_show(ctx: Context, show: str):
-#     show_record = database_service.get_one_recorded_show(show)
-#     if show_record is not None:
-#         await ctx.send(show_record.message_format())
-#     else:
-#         await ctx.send(f'{show} could not be found in the database')
-
-# @hermes.command()
-# async def season_details(ctx: Context, show: str, season: str):
-#     show_record = database_service.get_one_recorded_show(show)
-#     if show_record is not None:
-#         season_record = show_record.find_season(season)
-#         if season_record is not None:
-#             await ctx.send(season_record.message_format())
-#         else:
-#             if season == 'Unknown':
-#                 await ctx.send(f'{show} does not have an {season} season')
-#             else:
-#                 await ctx.send(f'{show} does not have {season} seasons')
-#     else:
-#         await ctx.send(f'{show} could not be found in the database')
-
 @hermes.command()
 async def create_reminder(
     ctx: Context,
@@ -242,6 +220,23 @@ async def delete_reminder(ctx: Context, show: str):
     else:
         await ctx.send(f'A Reminder for {show} could not be found')
     session.close()
+
+@hermes.command()
+async def view_scheduled_reminders(ctx: Context):
+    from config import tvguide_scheduler
+
+    scheduled_jobs = tvguide_scheduler.get_jobs()
+    scheduled_reminders = "## Reminders\n"
+    for job in scheduled_jobs:
+        (show_title, start_time) = tvguide_scheduler.parse_job_id(job.id)
+        parsed_start_time = datetime.strptime(
+            start_time,
+            "%Y-%m-%d %H:%M:%S"
+        )
+        message = f"{show_title} is on at {parsed_start_time.strftime("%H:%M")}. "
+        message += f"You will be reminded at {job.next_run_time.strftime("%H:%M")}"
+        scheduled_reminders += f"* {message}\n"
+    await ctx.send(scheduled_reminders)
 
 # @hermes.command()
 # async def backup_shows(ctx: Context):
