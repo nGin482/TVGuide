@@ -225,18 +225,29 @@ async def delete_reminder(ctx: Context, show: str):
 async def view_scheduled_reminders(ctx: Context):
     from config import tvguide_scheduler
 
+    reminders_message = "## Reminders\n"
+
     scheduled_jobs = tvguide_scheduler.get_jobs()
-    scheduled_reminders = "## Reminders\n"
-    for job in scheduled_jobs:
-        (show_title, start_time) = tvguide_scheduler.parse_job_id(job.id)
-        parsed_start_time = datetime.strptime(
-            start_time,
-            "%Y-%m-%d %H:%M:%S"
-        )
-        message = f"{show_title} is on at {parsed_start_time.strftime("%H:%M")}. "
-        message += f"You will be reminded at {job.next_run_time.strftime("%H:%M")}"
-        scheduled_reminders += f"* {message}\n"
-    await ctx.send(scheduled_reminders)
+    scheduled_reminders = [
+        job
+        for job in scheduled_jobs
+        if job.id != "TVGuide Message"
+    ]
+
+    if len(scheduled_reminders) == 0:
+        reminders_message += "* There are no reminders for today"
+    else:
+        for job in scheduled_reminders:
+            (show_title, start_time) = tvguide_scheduler.parse_job_id(job.id)
+            parsed_start_time = datetime.strptime(
+                start_time,
+                "%Y-%m-%d %H:%M:%S"
+            )
+            message = f"{show_title} is on at {parsed_start_time.strftime("%H:%M")}. "
+            message += f"You will be reminded at {job.next_run_time.strftime("%H:%M")}"
+            reminders_message += f"* {message}\n"
+
+    await ctx.send(reminders_message)
 
 # @hermes.command()
 # async def backup_shows(ctx: Context):
