@@ -1,4 +1,3 @@
-from discord.ext import commands
 import discord
 
 from database.models.GuideEpisode import GuideEpisode
@@ -14,7 +13,6 @@ class GuideEpisodeDropdown(discord.ui.Select):
             guide_episodes: list[GuideEpisode],
             tvguide_scheduler: TVGuideScheduler
         ):
-        print("creating options")
         options = [
             discord.SelectOption(
                 label=f"{guide_episode.title} at {guide_episode.start_time} on {guide_episode.channel}",
@@ -22,7 +20,6 @@ class GuideEpisodeDropdown(discord.ui.Select):
             )
             for guide_episode in guide_episodes
         ]
-        print("options", options)
         self.scheduler = tvguide_scheduler
         self.episodes = guide_episodes
         super().__init__(
@@ -37,16 +34,26 @@ class GuideEpisodeDropdown(discord.ui.Select):
         await interaction.response.defer()
 
         selected_option = self.values[0]
-        print("selected_option", selected_option)
-        print("self.episodes", self.episodes)
         selected_episode = next(
             (episode for episode in self.episodes if str(episode.id) == selected_option),
             None
         )
-        print("selected_episode", selected_episode)
-        await interaction.followup.send(
-            f"You selected {selected_episode.title} airing at {selected_episode.start_time}!"
-        )
+        if selected_episode and selected_episode.reminder:
+            notify_time = selected_episode.reminder.calculate_notification_time(
+                selected_episode.start_time
+            )
+            self.scheduler.add_reminder_job(selected_episode, notify_time)
+            await interaction.followup.send(
+                selected_episode.reminder_message(notify_time)
+            )
+        elif selected_episode and not selected_episode.reminder:
+            await interaction.followup.send(
+                f"{selected_episode.title} does not have a reminder set"
+            )
+        else:
+            await interaction.followup.send(
+                "Unable to find the selected episode"
+            )
 
 class DropdownView(discord.ui.View):
     def __init__(
@@ -55,6 +62,4 @@ class DropdownView(discord.ui.View):
             tvguide_scheduler: TVGuideScheduler
         ):
         super().__init__()
-        print("adding dropdown")
         self.add_item(GuideEpisodeDropdown(guide_episodes, tvguide_scheduler))
-        print("dropdown added")
