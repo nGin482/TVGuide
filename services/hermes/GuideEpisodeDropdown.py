@@ -1,7 +1,33 @@
+from datetime import timedelta
 import discord
 
 from database.models.GuideEpisode import GuideEpisode
 from services.TVGuideScheduler import TVGuideScheduler
+
+# TODO: Only display shows that haven't aired yet
+# TODO: Handle when a job for a selected show already exists
+class NotifyTimeModal(discord.ui.Modal):
+
+    def __init__(self, guide_episode: GuideEpisode, scheduler: TVGuideScheduler):
+        super().__init__(
+            title="What time would you like to be reminded?"
+        )
+        self.guide_episode = guide_episode
+        self.scheduler = scheduler
+        self.notify_time_input = discord.ui.TextInput(
+            label="Notify Time",
+            default="3",
+            required=True
+        )
+        self.add_item(self.notify_time_input)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        value = int(self.notify_time_input.value)
+        notify_time = self.guide_episode.start_time - timedelta(minutes=value)
+        self.scheduler.add_reminder_job(self.guide_episode, notify_time)
+        await interaction.response.send_message(
+            self.guide_episode.reminder_message(notify_time)
+        )
 
 
 class GuideEpisodeDropdown(discord.ui.Select):
@@ -9,10 +35,10 @@ class GuideEpisodeDropdown(discord.ui.Select):
     episodes: list[GuideEpisode]
 
     def __init__(
-            self,
-            guide_episodes: list[GuideEpisode],
-            tvguide_scheduler: TVGuideScheduler
-        ):
+        self,
+        guide_episodes: list[GuideEpisode],
+        tvguide_scheduler: TVGuideScheduler
+    ):
         options = [
             discord.SelectOption(
                 label=f"{guide_episode.title} at {guide_episode.start_time} on {guide_episode.channel}",
@@ -31,8 +57,6 @@ class GuideEpisodeDropdown(discord.ui.Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-
         selected_option = self.values[0]
         selected_episode = next(
             (episode for episode in self.episodes if str(episode.id) == selected_option),
@@ -43,23 +67,23 @@ class GuideEpisodeDropdown(discord.ui.Select):
                 selected_episode.start_time
             )
             self.scheduler.add_reminder_job(selected_episode, notify_time)
-            await interaction.followup.send(
+            await interaction.response.send(
                 selected_episode.reminder_message(notify_time)
             )
         elif selected_episode and not selected_episode.reminder:
-            await interaction.followup.send(
-                f"{selected_episode.title} does not have a reminder set"
+            await interaction.response.send_modal(
+                NotifyTimeModal(selected_episode, self.scheduler)
             )
         else:
-            await interaction.followup.send(
+            await interaction.response.send(
                 "Unable to find the selected episode"
             )
 
 class DropdownView(discord.ui.View):
     def __init__(
-            self,
-            guide_episodes: list[GuideEpisode],
-            tvguide_scheduler: TVGuideScheduler
-        ):
+        self,
+        guide_episodes: list[GuideEpisode],
+        tvguide_scheduler: TVGuideScheduler
+    ):
         super().__init__()
         self.add_item(GuideEpisodeDropdown(guide_episodes, tvguide_scheduler))
