@@ -1,17 +1,16 @@
 from datetime import timedelta
 import discord
+import pytz
 
 from database.models.GuideEpisode import GuideEpisode
+from data_validation.validation import Validation
 from services.TVGuideScheduler import TVGuideScheduler
 
-# TODO: Only display shows that haven't aired yet
 # TODO: Handle when a job for a selected show already exists
 class NotifyTimeModal(discord.ui.Modal):
 
     def __init__(self, guide_episode: GuideEpisode, scheduler: TVGuideScheduler):
-        super().__init__(
-            title="What time would you like to be reminded?"
-        )
+        super().__init__(title="What time would you like to be reminded?")
         self.guide_episode = guide_episode
         self.scheduler = scheduler
         self.notify_time_input = discord.ui.TextInput(
@@ -45,6 +44,8 @@ class GuideEpisodeDropdown(discord.ui.Select):
                 value=f"{guide_episode.id}"
             )
             for guide_episode in guide_episodes
+            if pytz.timezone("Australia/Sydney").localize(guide_episode.start_time)
+                >= Validation.get_current_date()
         ]
         self.scheduler = tvguide_scheduler
         self.episodes = guide_episodes
@@ -67,7 +68,7 @@ class GuideEpisodeDropdown(discord.ui.Select):
                 selected_episode.start_time
             )
             self.scheduler.add_reminder_job(selected_episode, notify_time)
-            await interaction.response.send(
+            await interaction.response.send_message(
                 selected_episode.reminder_message(notify_time)
             )
         elif selected_episode and not selected_episode.reminder:
@@ -75,7 +76,7 @@ class GuideEpisodeDropdown(discord.ui.Select):
                 NotifyTimeModal(selected_episode, self.scheduler)
             )
         else:
-            await interaction.response.send(
+            await interaction.response.send_message(
                 "Unable to find the selected episode"
             )
 
