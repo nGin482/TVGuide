@@ -31,7 +31,10 @@ async def migrate(ctx: Context):
 async def show_list(ctx: Context):
     session = Session(engine)
 
-    all_search_items = [search_item.show for search_item in SearchItem.get_active_searches(session)]
+    all_search_items = [
+        search_item.show
+        for search_item in SearchItem.get_active_searches(session)
+    ]
     show_list = '\n'.join(all_search_items)
     await ctx.send(f"The Search List includes:\n{show_list}")
     session.close()
@@ -266,6 +269,7 @@ async def create_scheduled_reminder(ctx: Context):
         guide.get_shows()
         view = DropdownView(guide.fta_shows, tvguide_scheduler)
         await ctx.send(view=view)
+    session.close()
 
 # @hermes.command()
 # async def backup_shows(ctx: Context):
