@@ -210,18 +210,9 @@ class Guide(Base):
         shows_with_reminders = self.get_reminders()
         
         if len(shows_with_reminders) > 0 and scheduler:
-            from apscheduler.triggers.date import DateTrigger
-            from services.hermes.utilities import send_channel_message
             for show_reminder in shows_with_reminders:
                 show, notify_time = show_reminder
-                scheduler.add_job(
-                    send_channel_message,
-                    DateTrigger(run_date=notify_time, timezone='Australia/Sydney'),
-                    [show.reminder_notification()],
-                    id=f'reminder-{show.title}-{show.start_time}',
-                    name=f'Send the reminder message for {show.title}',
-                    misfire_grace_time=None
-                )
+                scheduler.add_reminder_job(show, notify_time)
 
     def compose_message(self):
         """
