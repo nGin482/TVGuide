@@ -1,3 +1,4 @@
+from apscheduler.jobstores.base import ConflictingIdError
 from datetime import timedelta
 import discord
 import pytz
@@ -6,7 +7,6 @@ from database.models.GuideEpisode import GuideEpisode
 from data_validation.validation import Validation
 from services.TVGuideScheduler import TVGuideScheduler
 
-# TODO: Handle when a job for a selected show already exists
 class NotifyTimeModal(discord.ui.Modal):
 
     def __init__(self, guide_episode: GuideEpisode, scheduler: TVGuideScheduler):
@@ -23,10 +23,15 @@ class NotifyTimeModal(discord.ui.Modal):
     async def on_submit(self, interaction: discord.Interaction):
         value = int(self.notify_time_input.value)
         notify_time = self.guide_episode.start_time - timedelta(minutes=value)
-        self.scheduler.add_reminder_job(self.guide_episode, notify_time)
-        await interaction.response.send_message(
-            self.guide_episode.reminder_message(notify_time)
-        )
+        try:
+            self.scheduler.add_reminder_job(self.guide_episode, notify_time)
+            await interaction.response.send_message(
+                self.guide_episode.reminder_message(notify_time)
+            )
+        except ConflictingIdError:
+            await interaction.response.send_message(
+                "There is already a reminder set for this show"
+            )
 
 
 class GuideEpisodeDropdown(discord.ui.Select):
