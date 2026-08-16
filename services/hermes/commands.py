@@ -31,12 +31,10 @@ async def migrate(ctx: Context):
 async def show_list(ctx: Context):
     session = Session(engine)
 
-    all_search_items = [
-        search_item.show
-        for search_item in SearchItem.get_active_searches(session)
-    ]
-    show_list = '\n'.join(all_search_items)
-    await ctx.send(f"The Search List includes:\n{show_list}")
+    message = "The Search List includes:\n"
+    for search_item in SearchItem.get_active_searches(session):
+        message += f"* {search_item.show}\n"
+    await ctx.send(message)
     session.close()
 
 @hermes.command()
