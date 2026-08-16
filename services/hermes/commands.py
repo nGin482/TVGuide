@@ -16,7 +16,7 @@ from database.models.ShowEpisodeModel import ShowEpisode
 from exceptions.DatabaseError import DatabaseError, SearchItemAlreadyExistsError
 from log import get_date_from_tvguide_message
 from services.hermes.hermes import hermes
-from services.hermes.GuideEpisodeDropdown import DropdownView
+from services.hermes.ui_components.GuideEpisodeDropdown import DropdownView
 from services.tvmaze import tvmaze_api
 
 
