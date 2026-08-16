@@ -66,6 +66,9 @@ class TVGuideScheduler:
     def add_job(self, func, trigger, *args, **kwargs):
         return self.scheduler.add_job(func, trigger, *args, **kwargs)
 
+    def remove_job(self, job: Job):
+        job.remove()
+
     def remove_all_jobs(self):
         if self.scheduler:
             self.scheduler.remove_all_jobs()
