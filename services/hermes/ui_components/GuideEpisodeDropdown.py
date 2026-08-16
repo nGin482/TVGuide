@@ -1,5 +1,6 @@
 from apscheduler.jobstores.base import ConflictingIdError
 from datetime import timedelta
+from sqlalchemy.orm import Session
 import discord
 import pytz
 
@@ -41,7 +42,8 @@ class GuideEpisodeDropdown(discord.ui.Select):
     def __init__(
         self,
         guide_episodes: list[GuideEpisode],
-        tvguide_scheduler: TVGuideScheduler
+        tvguide_scheduler: TVGuideScheduler,
+        session: Session,
     ):
         options = [
             discord.SelectOption(
@@ -54,6 +56,7 @@ class GuideEpisodeDropdown(discord.ui.Select):
         ]
         self.scheduler = tvguide_scheduler
         self.episodes = guide_episodes
+        self.session = session
         super().__init__(
             placeholder="Select the episode",
             min_values=1,
@@ -84,12 +87,4 @@ class GuideEpisodeDropdown(discord.ui.Select):
             await interaction.response.send_message(
                 "Unable to find the selected episode"
             )
-
-class DropdownView(discord.ui.View):
-    def __init__(
-        self,
-        guide_episodes: list[GuideEpisode],
-        tvguide_scheduler: TVGuideScheduler
-    ):
-        super().__init__()
-        self.add_item(GuideEpisodeDropdown(guide_episodes, tvguide_scheduler))
+        self.session.close()

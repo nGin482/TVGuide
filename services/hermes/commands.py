@@ -16,8 +16,7 @@ from database.models.ShowEpisodeModel import ShowEpisode
 from exceptions.DatabaseError import DatabaseError, SearchItemAlreadyExistsError
 from log import get_date_from_tvguide_message
 from services.hermes.hermes import hermes
-from services.hermes.ui_components.ReminderDropdown import ReminderDropdownView
-from services.hermes.ui_components.GuideEpisodeDropdown import DropdownView
+from services.hermes.ui_components.DropdownView import DropdownView
 from services.tvmaze import tvmaze_api
 
 
@@ -266,9 +265,12 @@ async def create_scheduled_reminder(ctx: Context):
         await ctx.send(f"Unable to find a guide for {current_date}")
     else:
         guide.get_shows()
-        view = DropdownView(guide.fta_shows, tvguide_scheduler)
+        view = DropdownView(
+            tvguide_scheduler,
+            guide_episodes=guide.fta_shows,
+            session=session
+        )
         await ctx.send(view=view)
-    session.close()
 
 @hermes.command()
 async def remove_scheduled_reminder(ctx: Context):
@@ -283,7 +285,7 @@ async def remove_scheduled_reminder(ctx: Context):
     if len(scheduled_reminders) == 0:
         await ctx.send("There are no reminders scheduled today")
     else:
-        view = ReminderDropdownView(scheduled_reminders, tvguide_scheduler)
+        view = DropdownView(tvguide_scheduler, reminders=scheduled_reminders)
         await ctx.send(view=view)
 
 # @hermes.command()

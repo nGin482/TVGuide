@@ -38,13 +38,3 @@ class ReminderDropdown(discord.ui.Select):
         await interaction.response.send_message(
             f"The reminder for {show_title} has been removed"
         )
-
-
-class ReminderDropdownView(discord.ui.View):
-    def __init__(
-        self,
-        reminders: list[Job],
-        tvguide_scheduler: TVGuideScheduler,
-    ):
-        super().__init__()
-        self.add_item(ReminderDropdown(reminders, tvguide_scheduler))
