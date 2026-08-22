@@ -114,7 +114,3 @@ async def on_command_error(ctx: Context, error: Exception):
     await ctx.send(error_message)
     await ngin.send(embed=embed)
 
-# TODO: See if it's possible to add the traceback into the embed
-#       Otherwise, rely on the logging
-#       Finally, make sure the embed is sent to NGIN, not through the context
-# TODO: Reschedule reminders
