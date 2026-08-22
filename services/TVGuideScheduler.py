@@ -53,6 +53,7 @@ class TVGuideScheduler:
         show: GuideEpisode,
         notify_time: datetime
     ):
+        # TODO: Add channel to jobId
         from services.hermes.utilities import send_channel_message
         self.scheduler.add_job(
             send_channel_message,
@@ -61,6 +62,11 @@ class TVGuideScheduler:
             id=f'reminder-{show.title}-{show.start_time}',
             name=f'Send the reminder message for {show.title}',
             misfire_grace_time=None
+        )
+
+    def reschedule_job(self, job: Job, new_notify_time: datetime):
+        job.reschedule(
+            DateTrigger(run_date=new_notify_time, timezone="Australia/Sydney")
         )
 
     def add_job(self, func, trigger, *args, **kwargs):
@@ -80,7 +86,7 @@ class TVGuideScheduler:
         if not match:
             raise ValueError(f"Unable to parse the job_id {job_id}")
 
-        show_title = match.group(1)
-        start_time = match.group(2)
+        show_title = str(match.group(1)) if match.group(1) else None
+        start_time = datetime.strptime(match.group(2), "%Y-%m-%d %H:%M:%S") if match.group(2) else None
 
         return (show_title, start_time)

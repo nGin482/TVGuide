@@ -267,8 +267,29 @@ async def create_scheduled_reminder(ctx: Context):
         guide.get_shows()
         view = DropdownView(
             tvguide_scheduler,
+            "create_reminder",
             guide_episodes=guide.fta_shows,
             session=session
+        )
+        await ctx.send(view=view)
+
+@hermes.command()
+async def reschedule_reminder(ctx: Context):
+    from config import tvguide_scheduler
+
+    session = Session(engine)
+    current_date = Validation.get_current_date()
+
+    guide = Guide.get_date(current_date, session)
+    if not guide:
+        await ctx.send(f"Unable to find a guide for {current_date}")
+    else:
+        guide.get_shows()
+        view = DropdownView(
+            tvguide_scheduler,
+            "reschedule_reminder",
+            reminders=tvguide_scheduler.get_jobs(),
+            guide_episodes=guide.fta_shows,
         )
         await ctx.send(view=view)
 
@@ -285,7 +306,11 @@ async def remove_scheduled_reminder(ctx: Context):
     if len(scheduled_reminders) == 0:
         await ctx.send("There are no reminders scheduled today")
     else:
-        view = DropdownView(tvguide_scheduler, reminders=scheduled_reminders)
+        view = DropdownView(
+            tvguide_scheduler,
+            "remove_reminder",
+            reminders=scheduled_reminders
+        )
         await ctx.send(view=view)
 
 # @hermes.command()
