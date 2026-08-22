@@ -1,15 +1,12 @@
 from datetime import datetime
-from discord import Message, File
+from discord import Message
 from discord.ext.commands import Context
-from discord.errors import HTTPException
 from sqlalchemy.orm import Session
-import os
 
 from aux_methods.helper_methods import parse_date_from_command
 from data_validation.validation import Validation
 from database import engine
 from database.models.GuideModel import Guide
-from database.models.ReminderModel import Reminder
 from database.models.SearchItemModel import SearchItem
 from database.models.ShowDetailsModel import ShowDetails
 from database.models.ShowEpisodeModel import ShowEpisode
@@ -165,66 +162,6 @@ async def revert_tvguide(ctx: Context, date_to_delete: str = None):
     await ctx.send('The TVGuide has been reverted.')
 
 @hermes.command()
-async def create_reminder(
-    ctx: Context,
-    show: str,
-    reminder_alert: str = 'Before',
-    warning_time: str = '3', 
-    occasions: str = 'All'
-):
-    session = Session(engine)
-
-    show_details = ShowDetails.get_show_by_title(show, session)
-    reminder_exists = Reminder.get_reminder_by_show(show, session)
-    search_item_exists = SearchItem.get_search_item(show, session)
-    if not reminder_exists:
-        await ctx.send(f'A reminder already exists for {show}')
-    elif not search_item_exists:
-        await ctx.send(f'A reminder cannot be created for {show} as it is not being searched for.')
-    else:
-        reminder = Reminder(show, reminder_alert, int(warning_time), occasions, show_details.id)
-        reminder.add_reminder(session)
-        await ctx.send(f'A reminder has been created for {show}')
-    session.close()
-
-@hermes.command()
-async def view_reminder(ctx: Context, show: str):
-    session = Session(engine)
-
-    reminder = Reminder.get_reminder_by_show(show, session)
-    if reminder:
-        await ctx.send(reminder.message_format())
-    else:
-        await ctx.send(f"A reminder for '{show}' could not be found")
-    session.close()    
-
-@hermes.command()
-async def update_reminder(ctx: Context, show: str, attribute: str, value: str):
-    session = Session(engine)
-
-    reminder = Reminder.get_reminder_by_show(show, session)
-    if reminder:
-        if attribute == 'warning_time':
-            value = int(value)
-        reminder.update_reminder(attribute, value, session)
-        await ctx.send(f"The reminder for '{show}' has been updated. It's details are now:\n{reminder.message_format()}")
-    else:
-        await ctx.send(f"A reminder for '{show}' could not be found")
-    session.close()
-
-@hermes.command()
-async def delete_reminder(ctx: Context, show: str):
-    session = Session(engine)
-
-    reminder = Reminder.get_reminder_by_show(show, session)
-    if reminder:
-        reminder.delete_reminder(session)
-        await ctx.send(f'The Reminder for {show} has been removed')
-    else:
-        await ctx.send(f'A Reminder for {show} could not be found')
-    session.close()
-
-@hermes.command()
 async def view_scheduled_reminders(ctx: Context):
     from config import tvguide_scheduler
 
@@ -313,33 +250,3 @@ async def remove_scheduled_reminder(ctx: Context):
         )
         await ctx.send(view=view)
 
-# @hermes.command()
-# async def backup_shows(ctx: Context):
-#     database_service.backup_recorded_shows()
-#     date = Validation.get_current_date()
-
-#     os.mkdir('database/backups/zip')
-#     with ZipFile('database/backups/zip/Shows-Archive.zip', 'w') as zip:
-#         for file in os.listdir('database/backups/recorded_shows'):
-#             zip.write(f'database/backups/recorded_shows/{file}', arcname=file)
-#     shows_zip = File('database/backups/zip/Shows-Archive.zip', f'Shows Archive - {date.strftime("%d/%m/%Y")}.zip')
-#     await ctx.send('A backup has been made of the Recorded Shows. This can be found attached.', file=shows_zip)
-#     os.remove('database/backups/zip/Shows-Archive.zip')
-#     os.rmdir('database/backups/zip')
-
-# @hermes.command()
-# async def restore_shows(ctx: Context):
-#     os.makedirs('database/restore/recorded_shows')
-#     message: Message = ctx.message
-#     shows_attachment = message.attachments[0]
-#     filename = shows_attachment.filename
-#     await shows_attachment.save(f'database/restore/recorded_shows/{filename}')
-#     with ZipFile(f'database/restore/recorded_shows/{filename}', 'r') as zip:
-#         zip.extractall('database/restore/recorded_shows')
-
-#     database_service.rollback_recorded_shows(directory='restore')
-
-#     for file in os.listdir('database/restore/recorded_shows'):
-#         os.remove(f'database/restore/recorded_shows/{file}')
-#     os.rmdir('database/restore/recorded_shows')
-#     os.removedirs('database/restore')
