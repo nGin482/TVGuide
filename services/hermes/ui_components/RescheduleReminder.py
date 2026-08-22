@@ -2,8 +2,11 @@ from apscheduler.job import Job
 from sqlalchemy.orm import Session
 import discord
 import logging
+import os
+import traceback
 
 from database.models.GuideEpisode import GuideEpisode
+from services.hermes.hermes import hermes
 from services.TVGuideScheduler import TVGuideScheduler
 from utils.LoggingFormatter import logging_handler
 
@@ -36,7 +39,45 @@ class RescheduleModal(discord.ui.Modal):
         await interaction.response.send_message(
             self.guide_episode.reminder_message(notify_time)
         )
-        
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception):
+        """Catches errors raised inside on_submit."""
+        logger.error(f"Error rescheduling job: {error}")
+        logger.error(
+            f"Error rescheduling job '{error}'",
+            exc_info=(type(error), error, error.__traceback__)
+        )
+
+        error_message = f"An error occurred rescheduling the reminder '{self.job.id}'"
+    
+        tb_lines = traceback.format_exception(type(error), error, error.__traceback__)
+        tb_text = ''.join(tb_lines)
+    
+        if len(tb_text) > 1000:
+            tb_text = tb_text[:997] + "..."
+    
+        formatted_traceback = f"```py\n{tb_text}\n```"
+    
+        embed = discord.Embed(
+            title="Command Error!",
+            description=error_message,
+            color=discord.Color.red(),
+            timestamp=interaction.created_at
+        )
+        embed.add_field(name="Error", value=error)
+        embed.add_field(name="Original Message", value=interaction.message.content)
+        embed.add_field(name="Author", value=interaction.message.author)
+        embed.add_field(name="Traceback", value=formatted_traceback, inline=False)
+    
+        if os.getenv("PYTHON_ENV") == "production":
+            await interaction.response.send_message(error_message)
+            ngin_id = os.getenv("NGIN")
+            ngin = await hermes.fetch_user(ngin_id)
+            await ngin.send(embed=embed)
+        else:
+            await interaction.response.send_message(error_message, embed=embed)
+    
+    
 
 
 class RescheduleReminderDropdown(discord.ui.Select):
