@@ -1,7 +1,9 @@
 from datetime import datetime
-from discord import File
+from discord import Color, Embed, File
+from discord.ext.commands import Context
 import logging
 import os
+import traceback
 
 from aux_methods.types import ShowData
 from config import tvguide_scheduler
@@ -74,3 +76,41 @@ async def on_shows_collected():
     file = File("backup/shows.json", "All Shows.json")
 
     await send_ngin_message("The list of shows collected", file)
+
+@hermes.listen()
+async def on_command_error(ctx: Context, error: Exception):
+    command_name = ctx.command.name
+    logger.error(error)
+    logger.error(
+        f"Error running command '{command_name}'",
+        exc_info=(type(error), error, error.__traceback__)
+    )
+    logger.error(f"Message content: {ctx.message.content}")
+
+    error_message = f"An error occurred processing the command '{command_name}'"
+
+    tb_lines = traceback.format_exception(type(error), error, error.__traceback__)
+    tb_text = ''.join(tb_lines)
+
+    if len(tb_text) > 1000:
+        tb_text = tb_text[:997] + "..."
+
+    formatted_traceback = f"```py\n{tb_text}\n```"
+
+    embed = Embed(
+        title="Command Error!",
+        description=error_message,
+        color=Color.red(),
+        timestamp=ctx.message.created_at
+    )
+    embed.add_field(name="Error", value=error)
+    embed.add_field(name="Original Message", value=ctx.message.content)
+    embed.add_field(name="Author", value=ctx.message.author)
+    embed.add_field(name="Traceback", value=formatted_traceback, inline=False)
+
+    ngin_id = os.getenv("NGIN")
+    ngin = await hermes.fetch_user(ngin_id)
+
+    await ctx.send(error_message)
+    await ngin.send(embed=embed)
+
