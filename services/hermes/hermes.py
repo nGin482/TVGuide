@@ -2,8 +2,8 @@ from apscheduler.triggers.cron import CronTrigger
 from discord import Intents, TextChannel
 from discord.ext.commands import Bot, DefaultHelpCommand
 import os
+import re
 
-from aux_methods.helper_methods import split_message_by_time
 from guide import create_guide
 from services.TVGuideScheduler import TVGuideScheduler
 
@@ -45,7 +45,9 @@ class Hermes(Bot):
 
         try:
             if len(guide_message) > 2000:
-                fta_am_message, fta_pm_message = split_message_by_time(guide_message)
+                fta_am_message, fta_pm_message = self.split_message_by_time(
+                    guide_message
+                )
 
                 await channel.send(fta_am_message)
                 await channel.send(fta_pm_message)
@@ -83,6 +85,20 @@ class Hermes(Bot):
             channel_id = int(os.getenv("TVGUIDE_CHANNEL"))
 
         return self.get_channel(channel_id)
+    
+    def split_message_by_time(message: str):
+        """
+        Use regex to search for any show starting between 12:00 and 13:00 in the given `message`.
+        Split the given message into two substrings:\n
+        all shows from 00:00 to 12:59\n
+        all shows from 13:00 to 23:59.
+        """
+
+        am_index = re.search(r"12:[0-5][0-9]", message).start()
+        am_message = message[0:am_index]
+        pm_message = message[am_index:]
+
+        return am_message, pm_message
 
 environment = os.getenv("PYTHON_ENV")
 command_prefix = "$" if environment == "production" else "!" 
