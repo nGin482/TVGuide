@@ -47,11 +47,15 @@ def format_episode_title(episode_title: str):
             episode_title = 'A ' + episode_title[0:idx_a]
     return episode_title
 
-def parse_datetime(date_time: str, format: str):
+def parse_datetime(date_object: datetime, date_string: str = "", format: str = ""):
     """
     Parses a given `date_time` string using a given `format`.\n
     Returns a timezone aware object
     """
-    parsed_datetime = datetime.strptime(date_time, format)
-    parsed_datetime = pytz.timezone("Australia/Sydney").localize(parsed_datetime)
-    return parsed_datetime
+    if not date_object:
+        if not (date_string and format) or (date_string == "" and format == ""):
+            raise TypeError("A date string and format must be provided")
+        parsed_datetime = datetime.strptime(date_string, format)
+    else:
+        parsed_datetime = date_object
+    return pytz.timezone("Australia/Sydney").localize(parsed_datetime)

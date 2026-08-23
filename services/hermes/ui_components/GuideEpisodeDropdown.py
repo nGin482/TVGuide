@@ -2,11 +2,11 @@ from apscheduler.jobstores.base import ConflictingIdError
 from datetime import timedelta
 from sqlalchemy.orm import Session
 import discord
-import pytz
 
 from database.models.GuideEpisode import GuideEpisode
 from data_validation.validation import Validation
 from services.TVGuideScheduler import TVGuideScheduler
+import utils
 
 class NotifyTimeModal(discord.ui.Modal):
 
@@ -51,7 +51,7 @@ class GuideEpisodeDropdown(discord.ui.Select):
                 value=f"{guide_episode.id}"
             )
             for guide_episode in guide_episodes
-            if pytz.timezone("Australia/Sydney").localize(guide_episode.start_time)
+            if utils.parse_datetime(guide_episode.start_time)
                 >= Validation.get_current_date()
         ]
         self.scheduler = tvguide_scheduler
