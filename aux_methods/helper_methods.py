@@ -3,7 +3,7 @@ from datetime import date, datetime, timedelta
 import pytz
 import re
 
-from aux_methods.types import ShowData
+from utils.types import ShowData
 import utils
 
 
