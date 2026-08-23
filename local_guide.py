@@ -30,30 +30,6 @@ def local_tvguide():
     pass
 
 @local_tvguide.command()
-@click.option('--resource', default='all', help='The data to import into the database')
-@click.option('--local-db', default=True, help='The database to connect to')
-@click.option('--database', default='development', help='The database to import data into')
-def import_data(resource: str, local_db: bool, database: str):
-    if local_db:
-        database_connection = os.getenv('LOCAL_DB')
-    else:
-        database_connection = os.getenv('TVGUIDE_DB')
-    from database.DatabaseService import DatabaseService
-    database_service = DatabaseService(database_connection, database)
-    database_service.import_data(resource)
-
-@local_tvguide.command()
-@click.option('--local-db', default=True, help='The database connection to use')
-def tear_down_data(local_db: bool):
-    if local_db:
-        database_connection = os.getenv('LOCAL_DB')
-    else:
-        database_connection = os.getenv('TVGUIDE_DB')
-    from database.DatabaseService import DatabaseService
-    database_service = DatabaseService(database_connection, 'development')
-    database_service.tear_down_data()
-
-@local_tvguide.command()
 @click.option('-t', '--tables', multiple=True, help="A list of tables to create")
 def create_tables(tables: str):
 
@@ -66,11 +42,6 @@ def drop_tables(tables: str):
 
     from database.models import drop_tables
     drop_tables(list(tables))
-
-@local_tvguide.command()
-def migrate_data():
-    from database.migration import db_migrate
-    db_migrate()
 
 @local_tvguide.command()
 @click.option(

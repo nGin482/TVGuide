@@ -18,13 +18,6 @@ from services.tvmaze import tvmaze_api
 
 
 @hermes.command()
-async def migrate(ctx: Context):
-    from database.migration import db_migrate
-    await ctx.send("Migration started")
-    db_migrate()
-    await ctx.send("Migration complete")
-
-@hermes.command()
 async def show_list(ctx: Context):
     session = Session(engine)
 
