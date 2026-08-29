@@ -7,8 +7,8 @@ import os
 
 load_dotenv('.env')
 
-from data_validation.validation import Validation
 from services.hermes.hermes import hermes
+import utils
 
 
 async def send_main_message(
@@ -46,7 +46,7 @@ def drop_tables(tables: str):
 @local_tvguide.command()
 @click.option(
     '--date',
-    default=Validation.get_current_date().strftime('%d-%m-%Y'),
+    default=utils.get_current_date().strftime('%d-%m-%Y'),
     help='The date to retrieve the TVGuide schedule'
 )
 @click.option(

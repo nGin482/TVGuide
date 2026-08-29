@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 import discord
 
 from database.models.GuideEpisode import GuideEpisode
-from data_validation.validation import Validation
 from services.TVGuideScheduler import TVGuideScheduler
 import utils
 
@@ -52,7 +51,7 @@ class GuideEpisodeDropdown(discord.ui.Select):
             )
             for guide_episode in guide_episodes
             if utils.parse_datetime(guide_episode.start_time)
-                >= Validation.get_current_date()
+                >= utils.get_current_date()
         ]
         self.scheduler = tvguide_scheduler
         self.episodes = guide_episodes

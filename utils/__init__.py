@@ -4,6 +4,9 @@ import re
 
 from utils.types import ShowData
 
+def get_current_date():
+    return datetime.now(pytz.timezone('Australia/Sydney'))
+
 def parse_show(title: str, season_number: int, episode_number: int, episode_title: str):
     from utils import transformers_handler
 

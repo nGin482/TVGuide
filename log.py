@@ -3,8 +3,6 @@ from datetime import datetime
 import logging
 import re
 
-from data_validation.validation import Validation
-
 
 def get_date_from_tvguide_message(message: str):
     """
@@ -19,16 +17,6 @@ def get_date_from_tvguide_message(message: str):
         return date_of_latest_message
     else:
         return None
-
-
-def compare_dates(date: datetime):
-
-    if date.day != Validation.get_current_date().day:
-        return True
-    else:
-        if date.hour <= 6:
-            return True
-        return False
 
 
 def logging_app(log_info: str, level = logging.DEBUG):

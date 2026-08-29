@@ -6,11 +6,11 @@ import os
 import traceback
 
 from config import tvguide_scheduler
-from data_validation.validation import Validation
 from services.hermes.hermes import hermes
 from services.hermes.utilities import send_channel_message, send_ngin_message
 from utils.LoggingFormatter import logging_handler
 from utils.types import ShowData
+import utils
 
 logger = logging.getLogger("hermes_events")
 logger.addHandler(logging_handler)
@@ -64,7 +64,7 @@ async def on_show_details_not_found(shows_not_found: list[ShowData]):
     with open("backup/shows_not_found.json", "w+") as fd:
         json.dump(shows_not_found_copy, fd, indent="\t")
 
-    current_date = Validation.get_current_date()
+    current_date = utils.get_current_date()
     file_name = f"Shows not found - {current_date.strftime('%d-%m-%Y')}.json"
     file = File("backup/shows_not_found.json", file_name)
 

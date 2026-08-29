@@ -3,7 +3,6 @@ from discord import Message
 from discord.ext.commands import Context
 from sqlalchemy.orm import Session
 
-from data_validation.validation import Validation
 from database import engine
 from database.models.GuideModel import Guide
 from database.models.SearchItemModel import SearchItem
@@ -15,6 +14,7 @@ from services.hermes.hermes import hermes
 from services.hermes.utilities import parse_date_from_command
 from services.hermes.ui_components.DropdownView import DropdownView
 from services.tvmaze import tvmaze_api
+import utils
 
 
 @hermes.command()
@@ -101,7 +101,7 @@ async def remove_show(ctx: Context, show: str):
 async def send_guide(ctx: Context, date: str = None):
     from config import tvguide_scheduler
 
-    guide_date = Validation.get_current_date() if date is None else parse_date_from_command(date)
+    guide_date = utils.get_current_date() if date is None else parse_date_from_command(date)
     session = Session(engine, expire_on_commit=False)
     
     guide = Guide(guide_date, session)
@@ -145,7 +145,7 @@ async def revert_tvguide(ctx: Context, date_to_delete: str = None):
                 message_to_delete = message
                 break
         elif message_date is not None and date_to_delete is None:
-            if message_date.day == Validation.get_current_date().date().day:
+            if message_date.day == utils.get_current_date().date().day:
                 message_to_delete = message
                 break
     if message_to_delete is not None:
@@ -187,7 +187,7 @@ async def create_scheduled_reminder(ctx: Context):
     from config import tvguide_scheduler
 
     session = Session(engine)
-    current_date = Validation.get_current_date()
+    current_date = utils.get_current_date()
     
     guide = Guide.get_date(current_date, session)
 
@@ -208,7 +208,7 @@ async def reschedule_reminder(ctx: Context):
     from config import tvguide_scheduler
 
     session = Session(engine)
-    current_date = Validation.get_current_date()
+    current_date = utils.get_current_date()
 
     guide = Guide.get_date(current_date, session)
     if not guide:
