@@ -16,7 +16,7 @@ from exceptions.tvguide_errors import GuideNotCreatedError
 from services.APIClient import APIClient
 from services.TVGuideScheduler import TVGuideScheduler
 from utils import build_episode
-from utils.LoggingFormatter import logging_handler
+from utils.logging_formatter import logging_handler
 from utils.types import ShowData
 from utils.types.models import TGuide
 

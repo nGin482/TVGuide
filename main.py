@@ -4,7 +4,7 @@ import logging
 import os
 
 os.environ['PYTHON_ENV'] = 'production'
-from utils.LoggingFormatter import logging_handler
+from utils.logging_formatter import logging_handler
 
 load_dotenv('.env')
 

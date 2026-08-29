@@ -8,7 +8,7 @@ import traceback
 from config import tvguide_scheduler
 from services.hermes.hermes import hermes
 from services.hermes.utilities import send_channel_message, send_ngin_message
-from utils.LoggingFormatter import logging_handler
+from utils.logging_formatter import logging_handler
 from utils.types import ShowData
 import utils
 

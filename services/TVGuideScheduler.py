@@ -9,7 +9,7 @@ import re
 import os
 
 from database.models.GuideEpisode import GuideEpisode
-from utils.LoggingFormatter import logging_handler
+from utils.logging_formatter import logging_handler
 
 logger = logging.getLogger("TVGuideScheduler")
 logger.addHandler(logging_handler)
