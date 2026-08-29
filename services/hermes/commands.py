@@ -9,9 +9,8 @@ from database.models.SearchItemModel import SearchItem
 from database.models.ShowDetailsModel import ShowDetails
 from database.models.ShowEpisodeModel import ShowEpisode
 from exceptions.DatabaseError import DatabaseError, SearchItemAlreadyExistsError
-from log import get_date_from_tvguide_message
 from services.hermes.hermes import hermes
-from services.hermes.utilities import parse_date_from_command
+from services.hermes.utilities import get_date_from_tvguide_message, parse_date_from_command
 from services.hermes.ui_components.DropdownView import DropdownView
 from services.tvmaze import tvmaze_api
 import utils
