@@ -48,11 +48,7 @@ class TVGuideScheduler:
     def get_jobs(self) -> list[Job]:
         return self.scheduler.get_jobs()
 
-    def add_reminder_job(
-        self,
-        show: GuideEpisode,
-        notify_time: datetime
-    ):
+    def add_reminder_job(self, show: GuideEpisode, notify_time: datetime):
         # TODO: Add channel to jobId
         from services.hermes.utilities import send_channel_message
         self.scheduler.add_job(
