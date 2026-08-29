@@ -2,7 +2,7 @@ from datetime import datetime
 import unittest
 import json
 
-from aux_methods.helper_methods import sbs_episode_format
+from utils import sbs_episode_format
 from data_validation.validation import Validation
 
 class TestValidation(unittest.TestCase):
