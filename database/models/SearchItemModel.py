@@ -2,9 +2,9 @@ from __future__ import annotations
 from sqlalchemy import ARRAY, Boolean, Column, ForeignKey, Integer, select, Text
 from sqlalchemy.orm import Mapped, relationship, Session
 
-from aux_methods.types import ShowData
 from database import Base
 from database.models.ShowDetailsModel import ShowDetails
+from utils.types import ShowData
 from utils.types.models import TSearchItem
 
 

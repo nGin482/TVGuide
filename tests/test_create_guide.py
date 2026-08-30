@@ -38,7 +38,7 @@ class TestCreateGuide(unittest.IsolatedAsyncioTestCase):
     @patch("database.models.SearchItemModel.SearchItem.get_active_searches")
     @patch("database.models.GuideModel.Guide.get_source_data")
     @patch("services.hermes.hermes.hermes", new_callable=AsyncMock)
-    @patch("data_validation.validation.Validation.get_current_date")
+    @patch("utils.get_current_date")
     async def test_guide_messages_sent(
         self,
         mock_date: MagicMock,

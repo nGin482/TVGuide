@@ -8,7 +8,7 @@ import traceback
 from database.models.GuideEpisode import GuideEpisode
 from services.hermes.hermes import hermes
 from services.TVGuideScheduler import TVGuideScheduler
-from utils.LoggingFormatter import logging_handler
+from utils.logging_formatter import logging_handler
 
 logger = logging.getLogger("reschedule_reminder_command")
 logger.addHandler(logging_handler)
