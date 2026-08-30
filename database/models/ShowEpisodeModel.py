@@ -16,8 +16,8 @@ from sqlalchemy.orm import Mapped, relationship, Session
 from typing import TYPE_CHECKING
 
 from database import Base
-from data_validation.validation import Validation
 from utils.types.models import TShowEpisode
+import utils
 
 if TYPE_CHECKING:
     from database.models.GuideEpisode import GuideEpisode
@@ -174,7 +174,7 @@ class ShowEpisode(Base):
             return f'{channel} has been added to the channel list.'
         
     def add_air_date(self, air_date: datetime = None):
-        date = Validation.get_current_date() if air_date is None else air_date
+        date = utils.get_current_date() if air_date is None else air_date
         self.air_dates.append(date)
 
     def to_dict(self) -> TShowEpisode:

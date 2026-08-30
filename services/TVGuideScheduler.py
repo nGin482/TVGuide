@@ -9,7 +9,7 @@ import re
 import os
 
 from database.models.GuideEpisode import GuideEpisode
-from utils.LoggingFormatter import logging_handler
+from utils.logging_formatter import logging_handler
 
 logger = logging.getLogger("TVGuideScheduler")
 logger.addHandler(logging_handler)
@@ -48,11 +48,7 @@ class TVGuideScheduler:
     def get_jobs(self) -> list[Job]:
         return self.scheduler.get_jobs()
 
-    def add_reminder_job(
-        self,
-        show: GuideEpisode,
-        notify_time: datetime
-    ):
+    def add_reminder_job(self, show: GuideEpisode, notify_time: datetime):
         # TODO: Add channel to jobId
         from services.hermes.utilities import send_channel_message
         self.scheduler.add_job(

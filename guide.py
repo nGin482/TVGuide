@@ -5,7 +5,7 @@ import os
 from database import engine
 from database.models.GuideModel import Guide
 from exceptions.tvguide_errors import GuideNotCreatedError
-from data_validation.validation import Validation
+import utils
 
 
 
@@ -14,7 +14,7 @@ async def create_guide():
     from config import tvguide_scheduler
     from services.hermes.hermes import hermes
 
-    date = Validation.get_current_date()
+    date = utils.get_current_date()
     session = Session(engine, expire_on_commit=False)
     
     guide = Guide(date, session)

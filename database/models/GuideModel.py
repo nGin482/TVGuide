@@ -5,8 +5,6 @@ from sqlalchemy.exc import OperationalError, PendingRollbackError
 import json
 import logging
 
-from aux_methods.helper_methods import build_episode
-from aux_methods.types import ShowData
 from database import Base, engine
 from database.models.GuideEpisode import GuideEpisode
 from database.models.ReminderModel import Reminder
@@ -17,8 +15,10 @@ from exceptions.service_error import HTTPRequestError
 from exceptions.tvguide_errors import GuideNotCreatedError
 from services.APIClient import APIClient
 from services.TVGuideScheduler import TVGuideScheduler
+from utils import build_episode
+from utils.logging_formatter import logging_handler
+from utils.types import ShowData
 from utils.types.models import TGuide
-from utils.LoggingFormatter import logging_handler
 
 
 class Guide(Base):
