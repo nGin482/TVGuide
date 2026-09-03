@@ -15,7 +15,7 @@ from exceptions.service_error import HTTPRequestError
 from exceptions.tvguide_errors import GuideNotCreatedError
 from services.APIClient import APIClient
 from services.TVGuideScheduler import TVGuideScheduler
-from utils import build_episode
+from utils import build_episode, show_data_to_file
 from utils.logging_formatter import logging_handler
 from utils.types import ShowData
 from utils.types.models import TGuide
@@ -72,6 +72,8 @@ class Guide(Base):
         )
         shows_data: list[ShowData] = []
 
+        show_data_files: list[str] = []
+
         schedule = self.get_source_data(
             f"https://cdn.iview.abc.net.au/epg/processed/Sydney_{self.date.strftime('%Y-%m-%d')}.json"
         )['schedule']
@@ -106,11 +108,21 @@ class Guide(Base):
                         episodes = [episode for episode in episodes if search_item.check_search_conditions(episode)]
                         shows_data.extend(episodes)
 
+        all_shows_file = show_data_to_file(shows_data, "all_shows.json")
         shows_data = [dict(t) for t in {tuple(d.items()) for d in shows_data}]
+        unique_shows_file = show_data_to_file(shows_data, "unique_shows.json")
         
         shows_data.sort(key=lambda show: (show['start_time'], show['channel']))
+        sorted_shows_file = show_data_to_file(shows_data, "sorted_shows.json")
 
-        # show_data_to_file(shows_data)
+        show_data_files.extend([
+            all_shows_file,
+            unique_shows_file,
+            sorted_shows_file
+        ])
+        if len(show_data_files) > 0:
+            from services.hermes.hermes import hermes
+            hermes.dispatch("shows_collected", show_data_files)
 
         shows_on: list['GuideEpisode'] = []
         shows_not_found: list[ShowData] = []

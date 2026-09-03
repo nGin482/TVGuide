@@ -119,20 +119,21 @@ def sbs_episode_format(show_title: str, episode: str):
     else:
         return episode
 
-def show_data_to_file(shows: list[ShowData]):
+def show_data_to_file(shows: list[ShowData], filename="shows.json"):
     import copy
     import json
     import os
-    from services.hermes.hermes import hermes
 
     shows_copy = copy.deepcopy(shows)
     for show in shows_copy:
         show['start_time'] = datetime.strftime(show['start_time'], "%d-%m-%Y %H:%M")
         show['end_time'] = datetime.strftime(show['end_time'], "%d-%m-%Y %H:%M")
 
-    if not os.path.isdir("backup"):
-        os.mkdir("backup")
-    with open("backup/shows.json", "w+") as fd:
+    folder_name = "shows_snapshots"
+    if not os.path.isdir(folder_name):
+        os.mkdir(folder_name)
+    file_path = os.path.join(folder_name, filename)
+    with open(file_path, "w+") as fd:
         json.dump(shows_copy, fd, indent="\t")
 
-    hermes.dispatch("shows_collected")
+    return file_path
