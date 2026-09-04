@@ -175,8 +175,8 @@ async def view_scheduled_reminders(ctx: Context):
                 start_time,
                 "%Y-%m-%d %H:%M:%S"
             )
-            message = f"{show_title} is on at {parsed_start_time.strftime("%H:%M")}. "
-            message += f"You will be reminded at {job.next_run_time.strftime("%H:%M")}"
+            message = f"{show_title} is on at {parsed_start_time.strftime('%H:%M')}. "
+            message += f"You will be reminded at {job.next_run_time.strftime('%H:%M')}"
             reminders_message += f"* {message}\n"
 
     await ctx.send(reminders_message)
