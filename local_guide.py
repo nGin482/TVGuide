@@ -1,13 +1,14 @@
-from aiohttp.client_exceptions import ClientConnectorError
+from aiohttp.client_exceptions import ClientConnectorDNSError
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 import asyncclick as click
+import asyncio
 import os
 
 load_dotenv('.env')
 
-from data_validation.validation import Validation
 from services.hermes.hermes import hermes
+import utils
 
 
 async def send_main_message(
@@ -29,30 +30,6 @@ def local_tvguide():
     pass
 
 @local_tvguide.command()
-@click.option('--resource', default='all', help='The data to import into the database')
-@click.option('--local-db', default=True, help='The database to connect to')
-@click.option('--database', default='development', help='The database to import data into')
-def import_data(resource: str, local_db: bool, database: str):
-    if local_db:
-        database_connection = os.getenv('LOCAL_DB')
-    else:
-        database_connection = os.getenv('TVGUIDE_DB')
-    from database.DatabaseService import DatabaseService
-    database_service = DatabaseService(database_connection, database)
-    database_service.import_data(resource)
-
-@local_tvguide.command()
-@click.option('--local-db', default=True, help='The database connection to use')
-def tear_down_data(local_db: bool):
-    if local_db:
-        database_connection = os.getenv('LOCAL_DB')
-    else:
-        database_connection = os.getenv('TVGUIDE_DB')
-    from database.DatabaseService import DatabaseService
-    database_service = DatabaseService(database_connection, 'development')
-    database_service.tear_down_data()
-
-@local_tvguide.command()
 @click.option('-t', '--tables', multiple=True, help="A list of tables to create")
 def create_tables(tables: str):
 
@@ -67,14 +44,9 @@ def drop_tables(tables: str):
     drop_tables(list(tables))
 
 @local_tvguide.command()
-def migrate_data():
-    from database.migration import db_migrate
-    db_migrate()
-
-@local_tvguide.command()
 @click.option(
     '--date',
-    default=Validation.get_current_date().strftime('%d-%m-%Y'),
+    default=utils.get_current_date().strftime('%d-%m-%Y'),
     help='The date to retrieve the TVGuide schedule'
 )
 @click.option(
@@ -96,7 +68,6 @@ async def run_guide(date: str, discord: bool, schedule: bool):
     import re
     import sys
 
-    from config import scheduler
     from database import engine
     from database.models.GuideModel import Guide
 
@@ -109,8 +80,11 @@ async def run_guide(date: str, discord: bool, schedule: bool):
     
     guide = Guide(datetime.strptime(date, '%d-%m-%Y'), session)
     if schedule:
-        scheduler.remove_all_jobs()
-        guide.create_new_guide(scheduler)
+        from config import tvguide_scheduler
+        if not tvguide_scheduler.scheduler_initialised:
+            tvguide_scheduler.initialise()
+        tvguide_scheduler.remove_all_jobs()
+        guide.create_new_guide(tvguide_scheduler)
     else:
         guide.create_new_guide()
     guide_message, reminders_message, events_message = (
@@ -125,15 +99,27 @@ async def run_guide(date: str, discord: bool, schedule: bool):
                     send_main_message(guide_message, reminders_message, events_message)
                 )
                 await hermes.start(os.getenv('HERMES'))
-        except ClientConnectorError:
+        except ClientConnectorDNSError:
             print(guide_message)
             print(reminders_message)
+            print()
             print(events_message)
     else:
         print(guide_message)
         print(reminders_message)
+        print()
         print(events_message)
     session.close()
+
+@local_tvguide.command()
+async def run_discord():
+    """Use this for running Hermes commands"""
+    try:
+        await hermes.start(os.getenv('HERMES'))
+    except asyncio.CancelledError:
+        print("Hermes exiting")
+        await hermes.close()
+
 
 
 if __name__ == '__main__':

@@ -1,14 +1,28 @@
 from datetime import datetime
-from discord import File
+from discord import Color, Embed, File
+from discord.ext.commands import Context
+import logging
+import os
+import traceback
 
-from aux_methods.types import ShowData
-from data_validation.validation import Validation
+from config import tvguide_scheduler
 from services.hermes.hermes import hermes
 from services.hermes.utilities import send_channel_message, send_ngin_message
+from utils.logging_formatter import logging_handler
+from utils.types import ShowData
+import utils
+
+logger = logging.getLogger("hermes_events")
+logger.addHandler(logging_handler)
+logger.setLevel(logging.DEBUG)
 
 @hermes.event
 async def on_ready():
-    print('Logged in as', hermes.user)
+    logger.info(f"Logged in as {hermes.user}")
+    if not tvguide_scheduler.scheduler_initialised:
+        tvguide_scheduler.initialise()
+    if os.getenv("PYTHON_ENV") == "production":
+        await hermes.schedule_guide_job(tvguide_scheduler)
 
 @hermes.event
 async def on_db_rollback():
@@ -50,7 +64,7 @@ async def on_show_details_not_found(shows_not_found: list[ShowData]):
     with open("backup/shows_not_found.json", "w+") as fd:
         json.dump(shows_not_found_copy, fd, indent="\t")
 
-    current_date = Validation.get_current_date()
+    current_date = utils.get_current_date()
     file_name = f"Shows not found - {current_date.strftime('%d-%m-%Y')}.json"
     file = File("backup/shows_not_found.json", file_name)
 
@@ -58,7 +72,48 @@ async def on_show_details_not_found(shows_not_found: list[ShowData]):
 
 
 @hermes.event
-async def on_shows_collected():
-    file = File("backup/shows.json", "All Shows.json")
+async def on_shows_collected(file_list: list[str]):
+    files: list[File] = []
+    for file_path in file_list:
+        path, name = os.path.split(file_path)
+        files.append(File(file_path, name))
 
-    await send_ngin_message("The list of shows collected", file)
+    await send_ngin_message("The list of shows collected", files=files)
+
+@hermes.listen()
+async def on_command_error(ctx: Context, error: Exception):
+    command_name = ctx.command.name
+    logger.error(error)
+    logger.error(
+        f"Error running command '{command_name}'",
+        exc_info=(type(error), error, error.__traceback__)
+    )
+    logger.error(f"Message content: {ctx.message.content}")
+
+    error_message = f"An error occurred processing the command '{command_name}'"
+
+    tb_lines = traceback.format_exception(type(error), error, error.__traceback__)
+    tb_text = ''.join(tb_lines)
+
+    if len(tb_text) > 1000:
+        tb_text = tb_text[:997] + "..."
+
+    formatted_traceback = f"```py\n{tb_text}\n```"
+
+    embed = Embed(
+        title="Command Error!",
+        description=error_message,
+        color=Color.red(),
+        timestamp=ctx.message.created_at
+    )
+    embed.add_field(name="Error", value=error)
+    embed.add_field(name="Original Message", value=ctx.message.content)
+    embed.add_field(name="Author", value=ctx.message.author)
+    embed.add_field(name="Traceback", value=formatted_traceback, inline=False)
+
+    ngin_id = os.getenv("NGIN")
+    ngin = await hermes.fetch_user(ngin_id)
+
+    await ctx.send(error_message)
+    await ngin.send(embed=embed)
+

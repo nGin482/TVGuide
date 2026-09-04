@@ -1,4 +1,3 @@
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
 from sqlalchemy import Column, DateTime, func, Integer, select
 from sqlalchemy.orm import Mapped, Session
@@ -6,18 +5,19 @@ from sqlalchemy.exc import OperationalError, PendingRollbackError
 import json
 import logging
 
-from aux_methods.helper_methods import build_episode, convert_utc_to_local
-from aux_methods.types import ShowData
 from database import Base, engine
 from database.models.GuideEpisode import GuideEpisode
 from database.models.ReminderModel import Reminder
 from database.models.SearchItemModel import SearchItem
 from database.models.ShowDetailsModel import ShowDetails
 from database.models.ShowEpisodeModel import ShowEpisode
-from data_validation.validation import Validation
 from exceptions.service_error import HTTPRequestError
 from exceptions.tvguide_errors import GuideNotCreatedError
 from services.APIClient import APIClient
+from services.TVGuideScheduler import TVGuideScheduler
+from utils import build_episode, show_data_to_file
+from utils.logging_formatter import logging_handler
+from utils.types import ShowData
 from utils.types.models import TGuide
 
 
@@ -28,6 +28,8 @@ class Guide(Base):
     date: Mapped[datetime] = Column('date', DateTime(timezone=True))
 
     logger = logging.getLogger("Guide")
+    logger.addHandler(logging_handler)
+    logger.setLevel(logging.DEBUG)
 
     @classmethod
     def get_date(cls, date: datetime, session: Session):
@@ -51,7 +53,6 @@ class Guide(Base):
     def __init__(self, date: datetime, session: Session):
         self.date = date
         self.fta_shows = []
-        self.bbc_shows = []
         self.session = session
 
     def add_guide(self):
@@ -66,8 +67,12 @@ class Guide(Base):
         """
 
         """
-
+        self.logger.debug(
+            f"Retrieving FTA data for {self.date.strftime('%Y-%m-%d')}"
+        )
         shows_data: list[ShowData] = []
+
+        show_data_files: list[str] = []
 
         schedule = self.get_source_data(
             f"https://cdn.iview.abc.net.au/epg/processed/Sydney_{self.date.strftime('%Y-%m-%d')}.json"
@@ -103,11 +108,21 @@ class Guide(Base):
                         episodes = [episode for episode in episodes if search_item.check_search_conditions(episode)]
                         shows_data.extend(episodes)
 
+        all_shows_file = show_data_to_file(shows_data, "all_shows.json")
         shows_data = [dict(t) for t in {tuple(d.items()) for d in shows_data}]
+        unique_shows_file = show_data_to_file(shows_data, "unique_shows.json")
         
         shows_data.sort(key=lambda show: (show['start_time'], show['channel']))
+        sorted_shows_file = show_data_to_file(shows_data, "sorted_shows.json")
 
-        # show_data_to_file(shows_data)
+        show_data_files.extend([
+            all_shows_file,
+            unique_shows_file,
+            sorted_shows_file
+        ])
+        if len(show_data_files) > 0:
+            from services.hermes.hermes import hermes
+            hermes.dispatch("shows_collected", show_data_files)
 
         shows_on: list['GuideEpisode'] = []
         shows_not_found: list[ShowData] = []
@@ -149,65 +164,6 @@ class Guide(Base):
             hermes.dispatch("show_details_not_found", shows_not_found)
         
         return shows_on
-
-    def search_bbc_australia(self):
-
-        current_date = Validation.get_current_date().date()
-        search_date = current_date.strftime('%Y-%m-%d')
-        
-        bbc_first_data = self.get_source_data(
-            f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-first?timezone=Australia%2FSydney&date={search_date}'
-        )
-        bbc_uktv_data = self.get_source_data(
-            f'https://www.bbcstudios.com.au/smapi/schedule/au/bbc-uktv?timezone=Australia%2FSydney&date={search_date}'
-        )
-
-        search_list = SearchItem.get_active_searches(self.session)
-
-        show_list = []
-
-        def search_channel_data(channel_data: list, channel: str):
-            for show in channel_data:
-                for search_item in search_list:
-                    title: str = show['show']['title']
-                    if title.lower() == search_item.show.lower():
-                        guide_start = datetime.strptime(show['start'], '%Y-%m-%d %H:%M:%S')
-                        start_time = convert_utc_to_local(guide_start)
-                        series_num = show['episode']['series']['number']
-                        episode_num = show['episode']['number']
-                        episode_title = show['episode']['title']
-
-                        episodes = build_episode(
-                            title,
-                            channel,
-                            start_time,
-                            series_num,
-                            episode_num,
-                            episode_title
-                        )
-                        episodes = [episode for episode in episodes if search_item.check_search_conditions(episode)]
-                        show_list.extend(episodes)
-        
-        search_channel_data(bbc_first_data, 'BBC First')
-        search_channel_data(bbc_uktv_data, 'BBC UKTV')
-
-        shows_on: list['GuideEpisode'] = []
-        for show in show_list:
-            guide_episode = GuideEpisode(
-                show['title'],
-                show['channel'],
-                show['start_time'],
-                show['start_time'],
-                show['season_number'],
-                show['episode_number'],
-                show['episode_title']
-            )
-            # guide_show = Guide.build_guide_show(show, show_list, database_service)
-
-            # database_service.capture_db_event(guide_show)
-            shows_on.append(guide_episode)
-
-        return shows_on
     
     def get_source_data(self, endpoint: str = None):
         if endpoint:
@@ -224,7 +180,7 @@ class Guide(Base):
                 schedule = json.load(fd)
             return schedule
     
-    def create_new_guide(self, scheduler: AsyncIOScheduler = None):
+    def create_new_guide(self, scheduler: TVGuideScheduler = None):
         try:
             self.add_guide()
         except OperationalError as error:
@@ -247,7 +203,6 @@ class Guide(Base):
             Guide.logger.error(f"Could not attach shows to guide: {str(error)}")
             self.session.rollback()
             raise GuideNotCreatedError(f"Could not attach shows to guide: {str(error)}")
-        # self.bbc_shows = self.search_bbc_australia()
     
     def get_shows(self):
         self.fta_shows = GuideEpisode.get_guide_shows(self.id, self.session)
@@ -263,22 +218,13 @@ class Guide(Base):
         
         return shows_with_reminders
 
-    def schedule_reminders(self, scheduler: AsyncIOScheduler):
+    def schedule_reminders(self, scheduler: TVGuideScheduler):
         shows_with_reminders = self.get_reminders()
         
         if len(shows_with_reminders) > 0 and scheduler:
-            from apscheduler.triggers.date import DateTrigger
-            from services.hermes.utilities import send_channel_message
             for show_reminder in shows_with_reminders:
                 show, notify_time = show_reminder
-                scheduler.add_job(
-                    send_channel_message,
-                    DateTrigger(run_date=notify_time, timezone='Australia/Sydney'),
-                    [show.reminder_notification()],
-                    id=f'reminder-{show.title}-{show.start_time}',
-                    name=f'Send the reminder message for {show.title}',
-                    misfire_grace_time=None
-                )
+                scheduler.add_reminder_job(show, notify_time)
 
     def compose_message(self):
         """
@@ -295,14 +241,6 @@ class Guide(Base):
         else:
             for show in self.fta_shows:
                 message += f'* {show.message_string()}\n'
-
-        # BBC
-        message = message + "\nBBC:\n"
-        if len(self.bbc_shows) == 0:
-            message = message + "Nothing on BBC today\n"
-        else:
-            for show in self.bbc_shows:
-                message += f'{show.message_string()}\n'
 
         return message
     

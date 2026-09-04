@@ -210,7 +210,7 @@ class TestShowEpisode(TestCase):
         self.assertEqual(len(show_episodes[1].air_dates), 1)
         self.assertEqual(datetime(2024, 7, 20), show_episodes[1].air_dates[0])
 
-    @patch('data_validation.validation.Validation.get_current_date')
+    @patch('utils.get_current_date')
     def test_show_episode_adds_current_air_date(self, mock_current_date: MagicMock):
         mock_current_date.return_value = datetime(2024, 7, 21)
         

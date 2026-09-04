@@ -1,7 +1,7 @@
 # TVGuide
 
 Repository for the TVGuide application created in python.
-The application retrieves the data from the TV guide available on the ABC website, as well as the one on BBC Australia, and searches through the day's schedule to find a match from a given list of shows.
+The application retrieves the data from the TV guide available on the ABC website, and searches through the day's schedule to find a match from a given list of shows.
 If one is found, the following information is collected:
   - The show scheduled
   - The time the show is on
