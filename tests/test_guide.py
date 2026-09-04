@@ -19,7 +19,7 @@ class TestGuide(unittest.TestCase):
     def setUp(self):
         super().setUpClass()
         
-        with open('tests/test_data/fta_data.json') as fd:
+        with open("tests/test_data/fta_data.json") as fd:
             self.fta_data = json.load(fd)
 
     @patch("sqlalchemy.orm.session")
@@ -40,13 +40,14 @@ class TestGuide(unittest.TestCase):
 
         self.assertIsNone(guide)
     
-    @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('sqlalchemy.orm.session.Session.execute')
-    @patch('database.models.Reminder.get_reminder_by_show')
-    @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
-    @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
-    @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
-    @patch('database.models.GuideModel.Guide.get_source_data')
+    @patch("sqlalchemy.orm.session.Session.commit")
+    @patch("sqlalchemy.orm.session.Session.execute")
+    @patch("services.hermes.hermes.hermes")
+    @patch("database.models.Reminder.get_reminder_by_show")
+    @patch("database.models.ShowEpisodeModel.ShowEpisode.search_for_episode")
+    @patch("database.models.ShowDetailsModel.ShowDetails.get_show_by_title")
+    @patch("database.models.SearchItemModel.SearchItem.get_active_searches")
+    @patch("database.models.GuideModel.Guide.get_source_data")
     def test_guide_search_fta_finds_all_details(
         self,
         mock_source_data: MagicMock,
@@ -54,6 +55,7 @@ class TestGuide(unittest.TestCase):
         mock_show_detail: MagicMock,
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
+        mock_hermes: MagicMock,
         mock_execute: MagicMock,
         mock_session_commit: MagicMock,
     ):
@@ -70,13 +72,14 @@ class TestGuide(unittest.TestCase):
         mock_reminder.return_value = None
         mock_session_commit.return_value = "added"
         mock_execute.return_value = None
+        mock_hermes.side_effect = None
         
         guide = Guide(datetime(2023, 10, 30), mock_session_commit)
         guide.create_new_guide()
 
         count = 0
-        for channel in self.fta_data['schedule']:
-            count += len(channel['listing'])
+        for channel in self.fta_data["schedule"]:
+            count += len(channel["listing"])
         
         guide_show_all_details = guide.fta_shows
         self.assertEqual(len(guide.fta_shows), count)
@@ -85,13 +88,14 @@ class TestGuide(unittest.TestCase):
         self.assertEqual(guide_show_all_details[0].episode_title, "The Sontaran Strategem")
         self.assertEqual(mock_session_commit(), "added")
 
-    @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('sqlalchemy.orm.session.Session.execute')
-    @patch('database.models.Reminder.get_reminder_by_show')
-    @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
-    @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
-    @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
-    @patch('database.models.GuideModel.Guide.get_source_data')
+    @patch("sqlalchemy.orm.session.Session.commit")
+    @patch("sqlalchemy.orm.session.Session.execute")
+    @patch("services.hermes.hermes.hermes")
+    @patch("database.models.Reminder.get_reminder_by_show")
+    @patch("database.models.ShowEpisodeModel.ShowEpisode.search_for_episode")
+    @patch("database.models.ShowDetailsModel.ShowDetails.get_show_by_title")
+    @patch("database.models.SearchItemModel.SearchItem.get_active_searches")
+    @patch("database.models.GuideModel.Guide.get_source_data")
     def test_guide_search_fta_finds_details_from_show_episode(
         self,
         mock_source_data: MagicMock,
@@ -99,6 +103,7 @@ class TestGuide(unittest.TestCase):
         mock_show_detail: MagicMock,
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
+        mock_hermes: MagicMock,
         mock_execute: MagicMock,
         mock_session_commit: MagicMock,
     ):
@@ -115,22 +120,26 @@ class TestGuide(unittest.TestCase):
         ]
         mock_reminder.return_value = None
         mock_session_commit.return_value = "added"
-        # mock_session_execute.return_value = None
+        mock_hermes.dispatch.side_effect = None
         
         guide = Guide(datetime(2024, 10, 12), mock_session_commit)
         guide.create_new_guide()
         
         self.assertEqual(guide.fta_shows[3].season_number, 4)
         self.assertEqual(guide.fta_shows[3].episode_number, 7)
-        self.assertEqual(self.fta_data['schedule'][0]['listing'][2]['episode_title'], "The Unicorn and the Wasp")
+        self.assertEqual(
+            self.fta_data["schedule"][0]["listing"][2]["episode_title"],
+            "The Unicorn and the Wasp"
+        )
 
-    @patch('sqlalchemy.orm.session.Session.execute')
-    @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('sqlalchemy.orm.session.Session.scalar')
-    @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
-    @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
-    @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
-    @patch('database.models.GuideModel.Guide.get_source_data')
+    @patch("sqlalchemy.orm.session.Session.execute")
+    @patch("sqlalchemy.orm.session.Session.commit")
+    @patch("services.hermes.hermes.hermes")
+    @patch("sqlalchemy.orm.session.Session.scalar")
+    @patch("database.models.ShowEpisodeModel.ShowEpisode.search_for_episode")
+    @patch("database.models.ShowDetailsModel.ShowDetails.get_show_by_title")
+    @patch("database.models.SearchItemModel.SearchItem.get_active_searches")
+    @patch("database.models.GuideModel.Guide.get_source_data")
     def test_guide_search_fta_finds_no_details(
         self,
         mock_source_data: MagicMock,
@@ -138,6 +147,7 @@ class TestGuide(unittest.TestCase):
         mock_show_detail: MagicMock,
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
+        mock_hermes: MagicMock,
         mock_session_commit: MagicMock,
         mock_session_execute: MagicMock
     ):
@@ -152,6 +162,7 @@ class TestGuide(unittest.TestCase):
             None
         ]
         mock_reminder.return_value = None
+        mock_hermes.dispatch.side_effect = None
         mock_session_commit.return_value = "added"
         mock_session_execute.return_value = None
         
@@ -163,14 +174,15 @@ class TestGuide(unittest.TestCase):
         self.assertEqual(guide.fta_shows[4].episode_title, "")
 
     # test search item removes one
-    @patch('sqlalchemy.orm.session.Session.execute')
-    @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('sqlalchemy.orm.session.Session.scalar')
-    @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
-    @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
-    @patch('database.models.SearchItemModel.SearchItem.check_search_conditions')
-    @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
-    @patch('database.models.GuideModel.Guide.get_source_data')
+    @patch("sqlalchemy.orm.session.Session.execute")
+    @patch("sqlalchemy.orm.session.Session.commit")
+    @patch("sqlalchemy.orm.session.Session.scalar")
+    @patch("services.hermes.hermes.hermes.dispatch")
+    @patch("database.models.ShowEpisodeModel.ShowEpisode.search_for_episode")
+    @patch("database.models.ShowDetailsModel.ShowDetails.get_show_by_title")
+    @patch("database.models.SearchItemModel.SearchItem.check_search_conditions")
+    @patch("database.models.SearchItemModel.SearchItem.get_active_searches")
+    @patch("database.models.GuideModel.Guide.get_source_data")
     def test_guide_removes_episode_failed_search_condition(
         self,
         mock_source_data: MagicMock,
@@ -179,6 +191,7 @@ class TestGuide(unittest.TestCase):
         mock_show_detail: MagicMock,
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
+        mock_hermes_dispatch: MagicMock,
         mock_session_commit: MagicMock,
         mock_session_execute: MagicMock,
     ):
@@ -196,26 +209,27 @@ class TestGuide(unittest.TestCase):
         mock_reminder.return_value = None
         mock_session_commit.return_value = "added"
         mock_session_execute.return_value = None
+        mock_hermes_dispatch.side_effect = None
         
         guide = Guide(datetime(2024, 10, 12), mock_session_commit)
         guide.create_new_guide()
 
         self.assertEqual(len(guide.fta_shows), 4)
     
-    @patch('sqlalchemy.orm.session.Session.execute')
-    @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('sqlalchemy.orm.session.Session.scalar')
-    @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
-    @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
-    @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
-    @patch('database.models.GuideModel.Guide.get_source_data')
+    @patch("sqlalchemy.orm.session.Session.execute")
+    @patch("sqlalchemy.orm.session.Session.commit")
+    @patch("services.hermes.hermes.hermes.dispatch")
+    @patch("database.models.ShowEpisodeModel.ShowEpisode.search_for_episode")
+    @patch("database.models.ShowDetailsModel.ShowDetails.get_show_by_title")
+    @patch("database.models.SearchItemModel.SearchItem.get_active_searches")
+    @patch("database.models.GuideModel.Guide.get_source_data")
     def test_guide_list_is_sorted(
         self,
         mock_source_data: MagicMock,
         mock_search_items: MagicMock,
         mock_show_detail: MagicMock,
         mock_show_episode: MagicMock,
-        mock_reminder: MagicMock,
+        mock_hermes_dispatch: MagicMock,
         mock_session_commit: MagicMock,
         mock_session_execute: MagicMock
     ):
@@ -229,30 +243,30 @@ class TestGuide(unittest.TestCase):
             dw_show_episodes[10],
             None
         ]
-        mock_reminder.return_value = None
         mock_session_commit.return_value = "added"
         mock_session_execute.return_value = None
+        mock_hermes_dispatch.side_effect = None
         
         guide = Guide(datetime(2024, 10, 12), mock_session_commit)
         guide.create_new_guide()
 
         self.assertTrue(all(guide.fta_shows[i].start_time <= guide.fta_shows[i+1].start_time for i in range(len(guide.fta_shows) - 1)))
     
-    @patch('sqlalchemy.orm.session')
-    @patch('sqlalchemy.orm.session.Session.execute')
-    @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('sqlalchemy.orm.session.Session.scalar')
-    @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
-    @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
-    @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
-    @patch('database.models.GuideModel.Guide.get_source_data')
+    @patch("sqlalchemy.orm.session")
+    @patch("sqlalchemy.orm.session.Session.execute")
+    @patch("sqlalchemy.orm.session.Session.commit")
+    @patch("services.hermes.hermes.hermes.dispatch")
+    @patch("database.models.ShowEpisodeModel.ShowEpisode.search_for_episode")
+    @patch("database.models.ShowDetailsModel.ShowDetails.get_show_by_title")
+    @patch("database.models.SearchItemModel.SearchItem.get_active_searches")
+    @patch("database.models.GuideModel.Guide.get_source_data")
     def test_guide_create_adds_guide_and_guide_episodes(
         self,
         mock_source_data: MagicMock,
         mock_search_items: MagicMock,
         mock_show_detail: MagicMock,
         mock_show_episode: MagicMock,
-        mock_reminder: MagicMock,
+        mock_hermes_dispatch: MagicMock,
         mock_session_commit: MagicMock,
         mock_session_execute: MagicMock,
         mock_session: MagicMock
@@ -267,7 +281,7 @@ class TestGuide(unittest.TestCase):
             dw_show_episodes[10],
             None
         ]
-        mock_reminder.return_value = None
+        mock_hermes_dispatch.side_effect = None
         # mock_session_commit.return_value = "added"
         mock_session.commit.return_value = "added"
         mock_session_execute.return_value = None
@@ -280,7 +294,7 @@ class TestGuide(unittest.TestCase):
 
         self.assertEqual(len(guide.fta_shows), 5)
     
-    @patch('sqlalchemy.orm.session')
+    @patch("sqlalchemy.orm.session")
     def test_guide_get_shows_for_date_returns_episodes_from_db(self, mock_session: MagicMock):
         mock_session.scalars.return_value = guide_episodes
 
@@ -294,8 +308,8 @@ class TestGuide(unittest.TestCase):
         self.assertEqual(guide.fta_shows[0].title, "Doctor Who")
         self.assertEqual(guide.fta_shows[1].title, "Endeavour")
 
-    @patch('sqlalchemy.orm.session')
-    @patch('services.APIClient.APIClient.get')
+    @patch("sqlalchemy.orm.session")
+    @patch("services.APIClient.APIClient.get")
     def test_guide_gets_source_data(self, mock_api_client: MagicMock, mock_session: MagicMock):
         mock_api_client.return_value = self.fta_data
         mock_session.return_value = None
@@ -304,29 +318,27 @@ class TestGuide(unittest.TestCase):
 
         data = guide.get_source_data("https://source-data.com")
 
-        schedule = data['schedule']
+        schedule = data["schedule"]
         self.assertEqual(len(schedule), 2)
-        self.assertEqual(schedule[0]['channel'], "ABC1")
-        self.assertEqual(len(schedule[0]['listing']), 4)
-        self.assertEqual(schedule[1]['channel'], "ABC2")
-        self.assertEqual(len(schedule[1]['listing']), 1)
+        self.assertEqual(schedule[0]["channel"], "ABC1")
+        self.assertEqual(len(schedule[0]["listing"]), 4)
+        self.assertEqual(schedule[1]["channel"], "ABC2")
+        self.assertEqual(len(schedule[1]["listing"]), 1)
     
-    @patch('sqlalchemy.orm.session.Session.execute')
-    @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('sqlalchemy.orm.session.Session.scalar')
-    @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
-    @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
-    @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
-    @patch('database.models.GuideModel.Guide.get_source_data')
+    @patch("sqlalchemy.orm.session.Session.commit")
+    @patch("services.hermes.hermes.hermes.dispatch")
+    @patch("database.models.ShowEpisodeModel.ShowEpisode.search_for_episode")
+    @patch("database.models.ShowDetailsModel.ShowDetails.get_show_by_title")
+    @patch("database.models.SearchItemModel.SearchItem.get_active_searches")
+    @patch("database.models.GuideModel.Guide.get_source_data")
     def test_guide_message_contains_date(
         self,
         mock_source_data: MagicMock,
         mock_search_items: MagicMock,
         mock_show_detail: MagicMock,
         mock_show_episode: MagicMock,
-        mock_reminder: MagicMock,
+        mock_hermes_dispatch: MagicMock,
         mock_session_commit: MagicMock,
-        mock_session_execute: MagicMock
     ):
         mock_source_data.return_value = self.fta_data
         mock_search_items.return_value = search_items
@@ -338,33 +350,32 @@ class TestGuide(unittest.TestCase):
             dw_show_episodes[10],
             None
         ]
-        mock_reminder.return_value = None
+        mock_hermes_dispatch.side_effect = None
         mock_session_commit.return_value = "added"
-        mock_session_execute = None
         
         guide = Guide(datetime(2024, 10, 12), mock_session_commit)
         guide.create_new_guide()
 
-        self.assertIn('12-10-2024', guide.compose_message())
+        self.assertIn("12-10-2024", guide.compose_message())
 
-    @patch('sqlalchemy.orm.session.Session.execute')
-    @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('sqlalchemy.orm.session.Session.scalar')
-    @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
-    @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
-    @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
-    @patch('database.models.GuideModel.Guide.get_source_data')
+    @patch("sqlalchemy.orm.session.Session.execute")
+    @patch("sqlalchemy.orm.session.Session.commit")
+    @patch("services.hermes.hermes.hermes.dispatch")
+    @patch("database.models.ShowEpisodeModel.ShowEpisode.search_for_episode")
+    @patch("database.models.ShowDetailsModel.ShowDetails.get_show_by_title")
+    @patch("database.models.SearchItemModel.SearchItem.get_active_searches")
+    @patch("database.models.GuideModel.Guide.get_source_data")
     def test_guide_message_handles_no_results(
         self,
         mock_source_data: MagicMock,
         mock_search_items: MagicMock,
         mock_show_detail: MagicMock,
         mock_show_episode: MagicMock,
-        mock_reminder: MagicMock,
+        mock_hermes_dispatch: MagicMock,
         mock_session_commit: MagicMock,
         mock_session_execute: MagicMock
     ):
-        mock_source_data.return_value = { 'schedule': [] }
+        mock_source_data.return_value = { "schedule": [] }
         mock_search_items.return_value = search_items
         mock_show_detail.return_value = show_details[0]
         mock_show_episode.side_effect = [
@@ -374,29 +385,29 @@ class TestGuide(unittest.TestCase):
             dw_show_episodes[10],
             None
         ]
-        mock_reminder.return_value = None
+        mock_hermes_dispatch.side_effect = None
         mock_session_commit.return_value = "added"
         mock_session_execute.return_value = None
         
         guide = Guide(datetime(2024, 10, 12), mock_session_commit)
         guide.create_new_guide()
 
-        self.assertIn('Nothing on Free to Air today', guide.compose_message())
+        self.assertIn("Nothing on Free to Air today", guide.compose_message())
 
-    @patch('sqlalchemy.orm.session.Session.execute')
-    @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('sqlalchemy.orm.session.Session.scalar')
-    @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
-    @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
-    @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
-    @patch('database.models.GuideModel.Guide.get_source_data')
+    @patch("sqlalchemy.orm.session.Session.execute")
+    @patch("sqlalchemy.orm.session.Session.commit")
+    @patch("services.hermes.hermes.hermes.dispatch")
+    @patch("database.models.ShowEpisodeModel.ShowEpisode.search_for_episode")
+    @patch("database.models.ShowDetailsModel.ShowDetails.get_show_by_title")
+    @patch("database.models.SearchItemModel.SearchItem.get_active_searches")
+    @patch("database.models.GuideModel.Guide.get_source_data")
     def test_guide_message_contains_all_episode_strings(
         self,
         mock_source_data: MagicMock,
         mock_search_items: MagicMock,
         mock_show_detail: MagicMock,
         mock_show_episode: MagicMock,
-        mock_reminder: MagicMock,
+        mock_hermes_dispatch: MagicMock,
         mock_session_commit: MagicMock,
         mock_session_execute: MagicMock
     ):
@@ -410,7 +421,7 @@ class TestGuide(unittest.TestCase):
             dw_show_episodes[10],
             None
         ]
-        mock_reminder.return_value = None
+        mock_hermes_dispatch.side_effect = None
         mock_session_commit.return_value = "added"
         mock_session_execute.return_value = None
         
@@ -428,20 +439,20 @@ class TestGuide(unittest.TestCase):
 
         self.assertIn(expected, guide.compose_message())
     
-    @patch('sqlalchemy.orm.session.Session.execute')
-    @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('sqlalchemy.orm.session.Session.scalar')
-    @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
-    @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
-    @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
-    @patch('database.models.GuideModel.Guide.get_source_data')
+    @patch("sqlalchemy.orm.session.Session.execute")
+    @patch("sqlalchemy.orm.session.Session.commit")
+    @patch("services.hermes.hermes.hermes.dispatch")
+    @patch("database.models.ShowEpisodeModel.ShowEpisode.search_for_episode")
+    @patch("database.models.ShowDetailsModel.ShowDetails.get_show_by_title")
+    @patch("database.models.SearchItemModel.SearchItem.get_active_searches")
+    @patch("database.models.GuideModel.Guide.get_source_data")
     def test_guide_empty_reminders_message(
         self,
         mock_source_data: MagicMock,
         mock_search_items: MagicMock,
         mock_show_detail: MagicMock,
         mock_show_episode: MagicMock,
-        mock_reminder: MagicMock,
+        mock_hermes_dispatch: MagicMock,
         mock_session_commit: MagicMock,
         mock_session_execute: MagicMock
     ):
@@ -455,22 +466,26 @@ class TestGuide(unittest.TestCase):
             dw_show_episodes[10],
             None
         ]
-        mock_reminder.return_value = None
+        mock_hermes_dispatch.side_effect = None
         mock_session_commit.return_value = "added"
         mock_session_execute.return_value = None
         
         guide = Guide(datetime(2024, 10, 12), mock_session_commit)
         guide.create_new_guide()
 
-        self.assertIn('There are no reminders scheduled for today', guide.compose_reminder_message())
+        self.assertIn(
+            "There are no reminders scheduled for today",
+            guide.compose_reminder_message()
+        )
 
-    @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('sqlalchemy.orm.session.Session.execute')
-    @patch('database.models.ReminderModel.Reminder.get_reminder_by_show')
-    @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
-    @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
-    @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
-    @patch('database.models.GuideModel.Guide.get_source_data')
+    @patch("sqlalchemy.orm.session.Session.commit")
+    @patch("sqlalchemy.orm.session.Session.execute")
+    @patch("services.hermes.hermes.hermes.dispatch")
+    @patch("database.models.ReminderModel.Reminder.get_reminder_by_show")
+    @patch("database.models.ShowEpisodeModel.ShowEpisode.search_for_episode")
+    @patch("database.models.ShowDetailsModel.ShowDetails.get_show_by_title")
+    @patch("database.models.SearchItemModel.SearchItem.get_active_searches")
+    @patch("database.models.GuideModel.Guide.get_source_data")
     def test_reminders_message_contains_reminder_details(
         self,
         mock_source_data: MagicMock,
@@ -478,6 +493,7 @@ class TestGuide(unittest.TestCase):
         mock_show_detail: MagicMock,
         mock_show_episode: MagicMock,
         mock_reminder: MagicMock,
+        mock_hermes_dispatch: MagicMock,
         mock_execute: MagicMock,
         mock_session_commit: MagicMock,
     ):
@@ -492,6 +508,7 @@ class TestGuide(unittest.TestCase):
             None
         ]
         mock_reminder.return_value = reminders[0]
+        mock_hermes_dispatch.side_effect = None
         mock_session_commit.return_value = "added"
         mock_execute.return_value = None
 
@@ -502,26 +519,26 @@ class TestGuide(unittest.TestCase):
 
         reminders_message = guide.compose_reminder_message()
 
-        self.assertIn('REMINDER: Doctor Who is on ABC1 at 09:00', reminders_message)
-        self.assertIn('REMINDER: Doctor Who is on ABC1 at 09:50', reminders_message)
-        self.assertIn('REMINDER: Doctor Who is on ABC2 at 11:30', reminders_message)
-        self.assertIn('REMINDER: Doctor Who is on ABC1 at 13:00', reminders_message)
-        self.assertIn('REMINDER: Doctor Who is on ABC1 at 13:50', reminders_message)
+        self.assertIn("REMINDER: Doctor Who is on ABC1 at 09:00", reminders_message)
+        self.assertIn("REMINDER: Doctor Who is on ABC1 at 09:50", reminders_message)
+        self.assertIn("REMINDER: Doctor Who is on ABC2 at 11:30", reminders_message)
+        self.assertIn("REMINDER: Doctor Who is on ABC1 at 13:00", reminders_message)
+        self.assertIn("REMINDER: Doctor Who is on ABC1 at 13:50", reminders_message)
 
-    @patch('sqlalchemy.orm.session.Session.execute')
-    @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('sqlalchemy.orm.session.Session.scalar')
-    @patch('database.models.ShowEpisodeModel.ShowEpisode.search_for_episode')
-    @patch('database.models.ShowDetailsModel.ShowDetails.get_show_by_title')
-    @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
-    @patch('database.models.GuideModel.Guide.get_source_data')
+    @patch("sqlalchemy.orm.session.Session.execute")
+    @patch("sqlalchemy.orm.session.Session.commit")
+    @patch("services.hermes.hermes.hermes.dispatch")
+    @patch("database.models.ShowEpisodeModel.ShowEpisode.search_for_episode")
+    @patch("database.models.ShowDetailsModel.ShowDetails.get_show_by_title")
+    @patch("database.models.SearchItemModel.SearchItem.get_active_searches")
+    @patch("database.models.GuideModel.Guide.get_source_data")
     def test_guide_events_message_contains_all_events(
         self,
         mock_source_data: MagicMock,
         mock_search_items: MagicMock,
         mock_show_detail: MagicMock,
         mock_show_episode: MagicMock,
-        mock_reminder: MagicMock,
+        mock_hermes_dispatch: MagicMock,
         mock_session_commit: MagicMock,
         mock_session_execute: MagicMock
     ):
@@ -535,7 +552,7 @@ class TestGuide(unittest.TestCase):
             dw_show_episodes[10],
             None
         ]
-        mock_reminder.return_value = None
+        mock_hermes_dispatch.side_effect = None
         mock_session_commit.return_value = "added"
         mock_session_execute.return_value = None
         
@@ -544,17 +561,20 @@ class TestGuide(unittest.TestCase):
         
         self.assertIn("This show is now being recorded", guide.compose_events_message())
 
-    @patch('sqlalchemy.orm.session.Session.commit')
-    @patch('database.models.SearchItemModel.SearchItem.get_active_searches')
-    @patch('database.models.GuideModel.Guide.get_source_data')
+    @patch("sqlalchemy.orm.session.Session.commit")
+    @patch("services.hermes.hermes.hermes.dispatch")
+    @patch("database.models.SearchItemModel.SearchItem.get_active_searches")
+    @patch("database.models.GuideModel.Guide.get_source_data")
     def test_guide_events_message_handles_no_events(
         self,
         mock_source_data: MagicMock,
         mock_search_items: MagicMock,
+        mock_hermes_dispatch: MagicMock,
         mock_session_commit: MagicMock,
     ):
         mock_source_data.return_value = {"schedule": []}
         mock_search_items.return_value = search_items
+        mock_hermes_dispatch.side_effect = None
         mock_session_commit.return_value = "added"
         
         guide = Guide(datetime(2024, 10, 12), mock_session_commit)
@@ -566,5 +586,5 @@ class TestGuide(unittest.TestCase):
         super().tearDown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

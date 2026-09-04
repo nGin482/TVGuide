@@ -72,10 +72,13 @@ async def on_show_details_not_found(shows_not_found: list[ShowData]):
 
 
 @hermes.event
-async def on_shows_collected():
-    file = File("backup/shows.json", "All Shows.json")
+async def on_shows_collected(file_list: list[str]):
+    files: list[File] = []
+    for file_path in file_list:
+        path, name = os.path.split(file_path)
+        files.append(File(file_path, name))
 
-    await send_ngin_message("The list of shows collected", file)
+    await send_ngin_message("The list of shows collected", files=files)
 
 @hermes.listen()
 async def on_command_error(ctx: Context, error: Exception):
