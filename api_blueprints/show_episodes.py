@@ -6,10 +6,34 @@ from sqlalchemy.orm import Session
 from database import engine
 from database.models import ShowEpisode
 from database.models import User
+from services.ShowService import ShowService
 
 show_episodes_blueprint = Blueprint("show_episodes_blueprint", __name__)
 
 CORS(show_episodes_blueprint, supports_credentials=True)
+
+
+@show_episodes_blueprint.route("/check_episodes", methods=["GET"])
+@jwt_required()
+def check_episodes():
+    session = Session(engine)
+
+    show_title = request.args.get("show_title")
+
+    if not show_title:
+        return { "message": f"'show_title' parameter not provided" }, 400
+
+    show_service = ShowService()
+    show = show_service.get_show_by_title(show_title, session)
+    
+    if not show:
+        session.close()
+        return { "message": "The show could not be found" }, 404
+    
+    episode_check = show_service.needs_episode_refresh(show)
+
+    session.close()
+    return { "needs_refresh": episode_check }
 
 @show_episodes_blueprint.route("/<int:id>", methods=["PUT"])
 @jwt_required()
