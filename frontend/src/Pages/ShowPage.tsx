@@ -42,6 +42,13 @@ const ShowPage = () => {
     return paths[paths.length - 1] as DataView;
   };
 
+  const refreshEpisodes = async () => {
+    const { needs_refresh } = await checkEpisodes(showData.show_name);
+    if (needs_refresh) {
+      console.log("Refresh needed")
+    }
+  };
+
   const dataButtonClass = (view: DataView) => {
     let className = "switch-view-button";
     if (location.pathname.includes(view)) {
@@ -58,9 +65,7 @@ const ShowPage = () => {
         </Helmet>
         <h1>{showData.show_name}</h1>
         <ShowDetails showDetails={showData.show_details} />
-        <Button
-          onClick={async () => await checkEpisodes(showData.show_name)}
-        >
+        <Button onClick={refreshEpisodes}>
           Check Episodes
         </Button>
         <div className="show-data-switch">

@@ -34,7 +34,10 @@ export const getRequest = async <DataType>(
 ) => {
     const response = await axios.get<DataType>(
         baseURL + endpoint,
-        { headers: headers(otherHeaders) }
+        {
+            headers: headers(otherHeaders),
+            withCredentials: true,
+        },
     );
 
     return response.data;
