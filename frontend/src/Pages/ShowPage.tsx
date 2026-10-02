@@ -8,7 +8,6 @@ import { ShowEpisodes } from "../components/ShowEpisode";
 import { SearchItem } from "../components/SearchItem";
 import { Reminder } from "../components/Reminders";
 import { ShowsContext, UserContext } from "../contexts";
-import { checkEpisodes, fetchLatestEpisodes } from "../requests";
 import { ShowData } from "../utils/types";
 import "./styles/ShowPage.css";
 
@@ -42,13 +41,6 @@ const ShowPage = () => {
     return paths[paths.length - 1] as DataView;
   };
 
-  const refreshEpisodes = async () => {
-    const episode_check = await checkEpisodes(showData.show_name);
-    if (episode_check.needs_refresh) {
-      await fetchLatestEpisodes(show, episode_check)
-    }
-  };
-
   const dataButtonClass = (view: DataView) => {
     let className = "switch-view-button";
     if (location.pathname.includes(view)) {
@@ -65,9 +57,6 @@ const ShowPage = () => {
         </Helmet>
         <h1>{showData.show_name}</h1>
         <ShowDetails showDetails={showData.show_details} />
-        <Button onClick={refreshEpisodes}>
-          Check Episodes
-        </Button>
         <div className="show-data-switch">
           <NavLink to={`/shows/${showData.show_name}/episodes`}>
             <Button

@@ -3,7 +3,15 @@
     margin: 0 auto;
 }
 
-.episodes .ant-btn {
+.episodes #refresh-episodes {
+    margin-bottom: 2%;
+}
+
+.episodes #season-toggle {
+    margin-bottom: 1%;
+}
+
+.episodes #season-toggle .ant-btn {
     margin: 0.5% 0.5%;
 }
 
