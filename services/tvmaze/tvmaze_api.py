@@ -34,7 +34,7 @@ def get_show_episodes(
         tvmaze_episodes = map_seasons(tvmaze_episodes)
     tvmaze_episodes = [episode for episode in tvmaze_episodes if episode['season'] >= season_start]
 
-    if season_end:
+    if season_end or season_end != 0:
         tvmaze_episodes = [episode for episode in tvmaze_episodes if episode['season'] <= season_end]
 
     show_episodes: list[TShowEpisode] = []
