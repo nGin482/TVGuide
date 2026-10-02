@@ -8,7 +8,7 @@ import { ShowEpisodes } from "../components/ShowEpisode";
 import { SearchItem } from "../components/SearchItem";
 import { Reminder } from "../components/Reminders";
 import { ShowsContext, UserContext } from "../contexts";
-import { checkEpisodes } from "../requests";
+import { checkEpisodes, fetchLatestEpisodes } from "../requests";
 import { ShowData } from "../utils/types";
 import "./styles/ShowPage.css";
 
@@ -43,9 +43,9 @@ const ShowPage = () => {
   };
 
   const refreshEpisodes = async () => {
-    const { needs_refresh } = await checkEpisodes(showData.show_name);
-    if (needs_refresh) {
-      console.log("Refresh needed")
+    const episode_check = await checkEpisodes(showData.show_name);
+    if (episode_check.needs_refresh) {
+      await fetchLatestEpisodes(show, episode_check)
     }
   };
 

@@ -10,3 +10,9 @@ ShowData = TypedDict('ShowData', {
     'episode_number': int,
     'episode_title': str
 })
+
+NeedsEpisodeRefresh = TypedDict("NeedsEpisodeRefresh", {
+    "needs_refresh": bool,
+    "latest_season_recorded": int,
+    "tvmaze_season_max": int,
+})

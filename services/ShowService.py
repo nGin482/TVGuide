@@ -4,12 +4,9 @@ from typing import TypedDict
 from database.models.ShowDetailsModel import ShowDetails
 from database.models.ShowEpisodeModel import ShowEpisode
 from services.tvmaze import tvmaze_api
+from utils.types import NeedsEpisodeRefresh
 
-NeedsEpisodeRefresh = TypedDict("NeedsEpisodeRefresh", {
-    "needs_refresh": bool,
-    "latest_season_recorded": int,
-    "tvmaze_season_max": int,
-})
+
 
 class ShowService:
 
@@ -34,5 +31,34 @@ class ShowService:
             "tvmaze_season_max": tvmaze_season_max,
         }
 
-    def fetch_latest_episodes(self, show: ShowDetails):
-        pass
+    def fetch_latest_episodes(
+        self,
+        show: ShowDetails,
+        episode_check: NeedsEpisodeRefresh,
+        session: Session,
+    ):
+        episodes = tvmaze_api.get_show_episodes(
+            show.tvmaze_id,
+            episode_check["latest_season_recorded"] + 1,
+            episode_check["tvmaze_season_max"],
+        )
+
+        show_episodes = [
+            ShowEpisode(
+                show.title,
+                episode["season_number"],
+                episode["episode_number"],
+                episode["episode_title"],
+                episode["summary"],
+                [],
+                [],
+                [],
+                show.id
+            )
+            for episode in episodes
+        ]
+        ShowEpisode.add_all_episodes(show_episodes, session)
+
+        return {
+            "episodes_added": len(episodes),
+        }
