@@ -22,6 +22,9 @@ class ShowNotFoundError(Exception):
     """
     pass
 
+class ShowAlreadyExistsError(Exception):
+    pass
+
 class ReminderNotFoundError(Exception):
     """
     Raised when the reminder document for the given show could not be found in the Database

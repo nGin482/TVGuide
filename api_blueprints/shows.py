@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 from database import engine
 from database.models import SearchItem, ShowDetails, ShowEpisode, User
 from exceptions.service_error import HTTPRequestError
+from exceptions.DatabaseError import ShowAlreadyExistsError
+from services.ShowService import ShowService
 from services.tvmaze import tvmaze_api
 from utils.types.models import TShowData
 
@@ -36,9 +38,18 @@ def add_show():
     session = Session(engine)
     body = request.json
 
-    if ShowDetails.get_show_by_title(body['name'], session):
+    show_service = ShowService()
+
+    try:
+        show_data = show_service.add_show(body, session)
+        session.close()
+        return show_data
+    except ShowAlreadyExistsError:
         session.close()
         return { 'message': f"'{body['name']}' is already listed" }, 409
+    except HTTPRequestError as error:
+        session.close()
+        return { "message": error.message }, error.status_code
 
     try:
         tvmaze_details = tvmaze_api.get_show(body['name'])
