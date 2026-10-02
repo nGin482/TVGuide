@@ -24,14 +24,10 @@ def get_show_episodes(
     season_end: int = None,
     include_specials: bool = False
 ):
+    url = f'https://api.tvmaze.com/shows/{tvmaze_id}/episodes'
     if include_specials:
-        api_data: list[TVMazeEpisode] = api_client.get(
-            f'https://api.tvmaze.com/shows/{tvmaze_id}/episodes?specials=1'
-        )
-    else:
-        api_data: list[TVMazeEpisode] = api_client.get(
-            f'https://api.tvmaze.com/shows/{tvmaze_id}/episodes'
-        )
+        url += "?specials=1"
+    api_data: list[TVMazeEpisode] = api_client.get(url)
 
     if api_data[0]['season'] > 1:
         api_data = map_seasons(api_data)
