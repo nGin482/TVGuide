@@ -33,7 +33,7 @@ def check_episodes():
     episode_check = show_service.needs_episode_refresh(show)
 
     session.close()
-    return { "needs_refresh": episode_check }
+    return episode_check
 
 @show_episodes_blueprint.route("/<int:id>", methods=["PUT"])
 @jwt_required()
