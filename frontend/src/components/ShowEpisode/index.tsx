@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import {
   App,
@@ -36,12 +36,17 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
 
   const { notification } = App.useApp();
   const { currentUser } = useContext(UserContext);
-  const { updateEpisodeContext, deleteEpisodeFromContext } = useShow();
+  const { deleteEpisodeFromContext } = useShow();
 
   const { Text } = Typography;
 
   const toggleForm = () => {
-    setShowForm(current => !current);
+    setShowForm(current => {
+      if (current) {
+        setEpisodeEdited(null);
+      }
+      return !current;
+    });
   };
 
   const refreshEpisodes = async () => {
@@ -50,32 +55,7 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
       await requests.fetchLatestEpisodes(showName, episode_check)
     }
   };
-
-  const updateEpisode = async (formValues: ShowEpisode) => {
-    try {
-      const updatedEpisode = await requests.updateShowEpisode(formValues);
-      updateEpisodeContext(formValues.show, formValues.id, updatedEpisode);
-      notification.success({
-        message: "Success!",
-        description: `The episode "${formValues.episode_title}" has been updated`,
-        duration: 8
-      });
-      toggleForm();
-      setEpisodeEdited(null);
-    }
-    catch (error) {
-      let message: string = error?.message;
-      if (error?.response) {
-        message = handleErrorResponse(error, "update this episode");
-      }
-      notification.error({
-        message: `Unable to edit the episode for "${formValues.episode_title}"`,
-        description: message,
-        duration: 8
-      });
-    }
-  };
-
+  
   const deleteEpisodeHandle = async () => {
     try {
       await requests.deleteShowEpisode(episodeEdited.id);
@@ -86,7 +66,6 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
         duration: 8
       });
       toggleForm();
-      setEpisodeEdited(null);
     }
     catch (error) {
       let message: string = error?.message;
@@ -276,7 +255,6 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
             episodeId={episodeEdited.id}
             open={showForm}
             closeForm={toggleForm}
-            updateHandler={updateEpisode}
           />
         )}
       </div>

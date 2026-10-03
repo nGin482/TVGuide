@@ -1,24 +1,25 @@
 import { useContext, useEffect, useState } from "react";
-import { DatePicker, Form, Modal, Input, Select } from "antd";
+import { App, DatePicker, Form, Modal, Input, Select } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 
 import { CustomEditor } from "../Editor";
 import { CHANNELS } from "./channels";
 import { ShowsContext } from "../../contexts";
-import { getEpisodes, getShowSeasons } from "../../requests";
+import { useShow } from "../../hooks/useShow";
+import * as requests from "../../requests";
+import { handleErrorResponse } from "../../utils";
 import { ShowEpisode } from "../../utils/types";
 import { TVMazeEpisode, TVMazeSeason } from "../../utils/types/tvmaze";
 
 interface EpisodeFormProps {
-  showName: string
-  episodeId: number
-  open: boolean
-  closeForm: () => void
-  updateHandler: (formValues: ShowEpisode) => Promise<void>
+  showName: string;
+  episodeId: number;
+  open: boolean;
+  closeForm: () => void;
 }
 
 const EpisodeForm = (props: EpisodeFormProps) => {
-  const { showName, episodeId, open, closeForm, updateHandler } = props;
+  const { showName, episodeId, open, closeForm } = props;
 
   const [originalEpisode, setOriginalEpisode] = useState<ShowEpisode>(null);
   const [formValues, setFormValues] = useState<ShowEpisode>(null);
@@ -27,7 +28,9 @@ const EpisodeForm = (props: EpisodeFormProps) => {
   const [episodeSelected, setEpisodeSelected] = useState<TVMazeEpisode>(null);
 
   const [form] = Form.useForm<ShowEpisode>();
+  const { notification } = App.useApp();
   const { shows } = useContext(ShowsContext);
+  const { updateEpisodeContext } = useShow();
 
   useEffect(() => {
     const showData = shows.find(show => show.show_name === showName);
@@ -60,12 +63,12 @@ const EpisodeForm = (props: EpisodeFormProps) => {
   }, [episodeSelected]);
 
   const fetchAllSeasons = async (tvmazeId: string) => {
-    const seasons = await getShowSeasons(tvmazeId);
+    const seasons = await requests.getShowSeasons(tvmazeId);
     setAllSeasons(seasons);
   };
 
   const fetchAllEpisodes = async (tvmazeId: string) => {
-    const episodes = await getEpisodes(tvmazeId);
+    const episodes = await requests.getEpisodes(tvmazeId);
     setAllEpisodes(episodes);
   };
 
@@ -77,7 +80,27 @@ const EpisodeForm = (props: EpisodeFormProps) => {
 
   const updateEpisode = async () => {
     await form.validateFields();
-    await updateHandler(formValues);
+    try {
+      const updatedEpisode = await requests.updateShowEpisode(formValues);
+      updateEpisodeContext(formValues.show, formValues.id, updatedEpisode);
+      notification.success({
+        message: "Success!",
+        description: `The episode "${formValues.episode_title}" has been updated`,
+        duration: 8,
+      });
+      closeForm();
+    }
+    catch (error) {
+      let message: string = error?.message;
+      if (error?.response) {
+        message = handleErrorResponse(error, "update this episode");
+      }
+      notification.error({
+        message: `Unable to edit the episode for "${formValues.episode_title}"`,
+        description: message,
+        duration: 8
+      });
+    }
   };
 
   return (
