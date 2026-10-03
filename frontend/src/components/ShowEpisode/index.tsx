@@ -40,12 +40,13 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
 
   const { Text } = Typography;
 
-  const toggleForm = () => {
+  const toggleForm = (open?: boolean) => {
     setShowForm(current => {
-      if (current) {
+      const nextState = typeof open === "boolean" ? open : !current;
+      if (!nextState) {
         setEpisodeEdited(null);
       }
-      return !current;
+      return nextState;
     });
   };
 
@@ -65,7 +66,7 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
         description: `The episode "${episodeEdited.episode_title}" has been deleted`,
         duration: 8
       });
-      toggleForm();
+      toggleForm(false);
     }
     catch (error) {
       let message: string = error?.message;
@@ -161,7 +162,7 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
       icon: <EditOutlined />,
       key: "edit",
       label: "Edit",
-      onClick: toggleForm,
+      onClick: () => toggleForm(true),
     },
     {
       key: "delete",

@@ -259,7 +259,7 @@ export const user: User = {
         "Maigret",
         "Endeavour"
     ],
-    role: "Standard"
+    role: "Admin"
 };
 
 export const currentUser: CurrentUser = { ...user, token: "test-token" };
