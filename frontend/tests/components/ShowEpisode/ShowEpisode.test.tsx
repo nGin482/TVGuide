@@ -213,11 +213,13 @@ describe("ShowEpisode component", () => {
       `The episode "Rose" has been deleted`,
     );
     expect(notification).toBeInTheDocument();
-    expect(mockDeleteEpisode).toHaveBeenCalledWith(1);
-    expect(mockDeleteEpisodeFromContext).toHaveBeenCalledWith(
-      "Doctor Who",
-      1
-    );
+    await waitFor(() => {
+      expect(mockDeleteEpisode).toHaveBeenCalledWith(1);
+      expect(mockDeleteEpisodeFromContext).toHaveBeenCalledWith(
+        "Doctor Who",
+        1
+      );
+    });
   });
 
   it("handles errors when deleting an episode", async () => {
