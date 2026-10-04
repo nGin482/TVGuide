@@ -76,6 +76,22 @@ const ShowEpisodesUser = (
 );
 
 describe("ShowEpisode component", () => {
+  beforeAll(() => {
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      value: jest.fn().mockImplementation((query) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: jest.fn(), // Deprecated but required for older library pipelines
+        removeListener: jest.fn(), 
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+      })),
+    });
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -174,7 +190,6 @@ describe("ShowEpisode component", () => {
     const mockDeleteEpisodeFromContext = jest.fn();
     mockDeleteEpisode.mockResolvedValueOnce();
   
-    // Override the hook implementation for this specific test evaluation
     mockUseShow.mockReturnValue({
       addShowToContext: jest.fn(),
       deleteEpisodeFromContext: mockDeleteEpisodeFromContext,
@@ -199,14 +214,9 @@ describe("ShowEpisode component", () => {
 
     const deleteMenuItem = await screen.findByRole("menuitem", { name: /delete/i });
     const textSpan = within(deleteMenuItem).getByText("Delete");
-
-    fireEvent.mouseDown(textSpan);
     fireEvent.click(textSpan);
 
-    const confirmDeleteButton = await screen.findByRole(
-      "button",
-      { name: /^delete$/i }
-    );
+    const confirmDeleteButton = await screen.findByTestId("confirmDeleteButton");
     fireEvent.click(confirmDeleteButton);
 
     const notification = await screen.findByText(

@@ -166,15 +166,20 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
     },
     {
       key: "delete",
+      icon: <DeleteFilled /> ,
       label: (
         <Popconfirm
+          data-testid=""
           title={`Delete Episode?`}
           okText="Delete"
-          okButtonProps={{ style: { background: "#f00" } }}
+          okButtonProps={{
+            style: { background: "#f00" },
+            "data-testid": "confirmDeleteButton"
+          }}
           onConfirm={deleteEpisodeHandle}
           onCancel={() => console.log("not deleted")}
         >
-          <DeleteFilled /> Delete
+          Delete
         </Popconfirm>
       ),
     },
