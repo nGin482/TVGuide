@@ -254,14 +254,9 @@ describe("ShowEpisode component", () => {
 
     const deleteMenuItem = await screen.findByRole("menuitem", { name: /delete/i });
     const textSpan = within(deleteMenuItem).getByText("Delete");
-
-    fireEvent.mouseDown(textSpan);
     fireEvent.click(textSpan);
 
-    const confirmDeleteButton = await screen.findByRole(
-      "button",
-      { name: /^delete$/i }
-    );
+    const confirmDeleteButton = await screen.findByTestId("confirmDeleteButton");
     fireEvent.click(confirmDeleteButton);
 
     const notification = await screen.findByText(
