@@ -1,26 +1,27 @@
 import { Config } from "jest";
 
 const jestConfig: Config = {
-    collectCoverage: true,
-    coverageDirectory: "coverage",
-    coveragePathIgnorePatterns: [
-        "tests/",
-    ],
-    preset: "ts-jest",
-    setupFiles: [
-        "<rootDir>/.jest/setEnvVars.ts"
-    ],
-    setupFilesAfterEnv: [
-        "./src/setupTests.js",
-        "@testing-library/jest-dom/extend-expect"
-    ],
-    testEnvironment: "jest-environment-jsdom",
-    transform: {
-        "^.+\\.(ts|tsx|js|jsx)$": "ts-jest",
-        "\.(scss|sass|css)$": "./tests/mocks/style.ts",
-        "\\.(jpg|ico|jpeg|png)": "./tests/mocks/style.ts",
-    },
-    verbose: true,
+  collectCoverage: true,
+  coverageDirectory: "coverage",
+  coveragePathIgnorePatterns: [
+    "tests/",
+    "(scss|css)",
+  ],
+  preset: "ts-jest",
+  setupFiles: [
+    "<rootDir>/.jest/setEnvVars.ts"
+  ],
+  setupFilesAfterEnv: [
+    "./src/setupTests.js",
+    "@testing-library/jest-dom/extend-expect"
+  ],
+  testEnvironment: "jest-environment-jsdom",
+  transform: {
+    "^.+\\.(ts|tsx|js|jsx)$": "ts-jest",
+    "\.(scss|sass|css)$": "./tests/mocks/style.ts",
+    "\\.(jpg|ico|jpeg|png)": "./tests/mocks/style.ts",
+  },
+  verbose: true,
 };
-    
+
 export default jestConfig;

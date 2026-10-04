@@ -6,13 +6,12 @@ from sqlalchemy.orm import Session
 from database import engine
 from database.models.GuideModel import Guide
 from database.models.SearchItemModel import SearchItem
-from database.models.ShowDetailsModel import ShowDetails
-from database.models.ShowEpisodeModel import ShowEpisode
 from exceptions.DatabaseError import DatabaseError, SearchItemAlreadyExistsError
 from services.hermes.hermes import hermes
 from services.hermes.utilities import get_date_from_tvguide_message, parse_date_from_command
 from services.hermes.ui_components.DropdownView import DropdownView
-from services.tvmaze import tvmaze_api
+from services.ShowService import ShowService
+from utils.types import ShowPayload
 import utils
 
 
@@ -30,52 +29,27 @@ async def show_list(ctx: Context):
 async def add_show(
     ctx: Context,
     show: str,
-    season_start: int = 0,
+    season_start: int = 1,
     season_end: int = 0,
     include_specials: bool = False
 ):
     session = Session(engine)
+
+    show_payload: ShowPayload = {
+        "name": show,
+        "include_specials": include_specials,
+        "conditions": {
+            "min_season_number": season_start,
+            "max_season_number": season_end,
+            "exact_title_match": True,
+        },
+    }
+
+    show_service = ShowService()
     
     try:
-        tvmaze_data = tvmaze_api.get_show(show)
-        show_details = ShowDetails(
-            tvmaze_data['name'],
-            tvmaze_data['summary'],
-            str(tvmaze_data['id']), 
-            tvmaze_data['genres'],
-            tvmaze_data['image']['original']
-        )
-        show_details.add_show(session)
-
-        show_episodes = tvmaze_api.get_show_episodes(
-            str(tvmaze_data['id']),
-            season_start,
-            include_specials=include_specials
-        )
-        show_episodes = [
-            ShowEpisode(
-                episode['show'],
-                episode['season_number'],
-                episode['episode_number'],
-                episode['episode_title'],
-                episode['summary'],
-                show_id=show_details.id
-            )
-            for episode in show_episodes
-        ]
-        ShowEpisode.add_all_episodes(show_episodes, session)
-
-        conditions = {}
-        if season_start > 0:
-            conditions['min_season_number'] = season_start
-        if season_end > 0:
-            conditions['max_season_number'] = season_end
-        max_season_number = max([int(episode.season_number) for episode in show_episodes])
-        search_item = SearchItem(tvmaze_data['name'], False, max_season_number, conditions, show_details.id)
-        search_item.add_search_item(session)
-        all_search_items = [search_item.show for search_item in SearchItem.get_active_searches(session)]
-        show_list = '\n'.join([all_search_items])
-        reply = f'{show} has been added to the SearchList. The list now includes:\n{show_list}'
+        show_service.add_show(show_payload, session)
+        reply = f'{show} has been added to the SearchList'
     except (SearchItemAlreadyExistsError, DatabaseError) as err:
         reply = f'Error: {str(err)}. The SearchList has not been modified.'
     await ctx.send(reply)

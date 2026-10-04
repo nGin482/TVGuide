@@ -1,27 +1,27 @@
-import { useContext, useState } from 'react';
-import { Helmet } from 'react-helmet';
+import { useContext, useEffect, useState } from "react";
+import { Helmet } from "react-helmet";
 import {
   App,
   Alert,
   Button,
   Dropdown,
-  Popconfirm,
   Table,
   TableColumnsType,
   Tag,
   Typography
-} from 'antd';
+} from "antd";
 import { DeleteFilled, EditOutlined } from "@ant-design/icons";
-import type { MenuProps } from 'antd';
-import dayjs from 'dayjs';
+import type { MenuProps } from "antd";
+import dayjs from "dayjs";
 
-import { EmptyTableView } from '../EmptyTableView';
-import { EpisodeForm } from './EpisodeForm';
-import { UserContext } from '../../contexts';
-import { useShow } from '../../hooks/useShow';
-import * as requests from '../../requests';
-import { getSeasons, handleErrorResponse } from '../../utils';
-import { ShowEpisode } from '../../utils/types';
+import ConfirmationModal from "../ConfirmationModal";
+import { EmptyTableView } from "../EmptyTableView";
+import { EpisodeForm } from "./EpisodeForm";
+import { UserContext } from "../../contexts";
+import { useShow } from "../../hooks/useShow";
+import * as requests from "../../requests";
+import { getSeasons, handleErrorResponse } from "../../utils";
+import { ShowEpisode } from "../../utils/types";
 import "./ShowEpisode.css";
 
 interface ShowProps {
@@ -33,53 +33,42 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
   const [season, setSeason] = useState(1);
   const [episodeEdited, setEpisodeEdited] = useState<ShowEpisode>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
   const { notification } = App.useApp();
   const { currentUser } = useContext(UserContext);
-  const { updateEpisodeContext, deleteEpisodeFromContext } = useShow();
+  const { deleteEpisodeFromContext } = useShow();
 
   const { Text } = Typography;
 
-  const toggleForm = () => {
-    setShowForm(current => !current);
-  };
-
-  const updateEpisode = async (formValues: ShowEpisode) => {
-    try {
-      const updatedEpisode = await requests.updateShowEpisode(formValues);
-      updateEpisodeContext(formValues.show, formValues.id, updatedEpisode);
-      notification.success({
-        message: "Success!",
-        description: `The episode '${formValues.episode_title}' has been updated`,
-        duration: 8
-      });
-      toggleForm();
-      setEpisodeEdited(null);
-    }
-    catch (error) {
-      let message: string = error?.message;
-      if (error?.response) {
-        message = handleErrorResponse(error, "update this episode");
+  const toggleForm = (open?: boolean) => {
+    setShowForm(current => {
+      const nextState = typeof open === "boolean" ? open : !current;
+      if (!nextState) {
+        setEpisodeEdited(null);
       }
-      notification.error({
-        message: `Unable to edit the episode for '${formValues.episode_title}'`,
-        description: message,
-        duration: 8
-      });
-    }
+      return nextState;
+    });
   };
 
+  const refreshEpisodes = async () => {
+    const episode_check = await requests.checkEpisodes(showName);
+    if (episode_check.needs_refresh) {
+      await requests.fetchLatestEpisodes(showName, episode_check)
+    }
+  };
+  
   const deleteEpisodeHandle = async () => {
     try {
       await requests.deleteShowEpisode(episodeEdited.id);
       deleteEpisodeFromContext(episodeEdited.show, episodeEdited.id);
       notification.success({
         message: "Success!",
-        description: `The episode '${episodeEdited.episode_title}' has been deleted`,
+        description: `The episode "${episodeEdited.episode_title}" has been deleted`,
         duration: 8
       });
-      toggleForm();
       setEpisodeEdited(null);
+      setShowConfirmationModal(false);
     }
     catch (error) {
       let message: string = error?.message;
@@ -87,7 +76,7 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
         message = handleErrorResponse(error, "delete this episode");
       }
       notification.error({
-        message: `Unable to delete the episode '${episodeEdited.episode_title}'`,
+        message: `Unable to delete the episode "${episodeEdited.episode_title}"`,
         description: message,
         duration: 8
       });
@@ -96,38 +85,38 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
 
   const episodeColumns: TableColumnsType<ShowEpisode> = [
     {
-      key: 'season_number',
-      dataIndex: 'season_number',
-      title: 'Season Number',
+      key: "season_number",
+      dataIndex: "season_number",
+      title: "Season Number",
     },
     {
-      key: 'episode_number',
-      dataIndex: 'episode_number',
-      title: 'Episode Number',
+      key: "episode_number",
+      dataIndex: "episode_number",
+      title: "Episode Number",
     },
     {
-      key: 'episode_title',
-      dataIndex: 'episode_title',
-      title: 'Episode Title',
+      key: "episode_title",
+      dataIndex: "episode_title",
+      title: "Episode Title",
     },
     {
-      key: 'alternative_titles',
-      dataIndex: 'alternative_titles',
-      title: 'Alternative Titles',
+      key: "alternative_titles",
+      dataIndex: "alternative_titles",
+      title: "Alternative Titles",
     },
     {
-      key: 'summary',
-      dataIndex: 'summary',
-      title: 'Summary',
+      key: "summary",
+      dataIndex: "summary",
+      title: "Summary",
       render: (summary: string) => (
         <div dangerouslySetInnerHTML={{ __html: summary }} />
       ),
     },
     {
-      key: 'channels',
-      dataIndex: 'channels',
-      className: 'episode-channels',
-      title: 'Channels',
+      key: "channels",
+      dataIndex: "channels",
+      className: "episode-channels",
+      title: "Channels",
       render: (channels: string[]) => channels.map((channel, index) =>
         <Tag
           key={`tag-${index}-${channel}`}
@@ -139,10 +128,10 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
       ),
     },
     {
-      key: 'air_dates',
-      dataIndex: 'air_dates',
-      className: 'episode-air-dates',
-      title: 'Air Dates',
+      key: "air_dates",
+      dataIndex: "air_dates",
+      className: "episode-air-dates",
+      title: "Air Dates",
       render: (air_dates: Date[]) => air_dates.map((air_date, index) =>
         <Tag
           key={`tag-${index}-${air_date}`}
@@ -170,26 +159,18 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
     },
   ];
 
-  const menuItems: MenuProps['items'] = [
+  const menuItems: MenuProps["items"] = [
     {
       icon: <EditOutlined />,
       key: "edit",
       label: "Edit",
-      onClick: toggleForm,
+      onClick: () => toggleForm(true),
     },
     {
       key: "delete",
-      label: (
-        <Popconfirm
-          title={`Delete Episode?`}
-          okText="Delete"
-          okButtonProps={{ style: { background: "#f00" } }}
-          onConfirm={deleteEpisodeHandle}
-          onCancel={() => console.log("not deleted")}
-        >
-          <DeleteFilled /> Delete
-        </Popconfirm>
-      ),
+      icon: <DeleteFilled />,
+      onClick: () => setShowConfirmationModal(true),
+      label: "Delete",
     },
   ];
 
@@ -219,27 +200,42 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
         </Helmet>
 
         <h3>Episodes</h3>
-        {getSeasons(episodes).map(seasonNumber =>
+        {currentUser && (
           <Button
-            className={seasonNumber === season ? "change-season-active" : "change-season"}
-            onClick={() => setSeason(seasonNumber)}
-            key={seasonNumber}
-            data-testid={`season-${seasonNumber}`}
+            id="refresh-episodes"
+            onClick={refreshEpisodes}
           >
-            Season {seasonNumber === -1 ? "Unknown" : seasonNumber}
+            Check Episodes
           </Button>
         )}
+
+        <div id="season-toggle">
+          {getSeasons(episodes).map(seasonNumber =>
+            <Button
+              className={
+                seasonNumber === season
+                ? "change-season-active"
+                : "change-season"
+              }
+              onClick={() => setSeason(seasonNumber)}
+              key={seasonNumber}
+              data-testid={`season-${seasonNumber}`}
+            >
+              Season {seasonNumber === -1 ? "Unknown" : seasonNumber}
+            </Button>
+          )}
+        </div>
         <Table
           data-testid={`${showName}-table`}
           key={`${showName}-table`}
           rowKey={record => record.episode_title}
           columns={episodeColumns}
           dataSource={episodes.filter(episode => episode.season_number === season)}
-          className='season-table'
+          className="season-table"
           bordered={true}
           pagination={
             {
-              position: ['bottomCenter'],
+              position: ["bottomCenter"],
               pageSize: 50,
               hideOnSinglePage: true
             }
@@ -254,7 +250,16 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
             episodeId={episodeEdited.id}
             open={showForm}
             closeForm={toggleForm}
-            updateHandler={updateEpisode}
+          />
+        )}
+        {showConfirmationModal && (
+          <ConfirmationModal
+            isOpen={showConfirmationModal}
+            title="Delete this episode?"
+            confirmText="Delete"
+            onConfirm={deleteEpisodeHandle}
+            onCancel={() => setShowConfirmationModal(false)}
+            message="Are you sure you would like to delete this episode?"
           />
         )}
       </div>

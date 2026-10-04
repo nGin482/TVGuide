@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 from database import engine
 from database.models import SearchItem, ShowDetails, ShowEpisode, User
 from exceptions.service_error import HTTPRequestError
+from exceptions.DatabaseError import ShowAlreadyExistsError
+from services.ShowService import ShowService
 from services.tvmaze import tvmaze_api
 from utils.types.models import TShowData
 
@@ -36,75 +38,18 @@ def add_show():
     session = Session(engine)
     body = request.json
 
-    if ShowDetails.get_show_by_title(body['name'], session):
+    show_service = ShowService()
+
+    try:
+        show_data = show_service.add_show(body, session)
+        session.close()
+        return show_data
+    except ShowAlreadyExistsError:
         session.close()
         return { 'message': f"'{body['name']}' is already listed" }, 409
-
-    try:
-        tvmaze_details = tvmaze_api.get_show(body['name'])
     except HTTPRequestError as error:
-        print(f"Could not find {body['name']} on TVMaze: {error}")
         session.close()
-        return { "message": f"Could not find {body['name']} on TVMaze: {error}" }, 404
-    show_detail = ShowDetails(
-        tvmaze_details['name'],
-        tvmaze_details['summary'],
-        tvmaze_details['id'],
-        tvmaze_details['genres'],
-        tvmaze_details['image']['original']
-    )
-    show_detail.add_show(session)
-    
-    conditions = body['conditions']
-    tvmaze_episodes = tvmaze_api.get_show_episodes(
-        tvmaze_details['id'],
-        conditions['min_season_number'],
-        conditions['max_season_number'],
-        True
-    )
-    show_episodes: list[ShowEpisode] = []
-    for episode in tvmaze_episodes:
-        try:
-            show_episode = ShowEpisode(
-                tvmaze_details['name'],
-                episode['season_number'],
-                episode['episode_number'],
-                episode['episode_title'],
-                episode['summary'],
-                show_id=show_detail.id
-            )
-            show_episodes.append(show_episode)
-        except KeyError as error:
-            print("Error:", error)
-            print("TVMaze Episode: ", episode)
-            session.close()
-            return { "message": f"Unable to add an episode for {tvmaze_details['name']}" }, 500
-    ShowEpisode.add_all_episodes(show_episodes, session)
-
-    try:
-        search_criteria = SearchItem(
-            tvmaze_details['name'],
-            conditions['exact_title_match'],
-            conditions['max_season_number'],
-            conditions,
-            show_id=show_detail.id
-        )
-        search_criteria.add_search_item(session)
-    except KeyError as error:
-        print("Error:", error)
-        session.close()
-        return { "message": f"Unable to add search criteria for {tvmaze_details['name']}" }, 500
-
-    show_data = {
-        "show_name": show_detail.title,
-        "show_details": show_detail.to_dict(),
-        "show_episodes": [episode.to_dict() for episode in show_episodes],
-        "search_item": search_criteria.to_dict() if search_criteria else None,
-        "reminder": None
-    }
-    
-    session.close()
-    return show_data
+        return { "message": error.message }, error.status_code
 
 @shows_blueprint.route("/<string:show>", methods=['PUT'])
 @jwt_required()
