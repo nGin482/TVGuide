@@ -221,7 +221,7 @@ describe("ShowEpisode component", () => {
     const modal = await screen.findByRole("dialog");
     expect(modal).toBeInTheDocument();
 
-    const confirmDeleteButton = within(modal).getByRole(
+    const confirmDeleteButton = await within(modal).findByRole(
       "button",
       { name: "Delete" }
     );
