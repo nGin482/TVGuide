@@ -83,4 +83,16 @@ mock_tvmaze_episodes: list[TVMazeEpisode] = [
             },
         },
     },
+    {
+            "id": 58,
+            "season": 5,
+            "number": 1,
+            "name": "The Eleventh Hour",
+            "summary": "Season 5 Episode 1",
+            "_links": {
+                "show": {
+                    "name": "Doctor Who",
+                },
+            },
+        },
 ]

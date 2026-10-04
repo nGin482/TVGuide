@@ -48,6 +48,8 @@ class ShowService:
             conditions["min_season_number"],
             conditions["max_season_number"],
             True
+            # NOTE: Currently including the specials as well by default
+            # No way to set this from frontend
         )
         show_episodes: list[ShowEpisode] = []
         for episode in tvmaze_episodes:
@@ -90,7 +92,7 @@ class ShowService:
             "reminder": None
         }
 
-    def needs_episode_refresh(self, show: ShowDetails):
+    def needs_episode_refresh(self, show: ShowDetails) -> NeedsEpisodeRefresh:
         show_episodes = show.show_episodes
         recorded_season_numbers = [
             show_episode.season_number

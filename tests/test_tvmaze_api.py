@@ -52,7 +52,7 @@ class TestTVMazeAPI(unittest.TestCase):
             "https://api.tvmaze.com/shows/210/episodes"
         )
 
-        self.assertEqual(len(episodes), 5)
+        self.assertEqual(len(episodes), 6)
         expected_episode = {
             "show": "Doctor Who",
             "season_number": 1,
@@ -81,9 +81,9 @@ class TestTVMazeAPI(unittest.TestCase):
 
         episodes = tvmaze_api.get_show_episodes("210", 2, None, False)
 
-        self.assertEqual(len(episodes), 2)
+        self.assertEqual(len(episodes), 3)
         episode_seasons = [episode["season_number"] for episode in episodes]
-        self.assertEqual(episode_seasons, [2, 2])
+        self.assertEqual(episode_seasons, [2, 2, 5])
 
     @patch("services.tvmaze.tvmaze_api.api_client.get")
     def test_get_show_episodes_returns_episodes_season_end(
