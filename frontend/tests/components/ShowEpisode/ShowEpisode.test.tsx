@@ -212,11 +212,19 @@ describe("ShowEpisode component", () => {
     );
     fireEvent.click(dropdown);
 
-    const deleteMenuItem = await screen.findByRole("menuitem", { name: /delete/i });
-    const textSpan = within(deleteMenuItem).getByText("Delete");
-    fireEvent.click(textSpan);
+    const deleteMenuItem = await screen.findByRole(
+      "menuitem",
+      { name: /delete/i }
+    );
+    fireEvent.click(deleteMenuItem);
 
-    const confirmDeleteButton = await screen.findByTestId("confirmDeleteButton");
+    const modal = await screen.findByRole("dialog");
+    expect(modal).toBeInTheDocument();
+
+    const confirmDeleteButton = within(modal).getByRole(
+      "button",
+      { name: "Delete" }
+    );
     fireEvent.click(confirmDeleteButton);
 
     const notification = await screen.findByText(
@@ -252,11 +260,17 @@ describe("ShowEpisode component", () => {
     );
     fireEvent.click(dropdown);
 
-    const deleteMenuItem = await screen.findByRole("menuitem", { name: /delete/i });
-    const textSpan = within(deleteMenuItem).getByText("Delete");
-    fireEvent.click(textSpan);
+    const deleteMenuItem = await screen.findByRole(
+      "menuitem",
+      { name: /delete/i }
+    );
+    fireEvent.click(deleteMenuItem);
 
-    const confirmDeleteButton = await screen.findByTestId("confirmDeleteButton");
+    const modal = await screen.findByRole("dialog");
+    const confirmDeleteButton = within(modal).getByRole(
+      "button",
+      { name: "Delete" }
+    );
     fireEvent.click(confirmDeleteButton);
 
     const notification = await screen.findByText(

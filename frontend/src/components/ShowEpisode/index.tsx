@@ -5,7 +5,6 @@ import {
   Alert,
   Button,
   Dropdown,
-  Popconfirm,
   Table,
   TableColumnsType,
   Tag,
@@ -15,6 +14,7 @@ import { DeleteFilled, EditOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import dayjs from "dayjs";
 
+import ConfirmationModal from "../ConfirmationModal";
 import { EmptyTableView } from "../EmptyTableView";
 import { EpisodeForm } from "./EpisodeForm";
 import { UserContext } from "../../contexts";
@@ -33,6 +33,7 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
   const [season, setSeason] = useState(1);
   const [episodeEdited, setEpisodeEdited] = useState<ShowEpisode>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
   const { notification } = App.useApp();
   const { currentUser } = useContext(UserContext);
@@ -66,7 +67,8 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
         description: `The episode "${episodeEdited.episode_title}" has been deleted`,
         duration: 8
       });
-      toggleForm(false);
+      setEpisodeEdited(null);
+      setShowConfirmationModal(false);
     }
     catch (error) {
       let message: string = error?.message;
@@ -166,22 +168,9 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
     },
     {
       key: "delete",
-      icon: <DeleteFilled /> ,
-      label: (
-        <Popconfirm
-          data-testid=""
-          title={`Delete Episode?`}
-          okText="Delete"
-          okButtonProps={{
-            style: { background: "#f00" },
-            "data-testid": "confirmDeleteButton"
-          }}
-          onConfirm={deleteEpisodeHandle}
-          onCancel={() => console.log("not deleted")}
-        >
-          Delete
-        </Popconfirm>
-      ),
+      icon: <DeleteFilled />,
+      onClick: () => setShowConfirmationModal(true),
+      label: "Delete",
     },
   ];
 
@@ -261,6 +250,16 @@ const ShowEpisodes = ({ episodes, showName }: ShowProps) => {
             episodeId={episodeEdited.id}
             open={showForm}
             closeForm={toggleForm}
+          />
+        )}
+        {showConfirmationModal && (
+          <ConfirmationModal
+            isOpen={showConfirmationModal}
+            title="Delete this episode?"
+            confirmText="Delete"
+            onConfirm={deleteEpisodeHandle}
+            onCancel={() => setShowConfirmationModal(false)}
+            message="Are you sure you would like to delete this episode?"
           />
         )}
       </div>
