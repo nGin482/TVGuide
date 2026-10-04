@@ -91,7 +91,6 @@ class TestShowService(unittest.TestCase):
         mock_add_all_episodes.assert_called_once()
         mock_add_all_episodes_args, _ = mock_add_all_episodes.call_args
         episode_list_arg = mock_add_all_episodes_args[0]
-        print(episode_list_arg)
         self.assertEqual(len(episode_list_arg), 1)
         captured_episode = episode_list_arg[0]
         self.assertEqual(captured_episode.show, "Doctor Who")

@@ -188,7 +188,7 @@ describe("ShowEpisode component", () => {
       </App>
     );
 
-    const rows = screen.getAllByRole("row");
+    const rows = await screen.findAllByRole("row");
     const cells = within(rows[1]).getAllByRole("cell");
 
     const dropdown = within(cells[cells.length-1]).getByRole(
@@ -254,12 +254,10 @@ describe("ShowEpisode component", () => {
     );
     fireEvent.click(confirmDeleteButton);
 
-    await waitFor(async () => {
-      const notification = await screen.findByText(
-        `Unable to delete the episode "Rose"`,
-      );
-      expect(notification).toBeInTheDocument();
-    });
+    const notification = await screen.findByText(
+      `Unable to delete the episode "Rose"`,
+    );
+    expect(notification).toBeInTheDocument();
   });
 
   it("shows text when there are no episodes available", async () => {
