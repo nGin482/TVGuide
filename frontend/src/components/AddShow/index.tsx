@@ -86,7 +86,8 @@ const AddShow = ({ openModal, setOpenModal }: AddShowProps) => {
 
     const newShow: NewShowPayload = {
       name: showSelected.show.name,
-      conditions: searchConditions
+      conditions: searchConditions,
+      include_specials: formValues.include_specials,
     };
 
     try {
@@ -266,6 +267,12 @@ const AddShow = ({ openModal, setOpenModal }: AddShowProps) => {
                 />
               </Form.Item>
             )}
+            <Form.Item
+              name="include_specials"
+              valuePropName="checked"
+            >
+              <Checkbox name="include_specials">Include Special Episodes</Checkbox>
+            </Form.Item>
           </>
         )}
         {error && (
