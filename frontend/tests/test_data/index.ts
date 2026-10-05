@@ -318,7 +318,8 @@ export const newShowPayload: NewShowPayload = {
         ignore_episodes: [],
         ignore_seasons: [],
         ignore_titles: [],
-    }
+    },
+    include_specials: true,
 }
 
 export const tvMazeResult: TVMazeShow = {
