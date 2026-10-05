@@ -23,7 +23,7 @@ class ShowService:
     def add_show(self, body: ShowPayload, session: Session) -> TShowData:
         if self.get_show_by_title(body["name"], session):
             raise ShowAlreadyExistsError
-    
+                        
         try:
             tvmaze_details = tvmaze_api.get_show(body["name"])
         except HTTPRequestError as error:
@@ -47,9 +47,7 @@ class ShowService:
             tvmaze_details["id"],
             conditions["min_season_number"],
             conditions["max_season_number"],
-            True
-            # NOTE: Currently including the specials as well by default
-            # No way to set this from frontend
+            body["include_specials"]
         )
         show_episodes: list[ShowEpisode] = []
         for episode in tvmaze_episodes:
