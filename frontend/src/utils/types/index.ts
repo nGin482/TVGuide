@@ -80,6 +80,7 @@ interface SearchItemFormValues {
     seasons: number[]
     seasonChoice: "all" | "some"
     ignoreEpisodes: string[]
+    include_specials: boolean;
 }
 
 interface ReminderFormValues extends Partial<Reminder> {}
@@ -107,6 +108,7 @@ interface NewShowPayload {
     conditions: Partial<SearchItem['conditions']> & {
         exact_title_match: boolean
     }
+    include_specials: boolean;
 }
 
 interface LoginData {
