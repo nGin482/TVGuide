@@ -1,0 +1,19 @@
+{
+  "name": "tvguide",
+  "version": "2.3.0",
+  "type": "commonjs",
+  "scripts": {
+    "start": "tsx index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nGin482/TVGuide.git"
+  },
+  "homepage": "https://github.com/nGin482/TVGuide#readme",
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3"
+  }
+}
