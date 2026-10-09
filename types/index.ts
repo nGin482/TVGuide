@@ -19,3 +19,12 @@ export interface GuideEpisode {
   episodeId: number;
   reminderId: string;
 }
+
+export interface ShowDetails {
+  id: number;
+  title: string;
+  description: string;
+  tvmazeId: string;
+  genres: string[];
+  image: string;
+}
