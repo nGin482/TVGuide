@@ -28,3 +28,16 @@ export interface ShowDetails {
   genres: string[];
   image: string;
 }
+
+export interface ShowEpisode {
+  id: number;
+  show: string;
+  seasonNumber: number;
+  episodeNumber: number;
+  episodeTitle: string;
+  alternativeTitles: string[];
+  summary: string;
+  channels: string[];
+  airDates: Date[];
+  showId: number;
+}
