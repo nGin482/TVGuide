@@ -54,3 +54,12 @@ export interface SearchItem {
   ignoreEpisodes: string[];
   showId: number;
 }
+
+export interface Reminder {
+  id: number;
+  show: string;
+  alert: "Before" | "During" | "After";
+  warningTime: number;
+  occasions: string;
+  showId: number;
+}
