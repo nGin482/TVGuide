@@ -41,3 +41,16 @@ export interface ShowEpisode {
   airDates: Date[];
   showId: number;
 }
+
+export interface SearchItem {
+  id: number;
+  show: string;
+  searchActive: boolean;
+  exactTitleMatch: boolean;
+  minSeasonNumber: number;
+  maxSeasonNumber: number;
+  ignoreTitles: string[];
+  ignoreSeasons: number[];
+  ignoreEpisodes: string[];
+  showId: number;
+}
