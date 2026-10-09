@@ -70,3 +70,9 @@ export interface User {
   password: string;
   role: string;
 }
+
+export interface UserSearchSubscription {
+  id: number;
+  userId: number;
+  searchId: number;
+}

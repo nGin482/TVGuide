@@ -1,6 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 
 import { sequelize } from "../connection";
+import UserSearchSubscription from "./UserSearchSubscription";
 import { User as TUser } from "../../types";
 
 
@@ -10,6 +11,16 @@ class User extends Model<TUser, Omit<TUser, "id">> {
   declare username: string;
   declare password: string;
   declare role: string;
+
+  static associate() {
+    User.hasMany(
+      UserSearchSubscription,
+      {
+        foreignKey: "user_id",
+        as: "subscriptions"
+      }
+    );
+  }
 }
 
 User.init(

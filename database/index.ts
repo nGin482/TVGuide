@@ -15,7 +15,13 @@ export const connectDB = async () => {
 export const syncTables = async () => {
   Guide.associate();
   GuideEpisode.associate();
+  User.associate();
+  UserSearchSubscription.associate();
+  SearchItem.associate();
 };
 
 import Guide from "./models/Guide";
 import GuideEpisode from "./models/GuideEpisode";
+import SearchItem from "./models/SearchItem";
+import User from "./models/User";
+import UserSearchSubscription from "./models/UserSearchSubscription";
