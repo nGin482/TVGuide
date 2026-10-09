@@ -1,17 +1,21 @@
-import { Sequelize } from "sequelize";
-import * as dotenv from "dotenv";
+import { sequelize } from "./connection";
 
-dotenv.config({ quiet: true });
-
-const DB_URL = process.env.DB_URL;
-
-if (!DB_URL) {
-  throw Error("DB_URL variable not set");
-}
-
-export const sequelize = new Sequelize(
-  DB_URL,
-  {
-    timezone: "+10:00",
+export const connectDB = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log("Successfully connected to database");
+    await syncTables();
   }
-);
+  catch (error) {
+    console.error("Could not connect to database");
+    console.error(error.message);
+  }
+};
+
+export const syncTables = async () => {
+  Guide.associate();
+  GuideEpisode.associate();
+};
+
+import Guide from "./models/Guide";
+import GuideEpisode from "./models/GuideEpisode";
