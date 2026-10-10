@@ -89,3 +89,23 @@ TVMazeEpisode = TypedDict("TVMazeEpisode", {
     "summary": str,
     "_links": EpisodeLinks
 })
+
+TVMazeSeasonLinks = TypedDict("TVMazeSeasonLinks", {
+    "self": LinkSelf,
+})
+
+
+TVMazeSeason = TypedDict("TVMazeSeason", {
+    "id": int,
+    "url": str,
+    "number": int,
+    "name": str,
+    "episodeOrder": 13,
+    "premiereDate": str,
+    "endDate": str,
+    "network": Network,
+    "webChannel": None,
+    "image": Image,
+    "summary": str,
+    "_links": TVMazeSeasonLinks,
+})

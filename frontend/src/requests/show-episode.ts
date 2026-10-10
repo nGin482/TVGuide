@@ -1,6 +1,28 @@
 
-import { deleteRequest, putRequest } from "./api-client";
+import { deleteRequest, getRequest, postRequest, putRequest } from "./api-client";
 import { ShowEpisode } from "../utils/types";
+
+interface NeedsEpisodeRefresh {
+  "needs_refresh": boolean;
+  "latest_season_recorded": number;
+  "tvmaze_season_max": number;
+}
+
+export const checkEpisodes = async (showName: string) => {
+  return await getRequest<NeedsEpisodeRefresh>(
+    `/show-episode/check_episodes?show_title=${showName}`
+  );
+};
+
+export const fetchLatestEpisodes = async (
+  showName: string,
+  refresh_data: NeedsEpisodeRefresh,
+) => {
+  return await postRequest<NeedsEpisodeRefresh, any>(
+    `/show-episode/fetch_latest_episodes?show_title=${showName}`,
+    refresh_data
+  );
+};
 
 export const updateShowEpisode = async (episode: ShowEpisode) => {
   return await putRequest<ShowEpisode, ShowEpisode>(
@@ -11,4 +33,4 @@ export const updateShowEpisode = async (episode: ShowEpisode) => {
 
 export const deleteShowEpisode = async (episodeId: number) => {
   await deleteRequest(`/show-episode/${episodeId}`);
-}
+};
