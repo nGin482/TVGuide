@@ -4,11 +4,10 @@ from flask_jwt_extended import get_current_user, jwt_required
 from sqlalchemy.orm import Session
 
 from database import engine
-from database.models import SearchItem, ShowDetails, ShowEpisode, User
+from database.models import ShowDetails, User
 from exceptions.service_error import HTTPRequestError
 from exceptions.DatabaseError import ShowAlreadyExistsError
 from services.ShowService import ShowService
-from services.tvmaze import tvmaze_api
 from utils.types.models import TShowData
 
 shows_blueprint = Blueprint("shows_blueprint", __name__)
