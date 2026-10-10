@@ -100,7 +100,7 @@ TVMazeSeason = TypedDict("TVMazeSeason", {
     "url": str,
     "number": int,
     "name": str,
-    "episodeOrder": 13,
+    "episodeOrder": int,
     "premiereDate": str,
     "endDate": str,
     "network": Network,
