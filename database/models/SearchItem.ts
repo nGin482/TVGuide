@@ -1,6 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 
 import { sequelize } from "../connection";
+import ShowDetails from "./ShowDetails";
 import UserSearchSubscription from "./UserSearchSubscription";
 import { SearchItem as TSearchItem } from "../../types";
 
@@ -25,6 +26,10 @@ class SearchItem extends Model<TSearchItem, Omit<TSearchItem, "id">> {
         foreignKey: "search_id",
         as: "subscriptions"
       }
+    );
+    SearchItem.belongsTo(
+      ShowDetails,
+      { foreignKey: "show_id", as: "showDetails" }
     );
   }
 }

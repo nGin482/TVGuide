@@ -1,6 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 
 import { sequelize } from "../connection";
+import ShowDetails from "./ShowDetails";
 import { Reminder as TReminder } from "../../types";
 
 
@@ -12,6 +13,13 @@ class Reminder extends Model<TReminder, Omit<TReminder, "id">> {
   declare warning_time: number;
   declare occasions: string;
   declare show_id: number;
+
+  static associate() {
+    Reminder.belongsTo(
+      ShowDetails,
+      { foreignKey: "show_id", as: "showDetails" }
+    );
+  }
 }
 
 

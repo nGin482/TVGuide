@@ -1,6 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 
 import { sequelize } from "../connection";
+import ShowDetails from "./ShowDetails";
 import { ShowEpisode as TShowEpisode } from "../../types";
 
 
@@ -16,6 +17,13 @@ class ShowEpisode extends Model<TShowEpisode, Omit<TShowEpisode, "id">> {
   declare channels: string[];
   declare airDates: Date[];
   declare showId: number;
+
+  static associate() {
+    ShowEpisode.belongsTo(
+      ShowDetails,
+      { foreignKey: "show_id", as: "ShowDetails" }
+    );
+  }
 }
 
 ShowEpisode.init(
