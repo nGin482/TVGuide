@@ -14,7 +14,7 @@ ShowData = TypedDict('ShowData', {
 ShowPayloadConditions = TypedDict("ShowPayloadConditions", {
     "min_season_number": int,
     "max_season_number": int,
-    "exact_title_match": True,
+    "exact_title_match": bool,
     "ignore_titles": list[str],
     "ignore_seasons": list[str],
     "ignore_episodes": list[str],
