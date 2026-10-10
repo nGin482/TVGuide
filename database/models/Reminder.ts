@@ -2,6 +2,7 @@ import { DataTypes, Model } from "sequelize";
 
 import { sequelize } from "../connection";
 import ShowDetails from "./ShowDetails";
+import GuideEpisode from "./GuideEpisode";
 import { Reminder as TReminder } from "../../types";
 
 
@@ -18,6 +19,10 @@ class Reminder extends Model<TReminder, Omit<TReminder, "id">> {
     Reminder.belongsTo(
       ShowDetails,
       { foreignKey: "show_id", as: "showDetails" }
+    );
+    Reminder.hasMany(
+      GuideEpisode,
+      { foreignKey: "reminder_id", as: "guideEpisodes" }
     );
   }
 }

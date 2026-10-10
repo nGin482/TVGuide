@@ -2,6 +2,7 @@ import { DataTypes, Model } from "sequelize";
 
 import { sequelize } from "../connection";
 import ShowDetails from "./ShowDetails";
+import GuideEpisode from "./GuideEpisode";
 import { ShowEpisode as TShowEpisode } from "../../types";
 
 
@@ -22,6 +23,10 @@ class ShowEpisode extends Model<TShowEpisode, Omit<TShowEpisode, "id">> {
     ShowEpisode.belongsTo(
       ShowDetails,
       { foreignKey: "show_id", as: "ShowDetails" }
+    );
+    ShowEpisode.hasMany(
+      GuideEpisode,
+      { foreignKey: "episode_id", as: "guideEpisodes" }
     );
   }
 }

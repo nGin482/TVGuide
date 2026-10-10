@@ -2,6 +2,7 @@ import { DataTypes, Model } from "sequelize";
 
 import { sequelize } from "../connection";
 import ShowEpisode from "./ShowEpisode";
+import GuideEpisode from "./GuideEpisode";
 import SearchItem from "./SearchItem";
 import Reminder from "./Reminder";
 import { ShowDetails as TShowDetails } from "../../types";
@@ -28,6 +29,10 @@ class ShowDetails extends Model<TShowDetails, Omit<TShowDetails, "id">> {
     ShowDetails.hasMany(
       Reminder,
       { foreignKey: "show_id", as: "reminders" }
+    );
+    ShowDetails.hasMany(
+      GuideEpisode,
+      { foreignKey: "show_id", as: "guideEpisodes" }
     );
   }
 }

@@ -2,6 +2,9 @@ import { DataTypes, Model } from "sequelize";
 
 import { sequelize } from "../connection";
 import Guide from "./Guide";
+import ShowDetails from "./ShowDetails";
+import Reminder from "./Reminder";
+import ShowEpisode from "./ShowEpisode";
 import { GuideEpisode as TGuideEpisode } from "../../types";
 
 
@@ -24,6 +27,18 @@ class GuideEpisode extends Model<TGuideEpisode, Omit<TGuideEpisode, "id">> {
 
   static associate() {
     GuideEpisode.belongsTo(Guide, { foreignKey: "guide_id" });
+    GuideEpisode.belongsTo(
+      ShowDetails,
+      { foreignKey: "show_id", as: "showDetails" }
+    );
+    GuideEpisode.belongsTo(
+      ShowEpisode,
+      { foreignKey: "episode_id", as: "showEpisode" }
+    );
+    GuideEpisode.belongsTo(
+      Reminder,
+      { foreignKey: "reminder_id", as: "reminder" }
+    );
   }
 }
 
