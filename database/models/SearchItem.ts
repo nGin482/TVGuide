@@ -3,7 +3,7 @@ import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../connection";
 import ShowDetails from "./ShowDetails";
 import UserSearchSubscription from "./UserSearchSubscription";
-import { SearchItem as TSearchItem } from "../../types";
+import { ShowData, SearchItem as TSearchItem } from "../../types";
 
 
 
@@ -31,6 +31,34 @@ class SearchItem extends Model<TSearchItem, Omit<TSearchItem, "id">> {
       ShowDetails,
       { foreignKey: "show_id", as: "showDetails" }
     );
+  }
+
+  checkSearchConditions(showData: ShowData) {
+    if (
+      this.exactTitleMatch &&
+      showData.title.toLowerCase() !== this.show.toLowerCase()
+    ) {
+      return false;
+    }
+    
+    if (showData.season_number === -1) {
+      if (showData.episode_title === "") {
+        return true;
+      }
+      return !this.ignoreEpisodes.includes(showData.episode_title);
+    }
+
+    if (
+      showData.season_number < this.minSeasonNumber ||
+      showData.season_number > this.maxSeasonNumber
+    ) {
+      return false;
+    }
+    else if (this.ignoreSeasons.includes(showData.season_number)) {
+      return false;
+    }
+    
+    return true;
   }
 }
 
