@@ -1,6 +1,10 @@
 import axios from "axios";
 
+import GuideEpisode from "../database/models/GuideEpisode";
+import Reminder from "../database/models/Reminder";
 import SearchItem from "../database/models/SearchItem";
+import ShowDetails from "../database/models/ShowDetails";
+import ShowEpisode from "../database/models/ShowEpisode";
 import { ABCGuide, ShowData } from "../types";
 
 class GuideService {
@@ -44,6 +48,46 @@ class GuideService {
       showA.channel.localeCompare(showB.channel)
     );
 
+    for (const show of showsFound) {
+      const showDetails = await ShowDetails.findOne({
+        where: { title: show.title },
+        include: [
+          {
+            model: Reminder,
+            as: "reminders",
+          },
+        ],
+      });
+      const showEpisode = await ShowEpisode.findOne({
+        // TODO: use this or episode_title
+        where: {
+          show: show.title,
+          seasonNumber: show.season_number,
+          episodeNumber: show.episode_number,
+        }
+      });
+
+      if (showDetails) {
+        const guideEpisode = GuideEpisode.build({
+          title: show.title,
+          channel: show.channel,
+          startTime: show.start_time,
+          endTime: show.end_time,
+          seasonNumber: show.season_number,
+          episodeNumber: show.episode_number,
+          episodeTitle: show.episode_title,
+          repeat: showEpisode ? showEpisode.airDates.length > 0 : false,
+          dbEvent: "",
+          showId: showDetails.id,
+          episodeId: showEpisode?.id ?? 0,
+          reminderId: showDetails.reminders ? showDetails.reminders[0].id : 0,
+          guideId: 0,
+        });
+        console.log(guideEpisode.dataValues)
+      }
+    }
+
+    // Should be using guideEpisodes
     const message = this.composeMessage(showsFound);
     console.log(message)
   }

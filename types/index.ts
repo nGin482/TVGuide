@@ -14,10 +14,10 @@ export interface GuideEpisode {
   episodeNumber: number;
   episodeTitle: string;
   repeat: boolean;
-  dbEvent: string;
+  dbEvent: string | null;
   showId: number;
   episodeId: number;
-  reminderId: string;
+  reminderId: number | null;
 }
 
 export interface ShowDetails {

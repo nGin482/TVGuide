@@ -23,7 +23,10 @@ class GuideEpisode extends Model<TGuideEpisode, Omit<TGuideEpisode, "id">> {
   declare dbEvent: string;
   declare showId: number;
   declare episodeId: number;
-  declare reminderId: string;
+  declare reminderId: number;
+  declare showDetails: ShowDetails;
+  declare showEpisode: ShowEpisode | null;
+  declare reminder: Reminder | null;
 
   static associate() {
     GuideEpisode.belongsTo(Guide, { foreignKey: "guide_id" });
@@ -104,7 +107,7 @@ GuideEpisode.init(
     },
     episodeId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       field: "episode_id",
     },
     reminderId: {
