@@ -1,5 +1,6 @@
 import axios from "axios";
 
+import Guide from "../database/models/Guide";
 import GuideEpisode from "../database/models/GuideEpisode";
 import Reminder from "../database/models/Reminder";
 import SearchItem from "../database/models/SearchItem";
@@ -11,6 +12,13 @@ class GuideService {
 
 
   async createNewGuide(date: string) {
+    const guide = await Guide.create({
+      date: new Date(date),
+    });
+    await this.searchFTAGuide(guide.id, date);
+  }
+  
+  async searchFTAGuide(guideId: number, date: string) {
     console.log(`Retrieving guide data for ${date}`);
 
     const guideResponse = await axios.get<ABCGuide>(
@@ -48,6 +56,7 @@ class GuideService {
       showA.channel.localeCompare(showB.channel)
     );
 
+    const guideEpisodes: GuideEpisode[] = [];
     for (const show of showsFound) {
       const showDetails = await ShowDetails.findOne({
         where: { title: show.title },
@@ -68,7 +77,7 @@ class GuideService {
       });
 
       if (showDetails) {
-        const guideEpisode = GuideEpisode.build({
+        const guideEpisode = await GuideEpisode.create({
           title: show.title,
           channel: show.channel,
           startTime: show.start_time,
@@ -80,19 +89,20 @@ class GuideService {
           dbEvent: "",
           showId: showDetails.id,
           episodeId: showEpisode?.id ?? 0,
-          reminderId: showDetails.reminders ? showDetails.reminders[0].id : 0,
-          guideId: 0,
+          reminderId: showDetails.reminders ? showDetails.reminders[0].id : null,
+          guideId: guideId,
         });
         console.log(guideEpisode.dataValues)
+        guideEpisodes.push(guideEpisode);
       }
     }
 
     // Should be using guideEpisodes
-    const message = this.composeMessage(showsFound);
+    const message = this.composeMessage(guideEpisodes);
     console.log(message)
   }
 
-  composeMessage(shows: ShowData[]) {
+  composeMessage(shows: GuideEpisode[]) {
     let message = "\nFree to Air:\n";
   
     if (shows.length === 0) {
@@ -105,23 +115,23 @@ class GuideService {
     return message;
   }
   
-  messageString(show: ShowData) {
+  messageString(show: GuideEpisode) {
     const {
       channel,
-      end_time,
-      episode_number,
-      episode_title,
+      endTime,
+      episodeNumber,
+      episodeTitle,
       repeat,
-      season_number,
-      start_time,
+      seasonNumber,
+      startTime,
       title,
     } = show;
   
-    const seasonNumber = season_number === -1 ? "Unknown" : season_number;
-    let message = `${start_time.toTimeString()}: ${title} is on ${channel}`;
-    message += ` (Season ${seasonNumber}, Episode ${episode_number}`;
-    if (episode_title) {
-      message += `: ${episode_title}`;
+    const season_number = seasonNumber === -1 ? "Unknown" : seasonNumber;
+    let message = `${startTime.toTimeString()}: ${title} is on ${channel}`;
+    message += ` (Season ${season_number}, Episode ${episodeNumber}`;
+    if (episodeTitle) {
+      message += `: ${episodeTitle}`;
     }
     message += ")";
     if (repeat) {

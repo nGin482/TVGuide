@@ -52,6 +52,7 @@ GuideEpisode.init(
       type: DataTypes.INTEGER,
       primaryKey: true,
       allowNull: false,
+      autoIncrement: true,
     },
     guideId: {
       type: DataTypes.INTEGER,

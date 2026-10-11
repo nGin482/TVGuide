@@ -21,6 +21,7 @@ Guide.init(
       type: DataTypes.INTEGER,
       primaryKey: true,
       allowNull: false,
+      autoIncrement: true,
     },
     date: {
       type: DataTypes.DATE,
