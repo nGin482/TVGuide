@@ -92,12 +92,24 @@ class GuideService {
           reminderId: showDetails.reminders ? showDetails.reminders[0].id : null,
           guideId: guideId,
         });
+        
+        await guideEpisode.reload({
+          include: [
+            {
+              model: ShowEpisode,
+              as: "showEpisode",
+            },
+          ],
+        });
+        if (!show.channel.includes("HD")) {
+          await guideEpisode.captureDBEvent(date);
+        }
+        
         console.log(guideEpisode.dataValues)
         guideEpisodes.push(guideEpisode);
       }
     }
 
-    // Should be using guideEpisodes
     const message = this.composeMessage(guideEpisodes);
     console.log(message)
   }

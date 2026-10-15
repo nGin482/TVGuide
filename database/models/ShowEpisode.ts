@@ -29,7 +29,47 @@ class ShowEpisode extends Model<TShowEpisode, Omit<TShowEpisode, "id">> {
       { foreignKey: "episode_id", as: "guideEpisodes" }
     );
   }
+
+  /**
+    * Check that the given episode is present in the episode's channel list.
+    * Return True if present, False if not.
+    * 
+    * If `ABC1` is present, also check `ABCHD`.
+    * If `SBS` is present, also check `SBSHD`.
+    * If `10` is present, also check `TENHD`.
+   * @param channel 
+   * @returns an array of the missing channels
+   */
+  checkChannel(channel: string) {
+    const missingChannels: string[] = [];
+    if (!this.channels.includes(channel)) {
+      missingChannels.push(channel);
+    }
+
+    if (this.channels.includes("ABC1") && !this.channels.includes("ABCHD")) {
+      missingChannels.push("ABCHD");
+    }
+    if (this.channels.includes("SBS") && !this.channels.includes("SBSHD")) {
+      missingChannels.push("SBSHD");
+    }
+    if (this.channels.includes("10") && !this.channels.includes("TENHD")) {
+      missingChannels.push("TENHD");
+    }
+    
+    return missingChannels;
+  }
+  
+  addChannels(channels: string[]) {
+    const updatedChannels = [...this.channels, ...channels];
+    this.set("channels", updatedChannels);
+    this.channels = updatedChannels;
+
+    const word = channels.length > 1 ? "have" : "has";
+    return `${channels.join(", ")} ${word} been added to the channel list`;
+  }
 }
+
+
 
 ShowEpisode.init(
   {

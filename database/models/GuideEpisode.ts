@@ -43,6 +43,26 @@ class GuideEpisode extends Model<TGuideEpisode, Omit<TGuideEpisode, "id">> {
       { foreignKey: "reminder_id", as: "reminder" }
     );
   }
+
+  async captureDBEvent(date: string) {
+    if (this.showEpisode) {
+      this.showEpisode.set(
+        "airDates",
+        [...this.showEpisode.airDates, new Date(date)]
+      );
+
+      const episode_details = `Season ${this.seasonNumber} Episode ${this.episodeNumber} (${this.episodeTitle})`;
+      let dbEvent = `${episode_details} has aired today`;
+      const channels = this.showEpisode.checkChannel(this.channel);
+      if (channels.length > 0) {
+        dbEvent = this.showEpisode.addChannels(channels);
+      }
+      await this.showEpisode.save();
+      return await this.update({ dbEvent: dbEvent });
+    }
+
+    return this;
+  }
 }
 
 

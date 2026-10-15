@@ -12,6 +12,6 @@ if (!DB_URL) {
 export const sequelize = new Sequelize(
   DB_URL,
   {
-    timezone: "+10:00",
+    timezone: "Australia/Sydney",
   }
 );
