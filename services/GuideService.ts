@@ -1,4 +1,5 @@
 import axios from "axios";
+import { Dayjs } from "dayjs";
 
 import Guide from "../database/models/Guide";
 import GuideEpisode from "../database/models/GuideEpisode";
@@ -11,18 +12,19 @@ import { ABCGuide, ShowData } from "../types";
 class GuideService {
 
 
-  async createNewGuide(date: string) {
+  async createNewGuide(date: Dayjs) {
     const guide = await Guide.create({
-      date: new Date(date),
+      date: date.toDate(),
     });
     await this.searchFTAGuide(guide.id, date);
   }
   
-  async searchFTAGuide(guideId: number, date: string) {
+  async searchFTAGuide(guideId: number, date: Dayjs) {
     console.log(`Retrieving guide data for ${date}`);
 
+    const formattedDate = date.format("YYYY-MM-DD");
     const guideResponse = await axios.get<ABCGuide>(
-      `https://cdn.iview.abc.net.au/epg/processed/Sydney_${date}.json`
+      `https://cdn.iview.abc.net.au/epg/processed/Sydney_${formattedDate}.json`
     );
     const guide = guideResponse.data;
     
@@ -86,7 +88,7 @@ class GuideService {
           episodeNumber: show.episode_number,
           episodeTitle: show.episode_title,
           repeat: showEpisode ? showEpisode.airDates.length > 0 : false,
-          dbEvent: "",
+          dbEvent: null,
           showId: showDetails.id,
           episodeId: showEpisode?.id ?? 0,
           reminderId: showDetails.reminders ? showDetails.reminders[0].id : null,
@@ -103,7 +105,7 @@ class GuideService {
         });
 
         if (!show.channel.includes("HD")) {
-          await guideEpisode.captureDBEvent(date);
+          await guideEpisode.captureDBEvent();
         }
         
         guideEpisodes.push(guideEpisode);

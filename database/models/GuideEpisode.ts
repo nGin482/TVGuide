@@ -1,4 +1,5 @@
 import { DataTypes, Model } from "sequelize";
+import dayjs, { Dayjs } from "dayjs";
 
 import { sequelize } from "../connection";
 import Guide from "./Guide";
@@ -6,6 +7,7 @@ import ShowDetails from "./ShowDetails";
 import Reminder from "./Reminder";
 import ShowEpisode from "./ShowEpisode";
 import { GuideEpisode as TGuideEpisode } from "../../types";
+import { convertDate } from "../../utils";
 
 
 
@@ -44,11 +46,12 @@ class GuideEpisode extends Model<TGuideEpisode, Omit<TGuideEpisode, "id">> {
     );
   }
 
-  async captureDBEvent(date: string) {
+  async captureDBEvent() {
     if (this.showEpisode) {
+      const airDate = convertDate(this.startTime);
       this.showEpisode.set(
         "airDates",
-        [...this.showEpisode.airDates, new Date(date)]
+        [...this.showEpisode.airDates, airDate]
       );
 
       const episode_details = `Season ${this.seasonNumber} Episode ${this.episodeNumber} (${this.episodeTitle})`;
@@ -65,7 +68,8 @@ class GuideEpisode extends Model<TGuideEpisode, Omit<TGuideEpisode, "id">> {
   }
 
   getMessageString() {
-    let message = `${this.startTime.toTimeString()}: ${this.title} is on ${this.channel}`;
+    const startTime = dayjs(this.startTime).format("HH:mm");
+    let message = `${startTime}: ${this.title} is on ${this.channel}`;
     message += ` (${this.getEpisodeString()})`;
     if (this.repeat) {
       message += ` (Repeat)`;
@@ -137,7 +141,6 @@ GuideEpisode.init(
     },
     dbEvent: {
       type: DataTypes.TEXT,
-      allowNull: false,
       field: "db_event",
     },
     showId: {
