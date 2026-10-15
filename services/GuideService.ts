@@ -101,11 +101,11 @@ class GuideService {
             },
           ],
         });
+
         if (!show.channel.includes("HD")) {
           await guideEpisode.captureDBEvent(date);
         }
         
-        console.log(guideEpisode.dataValues)
         guideEpisodes.push(guideEpisode);
       }
     }
@@ -121,34 +121,9 @@ class GuideService {
       message += "Nothing on Free to Air today\n";
     }
     else {
-      shows.forEach(show => message += `* ${this.messageString(show)}\n`);
+      shows.forEach(show => message += `* ${show.getMessageString()}\n`);
     }
   
-    return message;
-  }
-  
-  messageString(show: GuideEpisode) {
-    const {
-      channel,
-      endTime,
-      episodeNumber,
-      episodeTitle,
-      repeat,
-      seasonNumber,
-      startTime,
-      title,
-    } = show;
-  
-    const season_number = seasonNumber === -1 ? "Unknown" : seasonNumber;
-    let message = `${startTime.toTimeString()}: ${title} is on ${channel}`;
-    message += ` (Season ${season_number}, Episode ${episodeNumber}`;
-    if (episodeTitle) {
-      message += `: ${episodeTitle}`;
-    }
-    message += ")";
-    if (repeat) {
-      message += ` (Repeat)`;
-    }
     return message;
   }
 }

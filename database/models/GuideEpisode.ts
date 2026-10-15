@@ -63,6 +63,25 @@ class GuideEpisode extends Model<TGuideEpisode, Omit<TGuideEpisode, "id">> {
 
     return this;
   }
+
+  getMessageString() {
+    let message = `${this.startTime.toTimeString()}: ${this.title} is on ${this.channel}`;
+    message += ` (${this.getEpisodeString()})`;
+    if (this.repeat) {
+      message += ` (Repeat)`;
+    }
+    return message;
+  }
+
+  getEpisodeString() {
+    const season_number = this.seasonNumber === -1 ? "Unknown" : this.seasonNumber;
+    let info = `Season ${season_number}, Episode ${this.episodeNumber}`;
+    if (this.episodeTitle) {
+      info += `: ${this.episodeTitle}`;
+    }
+
+    return info;
+  }
 }
 
 
