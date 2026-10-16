@@ -16,7 +16,7 @@ export interface GuideEpisode {
   repeat: boolean;
   dbEvent: string | null;
   showId: number;
-  episodeId: number;
+  episodeId: number | null;
   reminderId: number | null;
 }
 

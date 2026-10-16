@@ -3,7 +3,7 @@ import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../connection";
 import ShowDetails from "./ShowDetails";
 import GuideEpisode from "./GuideEpisode";
-import { ShowEpisode as TShowEpisode } from "../../types";
+import { ShowData, ShowEpisode as TShowEpisode } from "../../types";
 
 
 
@@ -28,6 +28,30 @@ class ShowEpisode extends Model<TShowEpisode, Omit<TShowEpisode, "id">> {
       GuideEpisode,
       { foreignKey: "episode_id", as: "guideEpisodes" }
     );
+  }
+
+  static async findShowEpisode(guideEpisode: ShowData) {
+    const { season_number, episode_number, episode_title } = guideEpisode;
+
+    if (season_number === -1 && episode_number === 0 && episode_title === "") {
+      return null;
+    }
+
+    if (season_number !== -1 && episode_number !== 0) {
+      const showEpisode = ShowEpisode.findOne({
+        where: {
+          seasonNumber: season_number,
+          episodeNumber: episode_number,
+        },
+      });
+      return showEpisode;
+    }
+    else {
+      const showEpisode = ShowEpisode.findOne({
+        where: { episodeTitle: episode_title }
+      });
+      return showEpisode;
+    }
   }
 
   /**
@@ -77,6 +101,7 @@ ShowEpisode.init(
       type: DataTypes.INTEGER,
       primaryKey: true,
       allowNull: false,
+      autoIncrement: true,
     },
     show: {
       type: DataTypes.TEXT,

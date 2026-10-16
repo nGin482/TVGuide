@@ -63,8 +63,24 @@ class GuideEpisode extends Model<TGuideEpisode, Omit<TGuideEpisode, "id">> {
       await this.showEpisode.save();
       return await this.update({ dbEvent: dbEvent });
     }
-
-    return this;
+    else {
+      const showEpisode = await ShowEpisode.create({
+        show: this.title,
+        seasonNumber: this.seasonNumber,
+        episodeNumber: this.episodeNumber,
+        episodeTitle: this.episodeTitle,
+        summary: "",
+        alternativeTitles: [],
+        airDates: [convertDate(this.startTime)],
+        channels: [this.channel],
+        showId: this.showId,
+      });
+      const dbEvent = `${this.getEpisodeString(true)} has been inserted`;
+      return await this.update({
+        episodeId: showEpisode.id,
+        dbEvent: dbEvent,
+      });
+    }
   }
 
   getMessageString() {
@@ -77,8 +93,18 @@ class GuideEpisode extends Model<TGuideEpisode, Omit<TGuideEpisode, "id">> {
     return message;
   }
 
-  getEpisodeString() {
-    const season_number = this.seasonNumber === -1 ? "Unknown" : this.seasonNumber;
+  /**
+   * 
+   * @param seasonNumberOverride Should be passed in if season number could be -1.
+   * 
+   * Pass in to keep the season number as -1. Otherwise, will default to "Unknown"
+   * @returns 
+   */
+  getEpisodeString(seasonNumberOverride?: boolean) {
+    let season_number: number | "Unknown" = this.seasonNumber;
+    if (season_number && !seasonNumberOverride) {
+      season_number = "Unknown";
+    }
     let info = `Season ${season_number}, Episode ${this.episodeNumber}`;
     if (this.episodeTitle) {
       info += `: ${this.episodeTitle}`;

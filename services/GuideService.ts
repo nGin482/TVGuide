@@ -20,7 +20,7 @@ class GuideService {
   }
   
   async searchFTAGuide(guideId: number, date: Dayjs) {
-    console.log(`Retrieving guide data for ${date}`);
+    console.log(`Retrieving guide data for ${date.format("YYYY-MM-DD")}`);
 
     const formattedDate = date.format("YYYY-MM-DD");
     const guideResponse = await axios.get<ABCGuide>(
@@ -69,16 +69,10 @@ class GuideService {
           },
         ],
       });
-      const showEpisode = await ShowEpisode.findOne({
-        // TODO: use this or episode_title
-        where: {
-          show: show.title,
-          seasonNumber: show.season_number,
-          episodeNumber: show.episode_number,
-        }
-      });
+      const showEpisode = await ShowEpisode.findShowEpisode(show);
 
       if (showDetails) {
+        const reminders = showDetails.reminders;
         const guideEpisode = await GuideEpisode.create({
           title: show.title,
           channel: show.channel,
@@ -90,8 +84,8 @@ class GuideService {
           repeat: showEpisode ? showEpisode.airDates.length > 0 : false,
           dbEvent: null,
           showId: showDetails.id,
-          episodeId: showEpisode?.id ?? 0,
-          reminderId: showDetails.reminders ? showDetails.reminders[0].id : null,
+          episodeId: showEpisode?.id ?? null,
+          reminderId: reminders && reminders.length > 0 ? reminders[0].id : null,
           guideId: guideId,
         });
         
