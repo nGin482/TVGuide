@@ -1,27 +1,15 @@
-import { parseArgs, ParseArgsConfig } from "util";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 
+import { appConfig } from "./config";
 import { connectDB } from "./database";
 import GuideService from "./services/GuideService";
 
 dayjs.extend(timezone);
 dayjs.extend(utc);
 
-const config: ParseArgsConfig = {
-  options: {
-    date: {
-      type: "string",
-      default: dayjs().format("YYYY-MM-DD"),
-    },
-  },
-};
-
-const { values } = parseArgs(config);
-const date = values.date as string | undefined;
-
-const guideDate = dayjs(date).tz("Australia/Sydney");
+const guideDate = dayjs(appConfig.date).tz("Australia/Sydney");
 
 
 async function main() {
