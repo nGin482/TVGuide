@@ -11,6 +11,12 @@ export const convertDate = (date: Date) => {
   return dayjs.utc(localTime.format('YYYY-MM-DD HH:mm:ss')).toDate();
 };
 
+export const formatDate = (date: Date, format: string = "DD MM YYYY") => {
+  const localTime = dayjs.tz(date, "Australia/Sydney");
+
+  return localTime.format(format);
+}
+
 /**
  * Format a show's episode title into a more reader-friendly appearance
  * @param episode_title 
@@ -85,7 +91,7 @@ export const parseShow = (show: ShowData): ParsedShowData => {
   return {
     title: checkShowTitles(title),
     seasonNumber: show.season_number,
-    episodeNumber: show.season_number,
+    episodeNumber: show.episode_number,
     episodeTitle: episode_title,
   };
 };

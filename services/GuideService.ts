@@ -18,6 +18,20 @@ class GuideService {
       date: date.toDate(),
     });
     await this.searchFTAGuide(guide.id, date);
+
+    await guide.reload({
+      include: [
+        {
+          model: GuideEpisode,
+          as: "shows",
+        },
+      ],
+    });
+
+    const guideMessage = guide.composeMessage();
+    const eventsMessage = guide.composeEventsMessage();
+    console.log(guideMessage)
+    console.log(eventsMessage)
   }
   
   async searchFTAGuide(guideId: number, date: Dayjs) {
@@ -108,9 +122,6 @@ class GuideService {
         guideEpisodes.push(guideEpisode);
       }
     }
-
-    const message = this.composeMessage(guideEpisodes);
-    console.log(message)
   }
 
   buildShowData = (show: ShowData): ShowData[] => {
@@ -149,19 +160,6 @@ class GuideService {
     }
 
     return episodes;
-  }
-
-  composeMessage(shows: GuideEpisode[]) {
-    let message = "\nFree to Air:\n";
-  
-    if (shows.length === 0) {
-      message += "Nothing on Free to Air today\n";
-    }
-    else {
-      shows.forEach(show => message += `* ${show.getMessageString()}\n`);
-    }
-  
-    return message;
   }
 }
 
