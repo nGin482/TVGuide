@@ -18,7 +18,7 @@
 /build
 node_modules/
 /frontend/build
-*/coverage
+coverage/
 /shows_snapshots
 
 # files

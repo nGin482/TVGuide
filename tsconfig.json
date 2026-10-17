@@ -3,6 +3,7 @@
         "esModuleInterop": true,
         "target": "es2025",
         "types": [
+            "jest",
             "node",
         ],
         "useUnknownInCatchVariables": false,
