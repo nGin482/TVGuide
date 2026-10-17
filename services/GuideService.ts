@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 
 import Guide from "../database/models/Guide";
 import GuideEpisode from "../database/models/GuideEpisode";
@@ -7,6 +7,7 @@ import Reminder from "../database/models/Reminder";
 import SearchItem from "../database/models/SearchItem";
 import ShowDetails from "../database/models/ShowDetails";
 import ShowEpisode from "../database/models/ShowEpisode";
+import { formatEpisodeTitle, parseShow } from "../utils";
 import { ABCGuide, ShowData } from "../types";
 
 class GuideService {
@@ -58,8 +59,10 @@ class GuideService {
       showA.channel.localeCompare(showB.channel)
     );
 
+    const processedShows = showsFound.flatMap(show => this.buildShowData(show));
+
     const guideEpisodes: GuideEpisode[] = [];
-    for (const show of showsFound) {
+    for (const show of processedShows) {
       const showDetails = await ShowDetails.findOne({
         where: { title: show.title },
         include: [
@@ -108,6 +111,44 @@ class GuideService {
 
     const message = this.composeMessage(guideEpisodes);
     console.log(message)
+  }
+
+  buildShowData = (show: ShowData): ShowData[] => {
+    const { title, seasonNumber, episodeNumber, episodeTitle } = parseShow(show);
+
+    const episodes: ShowData[] = [];
+    if (title.includes("Cyberverse") && episodeTitle.includes("/")) {
+      const episodeTitles = episodeTitle.split("/");
+      episodeTitles.forEach((episodeTitle, idx) => {
+        const duration = dayjs(show.end_time).diff(dayjs(show.start_time), "minutes");
+        const lastShowStartTime = dayjs(show.start_time).add(
+          Math.ceil(duration) / 2,
+          "minutes"
+        );
+        episodes.push({
+          title: title,
+          channel: show.channel,
+          start_time: idx === 0 ? show.start_time : lastShowStartTime.toDate(),
+          end_time: idx === 0 ? lastShowStartTime.toDate() : show.end_time,
+          season_number: seasonNumber,
+          episode_number: idx === 0 ? episodeNumber : episodeNumber + 1,
+          episode_title: formatEpisodeTitle(episodeTitle),
+        });
+      });
+    }
+    else {
+      episodes.push({
+        title: title,
+        channel: show.channel,
+        start_time: show.start_time,
+        end_time: show.end_time,
+        season_number: seasonNumber,
+        episode_number: episodeNumber,
+        episode_title: formatEpisodeTitle(episodeTitle),
+      });
+    }
+
+    return episodes;
   }
 
   composeMessage(shows: GuideEpisode[]) {

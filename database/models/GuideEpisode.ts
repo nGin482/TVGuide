@@ -102,7 +102,7 @@ class GuideEpisode extends Model<TGuideEpisode, Omit<TGuideEpisode, "id">> {
    */
   getEpisodeString(seasonNumberOverride?: boolean) {
     let season_number: number | "Unknown" = this.seasonNumber;
-    if (season_number && !seasonNumberOverride) {
+    if (season_number === -1 && !seasonNumberOverride) {
       season_number = "Unknown";
     }
     let info = `Season ${season_number}, Episode ${this.episodeNumber}`;

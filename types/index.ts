@@ -120,3 +120,10 @@ export interface ShowData {
   episode_title: string;
   repeat?: boolean;
 }
+
+export interface ParsedShowData {
+  title: string;
+  seasonNumber: number;
+  episodeNumber: number;
+  episodeTitle: string;
+}
