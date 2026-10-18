@@ -15,7 +15,7 @@ export const formatDate = (date: Date, format: string = "DD MM YYYY") => {
   const localTime = dayjs.tz(date, "Australia/Sydney");
 
   return localTime.format(format);
-}
+};
 
 /**
  * Format a show's episode title into a more reader-friendly appearance
@@ -52,7 +52,7 @@ export const formatSBSEpisode = (
   showTitle: string,
   episode: string
 ) => {
-  const regex = new RegExp(`${showTitle} Series (\d+) Ep (\d+/)`);
+  const regex = new RegExp(`${showTitle} Series (\\d+) Ep (\\d+)`);
   const match = regex.exec(episode);
   if (match) {
     return {
@@ -82,6 +82,8 @@ export const parseShow = (show: ShowData): ParsedShowData => {
 
   if (show.channel.includes("SBS")) {
     const sbsShow = formatSBSEpisode(show.title, show.episode_title);
+    title = sbsShow.title;
+    episode_title = sbsShow.episodeTitle;
     if (sbsShow.seasonNumber && sbsShow.episodeNumber) {
       season_number = sbsShow.seasonNumber;
       episode_number = sbsShow.episodeNumber;
@@ -90,8 +92,8 @@ export const parseShow = (show: ShowData): ParsedShowData => {
 
   return {
     title: checkShowTitles(title),
-    seasonNumber: show.season_number,
-    episodeNumber: show.episode_number,
+    seasonNumber: season_number,
+    episodeNumber: episode_number,
     episodeTitle: episode_title,
   };
 };
