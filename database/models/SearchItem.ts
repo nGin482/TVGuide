@@ -24,12 +24,12 @@ class SearchItem extends Model<TSearchItem, Omit<TSearchItem, "id">> {
       UserSearchSubscription,
       {
         foreignKey: "search_id",
-        as: "subscriptions"
+        as: "subscriptions",
       }
     );
     SearchItem.belongsTo(
       ShowDetails,
-      { foreignKey: "show_id", as: "showDetails" }
+      { foreignKey: "show_id", as: "showDetails" },
     );
   }
 
