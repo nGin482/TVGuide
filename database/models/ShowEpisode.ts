@@ -22,7 +22,7 @@ class ShowEpisode extends Model<TShowEpisode, Omit<TShowEpisode, "id">> {
   static associate() {
     ShowEpisode.belongsTo(
       ShowDetails,
-      { foreignKey: "show_id", as: "ShowDetails" }
+      { foreignKey: "show_id", as: "showDetails" }
     );
     ShowEpisode.hasMany(
       GuideEpisode,
@@ -40,6 +40,7 @@ class ShowEpisode extends Model<TShowEpisode, Omit<TShowEpisode, "id">> {
     if (season_number !== -1 && episode_number !== 0) {
       const showEpisode = ShowEpisode.findOne({
         where: {
+          show: guideEpisode.title,
           seasonNumber: season_number,
           episodeNumber: episode_number,
         },
@@ -48,7 +49,10 @@ class ShowEpisode extends Model<TShowEpisode, Omit<TShowEpisode, "id">> {
     }
     else {
       const showEpisode = ShowEpisode.findOne({
-        where: { episodeTitle: episode_title }
+        where: {
+          show: guideEpisode.title,
+          episodeTitle: episode_title,
+        }
       });
       return showEpisode;
     }

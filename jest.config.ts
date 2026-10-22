@@ -5,10 +5,12 @@ const jestConfig: Config = {
   coverageDirectory: "coverage",
   coveragePathIgnorePatterns: [
     "tests/",
+    "__tests__/__fixtures",
   ],
   preset: "ts-jest",
   testPathIgnorePatterns: [
     "frontend/tests",
+    "__tests__/__fixtures__",
   ],
   transform: {
     "^.+\\.(ts|tsx|js|jsx)$": "ts-jest",
