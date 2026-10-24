@@ -130,9 +130,10 @@ describe("GuideEpisode", () => {
           return Promise.resolve({
             ...testCreatedShowEpisode(testGuideEpisode),
             id: 1,
-          })
+          });
         }
       );
+      testGuideEpisode.showEpisode = null;
 
       await testGuideEpisode.captureDBEvent();
       
