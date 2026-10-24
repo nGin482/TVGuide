@@ -97,7 +97,7 @@ class GuideService {
           endTime: show.end_time,
           seasonNumber: show.season_number,
           episodeNumber: show.episode_number,
-          episodeTitle: show.episode_title,
+          episodeTitle: showEpisode?.episodeTitle ?? show.episode_title,
           repeat: showEpisode ? showEpisode.airDates.length > 0 : false,
           dbEvent: null,
           showId: showDetails.id,

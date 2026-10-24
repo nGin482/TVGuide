@@ -54,8 +54,7 @@ class GuideEpisode extends Model<TGuideEpisode, Omit<TGuideEpisode, "id">> {
         [...this.showEpisode.airDates, airDate]
       );
 
-      const episode_details = `Season ${this.seasonNumber} Episode ${this.episodeNumber} (${this.episodeTitle})`;
-      let dbEvent = `${episode_details} has aired today`;
+      let dbEvent = `${this.getEpisodeString()} has aired today`;
       const channels = this.showEpisode.checkChannel(this.channel);
       if (channels.length > 0) {
         dbEvent = this.showEpisode.addChannels(channels);
