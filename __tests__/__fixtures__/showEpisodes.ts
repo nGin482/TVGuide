@@ -5,6 +5,18 @@ import { ShowEpisode as TShowEpisode } from "../../types";
 export const testShowEpisodeData: TShowEpisode[] = [
   {
     id: 1,
+    show: "Merlin",
+    seasonNumber: 1,
+    episodeNumber: 1,
+    episodeTitle: "The Dragon's Call",
+    summary: "",
+    alternativeTitles: [],
+    airDates: [],
+    channels: [],
+    showId: 1,
+  },
+  {
+    id: 66,
     show: "Endeavour",
     seasonNumber: 1,
     episodeNumber: 1,
@@ -13,7 +25,7 @@ export const testShowEpisodeData: TShowEpisode[] = [
     alternativeTitles: [],
     airDates: [],
     channels: [],
-    showId: 1,
+    showId: 2,
   },
 ];
 
@@ -32,5 +44,5 @@ export const testCreatedShowEpisode = (guideEpisode: GuideEpisode) => {
     airDates: [guideEpisode.startTime],
     channels: [guideEpisode.channel],
     showId: guideEpisode.showId,
-  })
+  }) as any
 }

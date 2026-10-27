@@ -95,8 +95,8 @@ class GuideService {
           channel: show.channel,
           startTime: show.start_time,
           endTime: show.end_time,
-          seasonNumber: show.season_number,
-          episodeNumber: show.episode_number,
+          seasonNumber: showEpisode?.seasonNumber ?? show.season_number,
+          episodeNumber: showEpisode?.episodeNumber ?? show.episode_number,
           episodeTitle: showEpisode?.episodeTitle ?? show.episode_title,
           repeat: showEpisode ? showEpisode.airDates.length > 0 : false,
           dbEvent: null,
@@ -124,7 +124,7 @@ class GuideService {
     }
   }
 
-  buildShowData = (show: ShowData): ShowData[] => {
+  buildShowData(show: ShowData): ShowData[] {
     const { title, seasonNumber, episodeNumber, episodeTitle } = parseShow(show);
 
     const episodes: ShowData[] = [];
