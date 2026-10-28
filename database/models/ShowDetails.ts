@@ -16,6 +16,7 @@ class ShowDetails extends Model<TShowDetails, Omit<TShowDetails, "id">> {
   declare tvmaze_id: string;
   declare genres: string[];
   declare image: string;
+  declare reminders: Reminder[] | null;
 
   static associate() {
     ShowDetails.hasMany(

@@ -3,7 +3,7 @@ import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../connection";
 import ShowDetails from "./ShowDetails";
 import GuideEpisode from "./GuideEpisode";
-import { ShowEpisode as TShowEpisode } from "../../types";
+import { ShowData, ShowEpisode as TShowEpisode } from "../../types";
 
 
 
@@ -22,14 +22,82 @@ class ShowEpisode extends Model<TShowEpisode, Omit<TShowEpisode, "id">> {
   static associate() {
     ShowEpisode.belongsTo(
       ShowDetails,
-      { foreignKey: "show_id", as: "ShowDetails" }
+      { foreignKey: "show_id", as: "showDetails" }
     );
     ShowEpisode.hasMany(
       GuideEpisode,
       { foreignKey: "episode_id", as: "guideEpisodes" }
     );
   }
+
+  static async findShowEpisode(guideEpisode: ShowData) {
+    const { season_number, episode_number, episode_title } = guideEpisode;
+
+    if (season_number === -1 && episode_number === 0 && episode_title === "") {
+      return null;
+    }
+
+    if (season_number !== -1 && episode_number !== 0) {
+      const showEpisode = ShowEpisode.findOne({
+        where: {
+          show: guideEpisode.title,
+          seasonNumber: season_number,
+          episodeNumber: episode_number,
+        },
+      });
+      return showEpisode;
+    }
+    else {
+      const showEpisode = ShowEpisode.findOne({
+        where: {
+          show: guideEpisode.title,
+          episodeTitle: episode_title,
+        }
+      });
+      return showEpisode;
+    }
+  }
+
+  /**
+    * Check that the given episode is present in the episode's channel list.
+    * Return True if present, False if not.
+    * 
+    * If `ABC1` is present, also check `ABCHD`.
+    * If `SBS` is present, also check `SBSHD`.
+    * If `10` is present, also check `TENHD`.
+   * @param channel 
+   * @returns an array of the missing channels
+   */
+  checkChannel(channel: string) {
+    const missingChannels: string[] = [];
+    if (!this.channels.includes(channel)) {
+      missingChannels.push(channel);
+    }
+
+    if (this.channels.includes("ABC1") && !this.channels.includes("ABCHD")) {
+      missingChannels.push("ABCHD");
+    }
+    if (this.channels.includes("SBS") && !this.channels.includes("SBSHD")) {
+      missingChannels.push("SBSHD");
+    }
+    if (this.channels.includes("10") && !this.channels.includes("TENHD")) {
+      missingChannels.push("TENHD");
+    }
+    
+    return missingChannels;
+  }
+  
+  addChannels(channels: string[]) {
+    const updatedChannels = [...this.channels, ...channels];
+    this.set("channels", updatedChannels);
+    this.channels = updatedChannels;
+
+    const word = channels.length > 1 ? "have" : "has";
+    return `${channels.join(", ")} ${word} been added to the channel list`;
+  }
 }
+
+
 
 ShowEpisode.init(
   {
@@ -37,6 +105,7 @@ ShowEpisode.init(
       type: DataTypes.INTEGER,
       primaryKey: true,
       allowNull: false,
+      autoIncrement: true,
     },
     show: {
       type: DataTypes.TEXT,

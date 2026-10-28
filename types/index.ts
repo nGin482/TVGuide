@@ -14,10 +14,10 @@ export interface GuideEpisode {
   episodeNumber: number;
   episodeTitle: string;
   repeat: boolean;
-  dbEvent: string;
+  dbEvent: string | null;
   showId: number;
-  episodeId: number;
-  reminderId: string;
+  episodeId: number | null;
+  reminderId: number | null;
 }
 
 export interface ShowDetails {
@@ -75,4 +75,55 @@ export interface UserSearchSubscription {
   id: number;
   userId: number;
   searchId: number;
+}
+
+export interface ABCGuide {
+  region: "Sydney";
+  date: string;
+  schedule: GuideSchedule[];
+}
+
+interface GuideSchedule {
+  channel: string;
+  listing: ScheduleShow[];
+}
+
+export interface ScheduleShow {
+  start_time: string;
+  end_time: string;
+  show_id: number;
+  show_type: string;
+  title: string;
+  episode_num?: number;
+  series_num?: number;
+  episode_title?: string;
+  description: string;
+  length: number;
+  rating: string;
+  consumer_advice: string;
+  repeat: boolean;
+  captioning: boolean;
+  live: boolean;
+  genres: string[];
+  crid: string;
+  "series-crid": string;
+  image_file: string;
+}
+
+export interface ShowData {
+  title: string;
+  channel: string;
+  start_time: Date;
+  end_time: Date;
+  season_number: number;
+  episode_number: number;
+  episode_title: string;
+  repeat?: boolean;
+}
+
+export interface ParsedShowData {
+  title: string;
+  seasonNumber: number;
+  episodeNumber: number;
+  episodeTitle: string;
 }

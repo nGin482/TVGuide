@@ -1,4 +1,5 @@
 import { DataTypes, Model } from "sequelize";
+import dayjs, { Dayjs } from "dayjs";
 
 import { sequelize } from "../connection";
 import Guide from "./Guide";
@@ -6,6 +7,7 @@ import ShowDetails from "./ShowDetails";
 import Reminder from "./Reminder";
 import ShowEpisode from "./ShowEpisode";
 import { GuideEpisode as TGuideEpisode } from "../../types";
+import { convertDate } from "../../utils";
 
 
 
@@ -23,7 +25,10 @@ class GuideEpisode extends Model<TGuideEpisode, Omit<TGuideEpisode, "id">> {
   declare dbEvent: string;
   declare showId: number;
   declare episodeId: number;
-  declare reminderId: string;
+  declare reminderId: number;
+  declare showDetails: ShowDetails;
+  declare showEpisode: ShowEpisode | null;
+  declare reminder: Reminder | null;
 
   static associate() {
     GuideEpisode.belongsTo(Guide, { foreignKey: "guide_id" });
@@ -40,6 +45,72 @@ class GuideEpisode extends Model<TGuideEpisode, Omit<TGuideEpisode, "id">> {
       { foreignKey: "reminder_id", as: "reminder" }
     );
   }
+
+  async captureDBEvent() {
+    if (this.showEpisode) {
+      const airDate = convertDate(this.startTime);
+      this.showEpisode.set(
+        "airDates",
+        [...this.showEpisode.airDates, airDate]
+      );
+
+      let dbEvent = `${this.getEpisodeString()} has aired today`;
+      const channels = this.showEpisode.checkChannel(this.channel);
+      if (channels.length > 0) {
+        dbEvent = this.showEpisode.addChannels(channels);
+      }
+      await this.showEpisode.save();
+      return await this.update({ dbEvent: dbEvent });
+    }
+    else {
+      const showEpisode = await ShowEpisode.create({
+        show: this.title,
+        seasonNumber: this.seasonNumber,
+        episodeNumber: this.episodeNumber,
+        episodeTitle: this.episodeTitle,
+        summary: "",
+        alternativeTitles: [],
+        airDates: [convertDate(this.startTime)],
+        channels: [this.channel],
+        showId: this.showId,
+      });
+      const dbEvent = `${this.getEpisodeString(true)} has been inserted`;
+      return await this.update({
+        episodeId: showEpisode.id,
+        dbEvent: dbEvent,
+      });
+    }
+  }
+
+  getMessageString() {
+    const startTime = dayjs(this.startTime).format("HH:mm");
+    let message = `${startTime}: ${this.title} is on ${this.channel}`;
+    message += ` (${this.getEpisodeString()})`;
+    if (this.repeat) {
+      message += ` (Repeat)`;
+    }
+    return message;
+  }
+
+  /**
+   * 
+   * @param seasonNumberOverride Should be passed in if season number could be -1.
+   * 
+   * Pass in to keep the season number as -1. Otherwise, will default to "Unknown"
+   * @returns 
+   */
+  getEpisodeString(seasonNumberOverride?: boolean) {
+    let season_number: number | "Unknown" = this.seasonNumber;
+    if (season_number === -1 && !seasonNumberOverride) {
+      season_number = "Unknown";
+    }
+    let info = `Season ${season_number}, Episode ${this.episodeNumber}`;
+    if (this.episodeTitle) {
+      info += `: ${this.episodeTitle}`;
+    }
+
+    return info;
+  }
 }
 
 
@@ -49,6 +120,7 @@ GuideEpisode.init(
       type: DataTypes.INTEGER,
       primaryKey: true,
       allowNull: false,
+      autoIncrement: true,
     },
     guideId: {
       type: DataTypes.INTEGER,
@@ -94,7 +166,6 @@ GuideEpisode.init(
     },
     dbEvent: {
       type: DataTypes.TEXT,
-      allowNull: false,
       field: "db_event",
     },
     showId: {
@@ -104,7 +175,7 @@ GuideEpisode.init(
     },
     episodeId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       field: "episode_id",
     },
     reminderId: {
