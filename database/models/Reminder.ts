@@ -1,4 +1,5 @@
 import { DataTypes, Model } from "sequelize";
+import dayjs from "dayjs";
 
 import { sequelize } from "../connection";
 import ShowDetails from "./ShowDetails";
@@ -11,7 +12,7 @@ class Reminder extends Model<TReminder, Omit<TReminder, "id">> {
   declare id: number;
   declare show: string;
   declare alert: "Before" | "During" | "After";
-  declare warning_time: number;
+  declare warningTime: number;
   declare occasions: string;
   declare show_id: number;
 
@@ -24,6 +25,16 @@ class Reminder extends Model<TReminder, Omit<TReminder, "id">> {
       GuideEpisode,
       { foreignKey: "reminder_id", as: "guideEpisodes" }
     );
+  }
+
+  calculateNotificationTime(startTime: Date) {
+    if (this.alert === "During") {
+      return startTime;
+    }
+    else if (this.alert === "After") {
+      return dayjs(startTime).add(this.warningTime, "minutes").toDate();
+    }
+    return dayjs(startTime).subtract(this.warningTime, "minutes").toDate();
   }
 }
 
