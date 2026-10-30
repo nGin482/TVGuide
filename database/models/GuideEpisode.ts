@@ -7,7 +7,7 @@ import ShowDetails from "./ShowDetails";
 import Reminder from "./Reminder";
 import ShowEpisode from "./ShowEpisode";
 import { GuideEpisode as TGuideEpisode } from "../../types";
-import { convertDate } from "../../utils";
+import { convertDate, formatDate } from "../../utils";
 
 
 
@@ -111,6 +111,17 @@ class GuideEpisode extends Model<TGuideEpisode, Omit<TGuideEpisode, "id">> {
 
     return info;
   }
+
+  reminderNotification() {
+    const formattedTime = formatDate(this.startTime, "HH:mm");
+    return `REMINDER: ${this.title} is on ${this.channel} at ${formattedTime}`;
+  }
+    
+  reminderMessage(notifyTime: Date) {
+    const formattedTime = formatDate(notifyTime, "HH:mm");
+    return `${this.reminderNotification()}.\nYou will be reminded at ${formattedTime}`;
+  }
+    
 }
 
 

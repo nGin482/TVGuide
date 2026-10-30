@@ -8,7 +8,7 @@ import SearchItem from "../database/models/SearchItem";
 import ShowDetails from "../database/models/ShowDetails";
 import ShowEpisode from "../database/models/ShowEpisode";
 import { formatEpisodeTitle, parseShow } from "../utils";
-import { ABCGuide, ShowData, UpcomingReminders } from "../types";
+import { ABCGuide, ShowData } from "../types";
 
 class GuideService {
 
@@ -33,11 +33,16 @@ class GuideService {
         },
       ],
     });
-    console.log(this.findUpcomingReminders(guide));
+
+    const upcomingReminders = guide.findUpcomingReminders();
 
     const guideMessage = guide.composeMessage();
+    const reminderMessage = guide.composeReminderMessage(upcomingReminders);
     const eventsMessage = guide.composeEventsMessage();
     console.log(guideMessage)
+    console.log("-------------------------------------------------------------")
+    console.log(reminderMessage)
+    console.log("-------------------------------------------------------------")
     console.log(eventsMessage)
   }
   
@@ -133,19 +138,6 @@ class GuideService {
         guideEpisodes.push(guideEpisode);
       }
     }
-  }
-
-  findUpcomingReminders(guide: Guide): UpcomingReminders[] {
-    const upcomingReminders = guide.shows.filter(show => 
-      show.reminder &&
-      !show.channel.includes("HD") &&
-      dayjs(show.startTime).isAfter(guide.date, "hour")
-    );
-
-    return upcomingReminders.map(show => ({
-      show: show,
-      notifyTime: show.reminder!.calculateNotificationTime(show.startTime),
-    }));
   }
 
   buildShowData(show: ShowData): ShowData[] {

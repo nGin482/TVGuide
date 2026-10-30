@@ -1,5 +1,3 @@
-import { Dayjs } from "dayjs";
-
 export interface Guide {
   id: string;
   date: Date;
@@ -128,9 +126,4 @@ export interface ParsedShowData {
   seasonNumber: number;
   episodeNumber: number;
   episodeTitle: string;
-}
-
-export interface UpcomingReminders {
-  show: GuideEpisode;
-  notifyTime: Date;
 }

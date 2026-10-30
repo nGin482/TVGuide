@@ -1,9 +1,15 @@
 import { DataTypes, Model } from "sequelize";
+import dayjs from "dayjs";
 
 import { sequelize } from "../connection";
 import GuideEpisode from "./GuideEpisode";
 import { formatDate } from "../../utils";
 import { Guide as TGuide } from "../../types";
+
+interface UpcomingReminders {
+  show: GuideEpisode;
+  notifyTime: Date;
+}
 
 
 
@@ -14,6 +20,19 @@ class Guide extends Model<TGuide, Omit<TGuide, "id">> {
 
   static associate() {
     Guide.hasMany(GuideEpisode, { foreignKey: "guide_id", as: "shows" });
+  }
+  
+  findUpcomingReminders(): UpcomingReminders[] {
+    const upcomingReminders = this.shows.filter(show => 
+      show.reminder &&
+      !show.channel.includes("HD") &&
+      dayjs(show.startTime).isAfter(this.date, "hour")
+    );
+
+    return upcomingReminders.map(show => ({
+      show: show,
+      notifyTime: show.reminder!.calculateNotificationTime(show.startTime),
+    }));
   }
 
   composeMessage() {
@@ -27,6 +46,21 @@ class Guide extends Model<TGuide, Omit<TGuide, "id">> {
      this.shows.forEach(show => message += `* ${show.getMessageString()}\n`);
     }
   
+    return message;
+  }
+
+  composeReminderMessage(shows: UpcomingReminders[]) {
+    let message = "## Reminders\n";
+
+    if (shows.length > 0) {
+      message += shows.map(
+        upcomingShow => upcomingShow.show.reminderMessage(upcomingShow.notifyTime)
+      ).join("\n");
+    }
+    else {
+      message += "\nThere are no reminders scheduled for today";
+    }
+
     return message;
   }
 
