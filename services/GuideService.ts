@@ -24,13 +24,25 @@ class GuideService {
         {
           model: GuideEpisode,
           as: "shows",
+          include: [
+            {
+              model: Reminder, 
+              as: "reminder", 
+            }
+          ]
         },
       ],
     });
 
+    const upcomingReminders = guide.findUpcomingReminders();
+
     const guideMessage = guide.composeMessage();
+    const reminderMessage = guide.composeReminderMessage(upcomingReminders);
     const eventsMessage = guide.composeEventsMessage();
     console.log(guideMessage)
+    console.log("-------------------------------------------------------------")
+    console.log(reminderMessage)
+    console.log("-------------------------------------------------------------")
     console.log(eventsMessage)
   }
   
@@ -111,6 +123,10 @@ class GuideService {
             {
               model: ShowEpisode,
               as: "showEpisode",
+            },
+            {
+              model: Reminder,
+              as: "reminder",
             },
           ],
         });

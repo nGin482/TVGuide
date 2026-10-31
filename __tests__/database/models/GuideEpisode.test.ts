@@ -3,15 +3,20 @@ import GuideEpisode from "../../../database/models/GuideEpisode";
 import Reminder from "../../../database/models/Reminder";
 import ShowDetails from "../../../database/models/ShowDetails";
 import ShowEpisode from "../../../database/models/ShowEpisode";
-import { convertDate } from "../../../utils";
+import { convertDate, formatDate } from "../../../utils";
 
-import { testCreatedShowEpisode, testShowEpisodes } from "../../__fixtures__/showEpisodes";
+import {
+  testCreatedShowEpisode,
+  testShowEpisodes,
+} from "../../__fixtures__/showEpisodes";
 
 jest.mock("../../../utils", () => ({
   convertDate: jest.fn(),
+  formatDate: jest.fn(),
 }));
 
 const mockedConvertDate = jest.mocked(convertDate);
+const mockedFormatDate = jest.mocked(formatDate);
 
 
 describe("GuideEpisode", () => {
@@ -274,6 +279,60 @@ describe("GuideEpisode", () => {
       const episodeMessage = testGuideEpisode.getEpisodeString(true);
 
       expect(episodeMessage).toEqual("Season -1, Episode 2: Fugue");
+    });
+  });
+
+  describe("reminderNotification", () => {
+    it("returns the content of a reminder notification", () => {
+      mockedFormatDate.mockReturnValueOnce("20:30");
+
+      const testGuideEpisode = GuideEpisode.build({
+        title: "Endeavour",
+        channel: "ABC1",
+        startTime: new Date("2026-10-22T20:30:00"),
+        endTime: new Date("2026-10-22T22:00:00"),
+        seasonNumber: -1,
+        episodeNumber: 2,
+        episodeTitle: "Fugue",
+        repeat: true,
+        guideId: 1,
+        showId: 2,
+      });
+
+      const notification = testGuideEpisode.reminderNotification();
+
+      expect(notification).toEqual(
+        "REMINDER: Endeavour is on ABC1 at 20:30"
+      );
+    });
+  });
+
+  describe("reminderMessage", () => {
+    it("returns the content of a reminder message", () => {
+      mockedFormatDate
+      .mockReturnValueOnce("20:27")
+      .mockReturnValueOnce("20:30");
+
+      const testGuideEpisode = GuideEpisode.build({
+        title: "Endeavour",
+        channel: "ABC1",
+        startTime: new Date("2026-10-22T20:30:00"),
+        endTime: new Date("2026-10-22T22:00:00"),
+        seasonNumber: -1,
+        episodeNumber: 2,
+        episodeTitle: "Fugue",
+        repeat: true,
+        guideId: 1,
+        showId: 2,
+      });
+
+      const message = testGuideEpisode.reminderMessage(
+        new Date("2026-10-22T20:27:00")
+      );
+
+      expect(message).toEqual(
+        "REMINDER: Endeavour is on ABC1 at 20:30.\nYou will be reminded at 20:27"
+      );
     });
   });
 });
