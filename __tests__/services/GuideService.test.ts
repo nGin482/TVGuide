@@ -1,6 +1,7 @@
 import axios from "axios";
 import dayjs from "dayjs";
 
+import Guide from "../../database/models/Guide";
 import GuideEpisode from "../../database/models/GuideEpisode";
 import SearchItem from "../../database/models/SearchItem";
 import ShowDetails from "../../database/models/ShowDetails";
@@ -11,9 +12,8 @@ import { convertDate, formatDate } from "../../utils";
 import { testABCGuide } from "../__fixtures__/abcGuide";
 import { testGuideEpisodes } from "../__fixtures__/guideEpisodes";
 import { testSearchItems } from "../__fixtures__/searchItems";
-import { testShowDetailsData, testShowDetails } from "../__fixtures__/showDetails";
+import { testShowDetails } from "../__fixtures__/showDetails";
 import { testShowEpisodeData, testShowEpisodes } from "../__fixtures__/showEpisodes";
-import Guide from "../../database/models/Guide";
 
 jest.mock("axios");
 jest.mock("../../utils", () => {
@@ -39,6 +39,10 @@ describe("GuideService", () => {
   });
 
   describe("createNewGuide", () => {
+    beforeEach(() => {
+      jest.spyOn(console, "log").mockImplementation();
+    });
+
     it("creates a new guide", async () => {
       const date = dayjs("2026-10-25T09:00:00");
       const testGuide = Guide.build({
@@ -59,6 +63,7 @@ describe("GuideService", () => {
           return Promise.resolve(testGuide);
         });
       jest.spyOn(Guide, "create").mockResolvedValueOnce(testGuide);
+      jest.spyOn(Guide.prototype, "findUpcomingReminders").mockReturnValueOnce([]);
       mockedFormatDate.mockReturnValueOnce(date.format("DD MM YYYY"));
       
       await guideService.createNewGuide(date);
@@ -73,12 +78,14 @@ describe("GuideService", () => {
         date: date.toDate(),
       });
 
-      const searchFTAGuideSpy = jest.spyOn(
-        GuideService.prototype,
-        "searchFTAGuide"
-      ).mockResolvedValueOnce(undefined);
-      const mockReload = jest
-        .spyOn(Guide.prototype, "reload")
+      const reminderMessage = `## Reminders
+REMINDER: Endeavour is on ABC1 at 20:30.
+You will be reminded at 20:27
+REMINDER: Merlin is on ABC2 at 22:00.
+You will be reminded at 21:55`;
+
+      jest.spyOn(GuideService.prototype, "searchFTAGuide").mockResolvedValueOnce();
+      jest.spyOn(Guide.prototype, "reload")
         .mockImplementationOnce(() => {
           testGuide.shows = testGuideEpisodes([
             { dbEvent: "Season 1, Episode 2 has aired today" },
@@ -87,6 +94,8 @@ describe("GuideService", () => {
           return Promise.resolve(testGuide);
         });
       jest.spyOn(Guide, "create").mockResolvedValueOnce(testGuide);
+      jest.spyOn(Guide.prototype, "composeReminderMessage")
+        .mockReturnValueOnce(reminderMessage);
       mockedFormatDate
         .mockReturnValueOnce(date.format("dddd DD MM YYYY"))
         .mockReturnValueOnce(date.format("dddd DD MM YYYY"));
@@ -104,7 +113,11 @@ Free to Air:
 `
       );
       expect(consoleSpy).toHaveBeenNthCalledWith(
-        2,
+        3,
+        reminderMessage
+      );
+      expect(consoleSpy).toHaveBeenNthCalledWith(
+        5,
         `# Events - Sunday 25 10 2026
 * Endeavour - Season 1, Episode 2 has aired today
 * Merlin - Season 1, Episode 1 (The Dragon's Call) has been inserted`
