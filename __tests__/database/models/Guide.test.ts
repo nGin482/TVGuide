@@ -1,5 +1,6 @@
 import Guide from "../../../database/models/Guide";
 import GuideEpisode from "../../../database/models/GuideEpisode";
+import Reminder from "../../../database/models/Reminder";
 import { formatDate } from "../../../utils";
 
 import { testGuideEpisodes } from "../../__fixtures__/guideEpisodes";
@@ -26,6 +27,150 @@ describe("Guide model", () => {
           as: "shows",
         }),
       );
+    });
+  });
+
+  describe("findUpcomingReminders", () => {
+    it("finds shows that need reminders", () => {
+      const guide = Guide.build({
+        date: new Date("2026-10-24T00:00:00"),
+      });
+  
+      const guideEpisodes = testGuideEpisodes([
+        { startTime: new Date("2026-10-24T20:30:00") },
+        { startTime: new Date("2026-10-24T22:00:00") },
+      ]);
+      guideEpisodes[0].reminder = Reminder.build({
+        show: guideEpisodes[0].title,
+        alert: "Before",
+        occasions: "all",
+        showId: guideEpisodes[0].showId,
+        warningTime: 3,
+      });
+      guideEpisodes[1].reminder = Reminder.build({
+        show: guideEpisodes[1].title,
+        alert: "Before",
+        occasions: "all",
+        showId: guideEpisodes[1].showId,
+        warningTime: 5,
+      });
+      guide.shows = guideEpisodes;
+  
+      const upcomingReminders = guide.findUpcomingReminders();
+  
+      expect(upcomingReminders).toEqual([
+        {
+          show: guideEpisodes[0],
+          notifyTime: new Date("2026-10-24T20:27:00"),
+        },
+        {
+          show: guideEpisodes[1],
+          notifyTime: new Date("2026-10-24T21:55:00"),
+        },
+      ]);
+    });
+
+    it("filters out shows without a reminder", () => {
+      const guide = Guide.build({
+        date: new Date("2026-10-24T00:00:00"),
+      });
+  
+      const guideEpisodes = testGuideEpisodes([
+        { startTime: new Date("2026-10-24T20:30:00") },
+        { startTime: new Date("2026-10-24T22:00:00") },
+      ]);
+      guideEpisodes[0].reminder = Reminder.build({
+        show: guideEpisodes[0].title,
+        alert: "Before",
+        occasions: "all",
+        showId: guideEpisodes[0].showId,
+        warningTime: 3,
+      });
+      guide.shows = guideEpisodes;
+  
+      const upcomingReminders = guide.findUpcomingReminders();
+  
+      expect(upcomingReminders).toEqual([
+        {
+          show: guideEpisodes[0],
+          notifyTime: new Date("2026-10-24T20:27:00"),
+        },
+      ]);
+    });
+
+    it("filters out shows airing on a HD channel", () => {
+      const guide = Guide.build({
+        date: new Date("2026-10-24T00:00:00"),
+      });
+  
+      const guideEpisodes = testGuideEpisodes([
+        { startTime: new Date("2026-10-24T20:30:00") },
+        {
+          startTime: new Date("2026-10-24T22:00:00"),
+          channel: "ABCHD",
+        },
+      ]);
+      guideEpisodes[0].reminder = Reminder.build({
+        show: guideEpisodes[0].title,
+        alert: "Before",
+        occasions: "all",
+        showId: guideEpisodes[0].showId,
+        warningTime: 3,
+      });
+      guideEpisodes[1].reminder = Reminder.build({
+        show: guideEpisodes[1].title,
+        alert: "Before",
+        occasions: "all",
+        showId: guideEpisodes[1].showId,
+        warningTime: 5,
+      });
+      guide.shows = guideEpisodes;
+  
+      const upcomingReminders = guide.findUpcomingReminders();
+  
+      expect(upcomingReminders).toEqual([
+        {
+          show: guideEpisodes[0],
+          notifyTime: new Date("2026-10-24T20:27:00"),
+        },
+      ]);
+    });
+
+    it("filters out shows airing before the Guide was created", () => {
+      const guide = Guide.build({
+        date: new Date("2026-10-24T12:00:00"),
+      });
+  
+      const guideEpisodes = testGuideEpisodes([
+        { startTime: new Date("2026-10-24T20:30:00") },
+        {
+          startTime: new Date("2026-10-24T10:00:00"),
+        },
+      ]);
+      guideEpisodes[0].reminder = Reminder.build({
+        show: guideEpisodes[0].title,
+        alert: "Before",
+        occasions: "all",
+        showId: guideEpisodes[0].showId,
+        warningTime: 3,
+      });
+      guideEpisodes[1].reminder = Reminder.build({
+        show: guideEpisodes[1].title,
+        alert: "Before",
+        occasions: "all",
+        showId: guideEpisodes[1].showId,
+        warningTime: 5,
+      });
+      guide.shows = guideEpisodes;
+  
+      const upcomingReminders = guide.findUpcomingReminders();
+  
+      expect(upcomingReminders).toEqual([
+        {
+          show: guideEpisodes[0],
+          notifyTime: new Date("2026-10-24T20:27:00"),
+        },
+      ]);
     });
   });
 
@@ -59,6 +204,49 @@ Free to Air:
 Free to Air:
 Nothing on Free to Air today
 `);
+    });
+  });
+
+  describe("composeReminderMessage", () => {
+    const guide = Guide.build({
+      date: new Date("2026-10-31T00:00:00"),
+    });
+
+    it("composes a reminder message for upcoming reminders", () => {
+      mockedFormatDate
+        .mockReturnValueOnce("20:27")
+        .mockReturnValueOnce("20:30")
+        .mockReturnValueOnce("21:55")
+        .mockReturnValueOnce("22:00")
+      const guideEpisodes = testGuideEpisodes([
+        { startTime: new Date("2026-10-31T20:30:00") },
+        { startTime: new Date("2026-10-31T22:00:00") },
+      ]);
+
+      const message = guide.composeReminderMessage([
+        {
+          show: guideEpisodes[0],
+          notifyTime: new Date("2026-10-31T20:27:00"),
+        },
+        {
+          show: guideEpisodes[1],
+          notifyTime: new Date("2026-10-31T21:55:00"),
+        },
+      ]);
+
+      expect(message).toEqual(`## Reminders
+REMINDER: Endeavour is on ABC1 at 20:30.
+You will be reminded at 20:27
+REMINDER: Merlin is on ABC2 at 22:00.
+You will be reminded at 21:55`);
+    });
+
+    it("composes a reminder message when there's no upcoming reminders", () => {
+      const message = guide.composeReminderMessage([]);
+
+      expect(message).toEqual(
+        `## Reminders\n\nThere are no reminders scheduled for today`
+      );
     });
   });
 
