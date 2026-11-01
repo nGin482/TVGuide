@@ -19,12 +19,17 @@ const guideDate = dayjs(appConfig.date).tz("Australia/Sydney");
 
 
 async function main() {
-  hermes.login(token);
+  await hermes.login(token);
 
-  // await connectDB();
+  await connectDB();
 
-  // const guideService = new GuideService();
-  // await guideService.createNewGuide(guideDate);
+  const guideService = new GuideService();
+  await guideService.createNewGuide(guideDate);
+
+  if (process.env.NODE_ENV === "development") {
+    await hermes.destroy();
+    console.log(hermes.user?.username, "signed out");
+  }
 }
 
 main();

@@ -7,6 +7,7 @@ import Reminder from "../database/models/Reminder";
 import SearchItem from "../database/models/SearchItem";
 import ShowDetails from "../database/models/ShowDetails";
 import ShowEpisode from "../database/models/ShowEpisode";
+import { hermes } from "./hermes/Hermes";
 import { formatEpisodeTitle, parseShow } from "../utils";
 import { ABCGuide, ShowData } from "../types";
 
@@ -39,11 +40,8 @@ class GuideService {
     const guideMessage = guide.composeMessage();
     const reminderMessage = guide.composeReminderMessage(upcomingReminders);
     const eventsMessage = guide.composeEventsMessage();
-    console.log(guideMessage)
-    console.log("-------------------------------------------------------------")
-    console.log(reminderMessage)
-    console.log("-------------------------------------------------------------")
-    console.log(eventsMessage)
+    
+    await hermes.sendGuideMessage(guideMessage, reminderMessage, eventsMessage);
   }
   
   async searchFTAGuide(guideId: number, date: Dayjs) {
