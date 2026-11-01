@@ -1,5 +1,7 @@
 import { ChannelType, Client, GatewayIntentBits } from "discord.js";
 
+import { appConfig } from "../../config";
+
 
 
 class Hermes extends Client {
@@ -20,10 +22,7 @@ class Hermes extends Client {
     eventsMessage: string
   ) {
     const guideChannel = await this.getGuideChannel();
-    if (!process.env.NGIN) {
-      throw Error("Environment variable for NGin user not set");
-    }
-    const nginUser = this.users.cache.get(process.env.NGIN);
+    const nginUser = this.users.cache.get(appConfig.nGinUserId);
 
     if (guideChannel) {
       await guideChannel.send(guideMessage);
@@ -38,23 +37,13 @@ class Hermes extends Client {
   }
 
   async getGuideChannel() {
-    let guideChannelId: string;
-    if (process.env.NODE_ENV === "development") {
-      if (!process.env.DEV_CHANNEL) {
-        throw Error("Environment variable for DEV channel not set");
-      }
-      guideChannelId = process.env.DEV_CHANNEL;
-    }
-    else {
-      if (!process.env.TVGUIDE_CHANNEL) {
-        throw Error("Environment variable for TVGuide channel not set");
-      }
-      guideChannelId = process.env.TVGUIDE_CHANNEL;
-    }
-    const channel = this.channels.cache.get(guideChannelId);
+    const channel = this.channels.cache.get(appConfig.tvguideChannelId);
   
     if (channel && channel.type === ChannelType.GuildText) {
       return channel;
+    }
+    else {
+      throw Error("Cannot find TVGuide channel");
     }
   }
 }
