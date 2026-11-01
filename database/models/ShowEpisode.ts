@@ -1,4 +1,4 @@
-import { DataTypes, Model } from "sequelize";
+import { DataTypes, Model, Op } from "sequelize";
 
 import { sequelize } from "../connection";
 import ShowDetails from "./ShowDetails";
@@ -51,7 +51,9 @@ class ShowEpisode extends Model<TShowEpisode, Omit<TShowEpisode, "id">> {
       const showEpisode = ShowEpisode.findOne({
         where: {
           show: guideEpisode.title,
-          episodeTitle: episode_title,
+          episodeTitle: {
+            [Op.iLike]: guideEpisode.episode_title,
+          },
         }
       });
       return showEpisode;
