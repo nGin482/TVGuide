@@ -11,6 +11,7 @@ const jestConfig: Config = {
   testPathIgnorePatterns: [
     "frontend/tests",
     "__tests__/__fixtures__",
+    "__tests__/__mocks__",
   ],
   transform: {
     "^.+\\.(ts|tsx|js|jsx)$": "ts-jest",

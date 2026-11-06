@@ -21,9 +21,10 @@ class Hermes extends Client {
     reminderMessage: string,
     eventsMessage: string
   ) {
-    const guideChannel = await this.getGuideChannel();
+    const guideChannel = this.getGuideChannel();
     const nginUser = this.users.cache.get(appConfig.nGinUserId);
 
+    // TODO: will silently fail if guideChannel isn't found
     if (guideChannel) {
       await guideChannel.send(guideMessage);
       await guideChannel.send(reminderMessage);
@@ -36,7 +37,7 @@ class Hermes extends Client {
     }
   }
 
-  async getGuideChannel() {
+  getGuideChannel() {
     const channel = this.channels.cache.get(appConfig.tvguideChannelId);
   
     if (channel && channel.type === ChannelType.GuildText) {
