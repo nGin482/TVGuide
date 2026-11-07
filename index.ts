@@ -21,7 +21,7 @@ async function main() {
   const guideService = new GuideService();
   await guideService.createNewGuide(guideDate);
 
-  if (process.env.NODE_ENV === "development") {
+  if (appConfig.environment === "development") {
     await hermes.destroy();
     console.log(hermes.user?.username, "signed out");
   }

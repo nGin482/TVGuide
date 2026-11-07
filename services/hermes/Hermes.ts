@@ -21,7 +21,7 @@ class Hermes extends Client {
     reminderMessage: string,
     eventsMessage: string
   ) {
-    const isProduction = process.env.NODE_ENV === "production";
+    const isProduction = appConfig.environment === "production";
     const guideChannel = this.getGuideChannel();
     const nginUser = this.users.cache.get(appConfig.nGinUserId);
 

@@ -8,6 +8,7 @@ interface Config {
   hermesToken: string;
   tvguideChannelId: string;
   nGinUserId: string;
+  environment: string;
   date?: string;
   verbose?: boolean;
 }
@@ -44,6 +45,7 @@ export const appConfig: Config = {
   hermesToken: getEnvironmentVariable("HERMES"),
   tvguideChannelId: getEnvironmentVariable("TVGUIDE_CHANNEL"),
   nGinUserId: getEnvironmentVariable("NGIN"),
+  environment: getEnvironmentVariable("NODE_ENV"),
   date: date,
   verbose: verbose,
 };
