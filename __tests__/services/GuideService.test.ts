@@ -14,8 +14,10 @@ import { testGuideEpisodes } from "../__fixtures__/guideEpisodes";
 import { testSearchItems } from "../__fixtures__/searchItems";
 import { testShowDetails } from "../__fixtures__/showDetails";
 import { testShowEpisodeData, testShowEpisodes } from "../__fixtures__/showEpisodes";
+import { hermes } from "../../services/hermes/Hermes";
 
 jest.mock("axios");
+jest.mock("../../services/hermes/Hermes");
 jest.mock("../../utils", () => {
   const actualUtils = jest.requireActual("../../utils");
   return {
@@ -27,6 +29,7 @@ jest.mock("../../utils", () => {
 
 const mockedAxios = jest.mocked(axios);
 
+const mockedHermes = jest.mocked(hermes);
 const mockedConvertDate = jest.mocked(convertDate);
 const mockedFormatDate = jest.mocked(formatDate);
 
@@ -72,7 +75,7 @@ describe("GuideService", () => {
       expect(mockReload).toHaveBeenCalled();
     });
 
-    it("logs the guide messages", async () => {
+    it("sends the guide messages", async () => {
       const date = dayjs("2026-10-25T09:00:00");
       const testGuide = Guide.build({
         date: date.toDate(),
@@ -99,25 +102,17 @@ You will be reminded at 21:55`;
       mockedFormatDate
         .mockReturnValueOnce(date.format("dddd DD MM YYYY"))
         .mockReturnValueOnce(date.format("dddd DD MM YYYY"));
-      const consoleSpy = jest.spyOn(console, "log");
       
       await guideService.createNewGuide(date);
 
-      expect(consoleSpy).toHaveBeenNthCalledWith(
-        1,
+      expect(mockedHermes.sendGuideMessage).toHaveBeenCalledWith(
         `# Sunday 25 10 2026 TVGuide
 
 Free to Air:
 * 20:30: Endeavour is on ABC1 (Season 1, Episode 2: Fugue) (Repeat)
 * 22:57: Merlin is on ABC2 (Season 1, Episode 1: The Dragon's Call) (Repeat)
-`
-      );
-      expect(consoleSpy).toHaveBeenNthCalledWith(
-        3,
-        reminderMessage
-      );
-      expect(consoleSpy).toHaveBeenNthCalledWith(
-        5,
+`,
+        reminderMessage,
         `# Events - Sunday 25 10 2026
 * Endeavour - Season 1, Episode 2 has aired today
 * Merlin - Season 1, Episode 1 (The Dragon's Call) has been inserted`
