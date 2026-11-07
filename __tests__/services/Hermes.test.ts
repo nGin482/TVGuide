@@ -58,6 +58,20 @@ describe("Hermes", () => {
       expect(mockSend).toHaveBeenNthCalledWith(2, "Reminder message");
       expect(mockSend).toHaveBeenNthCalledWith(3, "Events message");
     });
+
+    it("throws error if nGin user isn't found in production", async () => {
+      process.env.NODE_ENV = "production";
+      mockGetChannels.mockReturnValueOnce(createMockTextChannel({
+        name: "tvguide",
+      }));
+      mockGetUsers.mockReturnValueOnce(undefined);
+
+      await expect(async () => await hermes.sendGuideMessage(
+        "TVGuide message",
+        "Reminder message",
+        "Events message",
+      )).rejects.toThrow("NGin user not found");
+    });
   });
 
   describe("getGuideChannel", () => {

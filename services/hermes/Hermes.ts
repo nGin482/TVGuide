@@ -21,19 +21,21 @@ class Hermes extends Client {
     reminderMessage: string,
     eventsMessage: string
   ) {
+    const isProduction = process.env.NODE_ENV === "production";
     const guideChannel = this.getGuideChannel();
     const nginUser = this.users.cache.get(appConfig.nGinUserId);
 
-    // TODO: will silently fail if guideChannel isn't found
-    if (guideChannel) {
-      await guideChannel.send(guideMessage);
-      await guideChannel.send(reminderMessage);
-      if (process.env.NODE_ENV !== "development" && nginUser) {
-        await nginUser.send(eventsMessage)
-      }
-      else {
-        await guideChannel.send(eventsMessage);
-      }
+    if (isProduction && !nginUser) {
+      throw Error("NGin user not found");
+    }
+
+    await guideChannel.send(guideMessage);
+    await guideChannel.send(reminderMessage);
+    if (isProduction && nginUser) {
+      await nginUser.send(eventsMessage)
+    }
+    else {
+      await guideChannel.send(eventsMessage);
     }
   }
 
