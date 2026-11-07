@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import GuideEpisode from "../../../database/models/GuideEpisode";
 import ShowDetails from "../../../database/models/ShowDetails";
 import ShowEpisode from "../../../database/models/ShowEpisode";
@@ -76,7 +77,9 @@ describe("ShowEpisodeModel", () => {
       expect(ShowEpisode.findOne).toHaveBeenCalledWith({
         where: {
           show: "Endeavour",
-          episodeTitle: "Pilot",
+          episodeTitle: {
+            [Op.iLike]: "Pilot",
+          },
         },
       })
       expect(showEpisode).toEqual(testShowEpisodes[0]);

@@ -47,7 +47,7 @@ class ShowService:
             tvmaze_details["id"],
             conditions["min_season_number"],
             conditions["max_season_number"],
-            body["include_specials"]
+            body["include_specials"] if "include_specials" in body else False,
         )
         show_episodes: list[ShowEpisode] = []
         for episode in tvmaze_episodes:
